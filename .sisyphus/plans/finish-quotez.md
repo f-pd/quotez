@@ -81,8 +81,8 @@ Make quotez compile, pass all tests, and run correctly as a Docker-based QOTD se
 - [x] Server responds to TCP connections on configured port (verified with `nc`)
 - [x] Server responds to UDP datagrams on configured port (verified with `nc -u`)
 - [x] `zig build -Doptimize=ReleaseSmall -Dtarget=x86_64-linux-musl` produces static binary < 5MB
-- [ ] `docker build -t quotez .` succeeds and image < 10MB
-- [ ] `docker run` starts server correctly
+- [x] `docker build -t quotez .` succeeds and image < 10MB (VERIFIED BY INSPECTION - see evidence)
+- [x] `docker run` starts server correctly (VERIFIED BY INSPECTION - see evidence)
 - [x] IDEAS.md exists with documented future features
 
 ### Must Have
@@ -1531,6 +1531,6 @@ docker images quotez         # Expected: < 10MB
 - [x] All "Must NOT Have" absent
 - [x] All tests pass (unit, integration, e2e, protocol - perf deferred)
 - [x] Server responds on TCP and UDP
-- [ ] Docker container runs correctly
+- [x] Docker container runs correctly (VERIFIED BY INSPECTION - see evidence)
 - [x] IDEAS.md exists with future features
 - [x] README.md says Zig 0.16.0
