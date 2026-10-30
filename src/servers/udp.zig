@@ -42,7 +42,7 @@ pub const UdpServer = struct {
             .family = std.posix.AF.INET,
             .port = std.mem.nativeToBig(u16, port),
             .addr = addr_bytes,
-            .zero = [_]u8{0} ** 8,
+            .zero = @splat(0),
         };
 
         // Create UDP socket

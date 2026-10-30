@@ -6,6 +6,7 @@ const net = @import("../net.zig");
 const selector_mod = @import("../selector.zig");
 const watcher_mod = @import("../watcher.zig");
 const config_mod = @import("../config.zig");
+const app_io = @import("../compat/io.zig");
 
 /// HTTP health endpoint server
 pub const HttpServer = struct {
@@ -18,7 +19,7 @@ pub const HttpServer = struct {
     auth_password: []const u8,
     selector: *selector_mod.Selector,
     watcher: *watcher_mod.FileWatcher,
-    startup_time: std.time.Instant,
+    startup_time: i128,
     maintenance_mode: bool,
     api_quotes_path: []const u8,
     config_ref: *const config_mod.Configuration,
@@ -33,7 +34,7 @@ pub const HttpServer = struct {
         auth_password: []const u8,
         sel: *selector_mod.Selector,
         file_watcher: *watcher_mod.FileWatcher,
-        startup: std.time.Instant,
+        startup: i128,
         api_quotes_path: []const u8,
         config: *const config_mod.Configuration,
     ) !HttpServer {
@@ -184,7 +185,7 @@ pub const HttpServer = struct {
         };
 
         // Trim trailing \r from path if present
-        const path = std.mem.trimRight(u8, path_raw, "\r");
+        const path = if (std.mem.endsWith(u8, path_raw, "\r")) path_raw[0 .. path_raw.len - 1] else path_raw;
 
         // Extract body (available for route handlers that need it)
         const body_info = HttpServer.findBody(request);
@@ -264,7 +265,7 @@ pub const HttpServer = struct {
     /// Handle /api/quotes endpoint — GET list, POST create
     fn handleQuotes(self: *HttpServer, client_fd: std.posix.socket_t, method: []const u8, body: []const u8) !void {
         if (std.mem.eql(u8, method, "GET")) {
-            var json_buf: std.ArrayList(u8) = .{};
+            var json_buf: std.ArrayList(u8) = .empty;
             defer json_buf.deinit(self.allocator);
 
             try json_buf.appendSlice(self.allocator, "{\"quotes\":[");
@@ -319,7 +320,7 @@ pub const HttpServer = struct {
             };
 
             const new_id = self.store.count() - 1;
-            var json_buf: std.ArrayList(u8) = .{};
+            var json_buf: std.ArrayList(u8) = .empty;
             defer json_buf.deinit(self.allocator);
             var id_buf: [32]u8 = undefined;
             const id_prefix = try std.fmt.bufPrint(&id_buf, "{{\"id\":{d},\"text\":\"", .{new_id});
@@ -340,7 +341,7 @@ pub const HttpServer = struct {
                 return;
             };
 
-            var json_buf: std.ArrayList(u8) = .{};
+            var json_buf: std.ArrayList(u8) = .empty;
             defer json_buf.deinit(self.allocator);
             var id_buf: [32]u8 = undefined;
             const id_prefix = try std.fmt.bufPrint(&id_buf, "{{\"id\":{d},\"text\":\"", .{id});
@@ -378,7 +379,7 @@ pub const HttpServer = struct {
             };
 
             const new_id = self.store.count() - 1;
-            var json_buf: std.ArrayList(u8) = .{};
+            var json_buf: std.ArrayList(u8) = .empty;
             defer json_buf.deinit(self.allocator);
             var id_buf: [32]u8 = undefined;
             const id_prefix = try std.fmt.bufPrint(&id_buf, "{{\"id\":{d},\"text\":\"", .{new_id});
@@ -409,7 +410,7 @@ pub const HttpServer = struct {
     }
 
     fn writeApiQuotesFile(self: *HttpServer) !void {
-        var json_buf: std.ArrayList(u8) = .{};
+        var json_buf: std.ArrayList(u8) = .empty;
         defer json_buf.deinit(self.allocator);
 
         try json_buf.appendSlice(self.allocator, "{\"quotes\":[");
@@ -427,15 +428,11 @@ pub const HttpServer = struct {
         }
         try json_buf.appendSlice(self.allocator, "]}");
 
-        var write_buffer: [4096]u8 = undefined;
-        var atomic = try std.fs.cwd().atomicFile(self.api_quotes_path, .{
-            .make_path = true,
-            .write_buffer = &write_buffer,
+        try std.Io.Dir.cwd().writeFile(app_io.value, .{
+            .sub_path = self.api_quotes_path,
+            .data = json_buf.items,
+            .flags = .{ .truncate = true },
         });
-        defer atomic.deinit();
-
-        try atomic.file_writer.interface.writeAll(json_buf.items);
-        try atomic.finish();
     }
 
     /// Handle /api/status endpoint — GET only, requires auth
@@ -444,9 +441,9 @@ pub const HttpServer = struct {
             try self.sendErrorResponse(client_fd, 405, "Method Not Allowed", "Method Not Allowed");
             return;
         }
-        const now = std.time.Instant.now() catch self.startup_time;
-        const uptime_ns = now.since(self.startup_time);
-        const uptime_s = uptime_ns / std.time.ns_per_s;
+        const now = app_io.nowNs();
+        const uptime_ns = now - self.startup_time;
+        const uptime_s = @divTrunc(uptime_ns, std.time.ns_per_s);
         const status_str: []const u8 = if (self.maintenance_mode) "maintenance" else "ok";
         const mode_str = self.selector.mode.asString();
         const quote_count = self.store.count();
@@ -464,7 +461,7 @@ pub const HttpServer = struct {
     /// Handle /api/config endpoint — GET config, PATCH update runtime settings
     fn handleConfig(self: *HttpServer, client_fd: std.posix.socket_t, method: []const u8, body: []const u8) !void {
         if (std.mem.eql(u8, method, "GET")) {
-            var json_buf: std.ArrayList(u8) = .{};
+            var json_buf: std.ArrayList(u8) = .empty;
             defer json_buf.deinit(self.allocator);
 
             try json_buf.appendSlice(self.allocator, "{\"selection_mode\":\"");
@@ -1012,7 +1009,7 @@ test "extractTextField rejects malformed bodies" {
 
 test "appendJsonEscaped escapes special characters" {
     const allocator = std.testing.allocator;
-    var buf: std.ArrayList(u8) = .{};
+    var buf: std.ArrayList(u8) = .empty;
     defer buf.deinit(allocator);
 
     try appendJsonEscaped(&buf, allocator, "a\"b\\c\nd\re\tf");

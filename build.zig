@@ -23,9 +23,6 @@ pub fn build(b: *std.Build) void {
     // Run command
     const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(b.getInstallStep());
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
-    }
 
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
@@ -144,9 +141,11 @@ pub fn build(b: *std.Build) void {
 
     // All tests step
     const all_tests_step = b.step("test-all", "Run all tests");
-    all_tests_step.dependOn(&run_unit_tests.step);
-    all_tests_step.dependOn(&run_integration_tests.step);
-    all_tests_step.dependOn(&run_e2e_tests.step);
-    all_tests_step.dependOn(&run_perf_tests.step);
+    // The integration suites use fixed localhost ports. Chain them so the
+    // aggregate step cannot launch conflicting test processes concurrently.
+    run_integration_tests.step.dependOn(&run_unit_tests.step);
+    run_e2e_tests.step.dependOn(&run_integration_tests.step);
+    run_perf_tests.step.dependOn(&run_e2e_tests.step);
+    run_reload_tests.step.dependOn(&run_perf_tests.step);
     all_tests_step.dependOn(&run_reload_tests.step);
 }

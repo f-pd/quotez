@@ -115,8 +115,8 @@ test "UDP server respects 512 byte datagram limit" {
     defer store.deinit();
     
     // Add a very long quote (> 512 bytes)
-    const long_quote = "A" ** 600;
-    try store.add(long_quote);
+    const long_quote: [600]u8 = @splat('A');
+    try store.add(&long_quote);
     
     var sel = try selector_mod.Selector.init(allocator, .sequential, store.count());
     defer sel.deinit();

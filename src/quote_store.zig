@@ -1,4 +1,5 @@
 const std = @import("std");
+const app_io = @import("compat/io.zig");
 const logger = @import("logger.zig");
 const config = @import("config.zig");
 const parser_mod = @import("parsers/parser.zig");
@@ -73,7 +74,7 @@ pub const QuoteStore = struct {
     /// Initialize an empty quote store
     pub fn init(allocator: std.mem.Allocator) QuoteStore {
         return .{
-            .quotes = .{}, // Empty ArrayList in Zig 0.16
+            .quotes = .empty,
             .allocator = allocator,
             .last_rebuild = 0, // Use 0 instead of timestamp for now
             .metadata = .{},
@@ -86,7 +87,7 @@ pub const QuoteStore = struct {
         for (self.quotes.items) |quote| {
             quote.deinit(self.allocator);
         }
-        self.quotes.deinit(self.allocator); // Pass allocator to deinit in Zig 0.16
+        self.quotes.deinit(self.allocator);
     }
 
     /// Build quote store from directories
@@ -114,7 +115,7 @@ pub const QuoteStore = struct {
 
         // Update metadata
         self.metadata.unique_quotes = self.quotes.items.len;
-        self.last_rebuild = @divTrunc(std.time.milliTimestamp(), 1000);
+        self.last_rebuild = @intCast(@divTrunc(app_io.nowNs(), std.time.ns_per_s));
 
         // Log results
         if (self.metadata.unique_quotes == 0) {
@@ -134,16 +135,16 @@ pub const QuoteStore = struct {
 
     /// Walk a directory recursively and load quote files
     fn walkDirectory(self: *QuoteStore, dir_path: []const u8, seen: *std.AutoHashMap([32]u8, void)) !void {
-        var dir = std.fs.cwd().openDir(dir_path, .{ .iterate = true }) catch |err| {
+        var dir = std.Io.Dir.cwd().openDir(app_io.value, dir_path, .{ .iterate = true }) catch |err| {
             self.log.warn("directory_open_failed", .{ .path = dir_path, .err = @errorName(err) });
             return err;
         };
-        defer dir.close();
+        defer dir.close(app_io.value);
 
         var walker = try dir.walk(self.allocator);
         defer walker.deinit();
 
-        while (try walker.next()) |entry| {
+        while (try walker.next(app_io.value)) |entry| {
             if (entry.kind != .file) continue;
 
             // Build full path
@@ -162,7 +163,7 @@ pub const QuoteStore = struct {
 
     /// Parse a single quote file with format auto-detection
     fn parseQuoteFile(self: *QuoteStore, path: []const u8, seen: *std.AutoHashMap([32]u8, void)) !void {
-        const content = try std.fs.cwd().readFileAlloc(self.allocator, path, 10 * 1024 * 1024); // 10MB max
+        const content = try std.Io.Dir.cwd().readFileAlloc(app_io.value, path, self.allocator, .limited(10 * 1024 * 1024)); // 10MB max
         defer self.allocator.free(content);
 
         // Detect format
@@ -205,7 +206,7 @@ pub const QuoteStore = struct {
 
             // Add to store
             try seen.put(quote.hash, {});
-            try self.quotes.append(self.allocator, quote); // Pass allocator in Zig 0.16
+            try self.quotes.append(self.allocator, quote);
         }
     }
 

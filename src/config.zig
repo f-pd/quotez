@@ -1,4 +1,5 @@
 const std = @import("std");
+const app_io = @import("compat/io.zig");
 const logger = @import("logger.zig");
 
 /// Selection mode for quote serving
@@ -71,7 +72,7 @@ pub const Configuration = struct {
     pub fn load(allocator: std.mem.Allocator, path: []const u8) !Configuration {
         var log = logger.Logger.init();
 
-        const content = std.fs.cwd().readFileAlloc(allocator, path, 1024 * 1024) catch |err| {
+        const content = std.Io.Dir.cwd().readFileAlloc(app_io.value, path, allocator, .limited(1024 * 1024)) catch |err| {
             log.err("config_error", .{ .reason = "failed to read file", .path = path });
             return err;
         };

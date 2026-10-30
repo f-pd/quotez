@@ -1,6 +1,6 @@
 # quotez
 
-A tiny Zig nanoservice implementing the Quote of the Day (RFC 865) protocol over TCP and UDP. It loads, normalizes, and deduplicates quotes from local files (txt/csv/json/toml/yaml) and serves them on demand. Ships as a static binary in a minimal scratch container.
+A tiny Zig 0.17.0 nanoservice implementing the Quote of the Day (RFC 865) protocol over TCP and UDP. It loads, normalizes, and deduplicates quotes from local files (txt/csv/json/toml/yaml) and serves them on demand. The MVP is local-file-backed and ships as a static binary in a minimal non-root container.
 
 ## Features
 
@@ -16,7 +16,7 @@ A tiny Zig nanoservice implementing the Quote of the Day (RFC 865) protocol over
 
 ### Prerequisites
 
-- Zig 0.15.2
+- Zig 0.17.0
 - Bun (for website)
 - Docker (optional, for container deployment)
 
@@ -62,9 +62,9 @@ nc localhost 17              # TCP
 echo "" | nc -u localhost 17 # UDP
 ```
 
-## REST API
+## Additional repository assets
 
-The service provides a full HTTP REST API on the health port (default 8080) for quote management and operational control.
+The repository also contains an HTTP API and website implementation, but they are outside the local-file-backed QOTD MVP boundary. The supported MVP deployment exposes only the TCP and UDP QOTD service.
 
 ### Authentication
 

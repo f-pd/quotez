@@ -12,23 +12,23 @@
 #     quotez:latest
 
 # ==============================================================================
-# Stage 1: Builder - Alpine + Zig 0.16.0-dev.2682+02142a54d
+# Stage 1: Builder - Alpine + released Zig 0.17.0
 # ==============================================================================
 FROM alpine:latest AS builder
 
 # Install dependencies for Zig download and build
-RUN apk add --no-cache curl tar xz
+RUN apk add --no-cache binutils curl tar xz
 
-# Install Zig 0.16.0-dev.2682+02142a54d (latest 0.16 build per AGENTS.md)
+ARG ZIG_VERSION=0.17.0
 ARG TARGETARCH
 RUN case "${TARGETARCH}" in \
       amd64) ZIG_ARCH="x86_64" ;; \
       arm64) ZIG_ARCH="aarch64" ;; \
       *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
     esac && \
-    curl -fsSL "https://ziglang.org/builds/zig-${ZIG_ARCH}-linux-0.16.0-dev.2682+02142a54d.tar.xz" -o zig.tar.xz && \
+    curl -fsSL "https://ziglang.org/download/${ZIG_VERSION}/zig-${ZIG_ARCH}-linux-${ZIG_VERSION}.tar.xz" -o zig.tar.xz && \
     tar -xf zig.tar.xz && \
-    mv zig-${ZIG_ARCH}-linux-0.16.0-dev.2682+02142a54d /opt/zig && \
+    mv zig-${ZIG_ARCH}-linux-${ZIG_VERSION} /opt/zig && \
     rm zig.tar.xz
 
 ENV PATH="/opt/zig:${PATH}"
@@ -40,19 +40,17 @@ WORKDIR /build
 COPY src/ src/
 COPY build.zig build.zig
 
-# Build static binary with Zig native cross-compilation
-# CRITICAL: Use zig build-exe workaround (zig build produces corrupted binaries per notepad)
+# Build a static binary with Zig's native cross-compilation support.
 ARG TARGETARCH
 RUN case "${TARGETARCH}" in \
       amd64) ZIG_TARGET="x86_64-linux-musl" ;; \
       arm64) ZIG_TARGET="aarch64-linux-musl" ;; \
       *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
     esac && \
-    zig build-exe src/main.zig \
-      -lc \
+    zig build \
       -Doptimize=ReleaseSmall \
-      -Dtarget=${ZIG_TARGET} \
-      --name quotez && \
+      -Dtarget=${ZIG_TARGET} && \
+    cp zig-out/bin/quotez quotez && \
     strip quotez
 
 # ==============================================================================
@@ -76,7 +74,6 @@ COPY quotez.docker.toml /quotez.toml
 # Expose ports
 EXPOSE 8017/tcp
 EXPOSE 8017/udp
-EXPOSE 8080/tcp
 
 # Run as nonroot (UID 65532) - inherited from distroless/static:nonroot
 USER 65532

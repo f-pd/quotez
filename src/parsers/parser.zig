@@ -138,7 +138,7 @@ pub fn normalizeQuote(allocator: std.mem.Allocator, input: []const u8) !?[]const
     if (trimmed.len == 0) return null;
 
     // Validate UTF-8 and replace invalid sequences
-    var result: std.ArrayList(u8) = .{};
+    var result: std.ArrayList(u8) = .empty;
     defer result.deinit(allocator);
 
     var i: usize = 0;
@@ -175,7 +175,7 @@ pub fn normalizeQuote(allocator: std.mem.Allocator, input: []const u8) !?[]const
 
 /// Collapse multiple whitespace characters into single spaces
 fn collapseWhitespace(allocator: std.mem.Allocator, input: []const u8) ![]const u8 {
-    var result: std.ArrayList(u8) = .{};
+    var result: std.ArrayList(u8) = .empty;
     errdefer result.deinit(allocator);
 
     var prev_was_space = false;

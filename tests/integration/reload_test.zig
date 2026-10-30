@@ -31,7 +31,8 @@ test "file watcher detects new file" {
 
     // Get absolute path of tmp dir
     var path_buf: [4096]u8 = undefined;
-    const tmp_path = try tmp.dir.realpath(".", &path_buf);
+    const tmp_path_len = try tmp.dir.realPath(testing.io, &path_buf);
+    const tmp_path = path_buf[0..tmp_path_len];
 
     // Initialize watcher with interval=1s
     const dirs = [_][]const u8{tmp_path};
@@ -42,9 +43,9 @@ test "file watcher detects new file" {
     watcher.dir_mtimes.items[0] = 0;
 
     // Create a file in the watched directory (updates dir mtime)
-    var file = try tmp.dir.createFile("quotes.txt", .{});
-    try file.writeAll("The quick brown fox\nJumps over the lazy dog\n");
-    file.close();
+    var file = try tmp.dir.createFile(testing.io, "quotes.txt", .{});
+    try file.writeStreamingAll(testing.io, "The quick brown fox\nJumps over the lazy dog\n");
+    file.close(testing.io);
 
     // Force interval_seconds=0 so check() doesn't bail due to elapsed time
     watcher.interval_seconds = 0;
@@ -62,12 +63,13 @@ test "store rebuilds after file change" {
     defer tmp.cleanup();
 
     var path_buf: [4096]u8 = undefined;
-    const tmp_path = try tmp.dir.realpath(".", &path_buf);
+    const tmp_path_len = try tmp.dir.realPath(testing.io, &path_buf);
+    const tmp_path = path_buf[0..tmp_path_len];
 
     // Write initial quote file
-    var file1 = try tmp.dir.createFile("quotes1.txt", .{});
-    try file1.writeAll("First quote\nSecond quote\n");
-    file1.close();
+    var file1 = try tmp.dir.createFile(testing.io, "quotes1.txt", .{});
+    try file1.writeStreamingAll(testing.io, "First quote\nSecond quote\n");
+    file1.close(testing.io);
 
     // Build store from temp dir
     var store = quote_store_mod.QuoteStore.init(allocator);
@@ -80,9 +82,9 @@ test "store rebuilds after file change" {
     try testing.expect(initial_count > 0);
 
     // Add a second quote file with new quotes
-    var file2 = try tmp.dir.createFile("quotes2.txt", .{});
-    try file2.writeAll("Third quote\nFourth quote\n");
-    file2.close();
+    var file2 = try tmp.dir.createFile(testing.io, "quotes2.txt", .{});
+    try file2.writeStreamingAll(testing.io, "Third quote\nFourth quote\n");
+    file2.close(testing.io);
 
     // Rebuild store — should pick up new file
     try store.build(&dirs);
@@ -101,12 +103,13 @@ test "selector resets after store rebuild" {
     defer tmp.cleanup();
 
     var path_buf: [4096]u8 = undefined;
-    const tmp_path = try tmp.dir.realpath(".", &path_buf);
+    const tmp_path_len = try tmp.dir.realPath(testing.io, &path_buf);
+    const tmp_path = path_buf[0..tmp_path_len];
 
     // Write initial quotes
-    var file1 = try tmp.dir.createFile("quotes.txt", .{});
-    try file1.writeAll("Alpha quote\nBeta quote\n");
-    file1.close();
+    var file1 = try tmp.dir.createFile(testing.io, "quotes.txt", .{});
+    try file1.writeStreamingAll(testing.io, "Alpha quote\nBeta quote\n");
+    file1.close(testing.io);
 
     var store = quote_store_mod.QuoteStore.init(allocator);
     defer store.deinit();
@@ -121,9 +124,9 @@ test "selector resets after store rebuild" {
     _ = sel.next(); // advance position
 
     // Add more quotes and rebuild store
-    var file2 = try tmp.dir.createFile("more.txt", .{});
-    try file2.writeAll("Gamma quote\nDelta quote\n");
-    file2.close();
+    var file2 = try tmp.dir.createFile(testing.io, "more.txt", .{});
+    try file2.writeStreamingAll(testing.io, "Gamma quote\nDelta quote\n");
+    file2.close(testing.io);
 
     try store.build(&dirs);
 
