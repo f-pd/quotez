@@ -1,4 +1,5 @@
 const std = @import("std");
+const app_io = @import("compat/io.zig");
 
 /// Log level enumeration matching standard severity levels
 pub const Level = enum {
@@ -20,7 +21,7 @@ pub const Level = enum {
 /// Minimal structured logger that writes to stderr via std.debug.print
 /// Format: [timestamp] LEVEL event key1=value1 key2=value2
 pub const Logger = struct {
-    mutex: std.Thread.Mutex = .{},
+    mutex: std.atomic.Mutex = .unlocked,
 
     /// Initialize logger
     pub fn init() Logger {
@@ -30,24 +31,18 @@ pub const Logger = struct {
     /// Log a structured message with key-value fields
     /// Thread-safe via mutex
     pub fn log(self: *Logger, level: Level, event: []const u8, fields: anytype) void {
-        self.mutex.lock();
+        while (!self.mutex.tryLock()) std.atomic.spinLoopHint();
         defer self.mutex.unlock();
 
-        const instant = std.time.Instant.now() catch {
-            std.debug.print("[0] {s} {s}", .{ level.asString(), event });
-            return;
-        };
-        const sec = instant.timestamp.sec;
-        const nsec = instant.timestamp.nsec;
-        const ms = sec * 1000 + @divTrunc(nsec, 1_000_000);
+        const ms = @divTrunc(app_io.nowNs(), 1_000_000);
         std.debug.print("[{d}] {s} {s}", .{ ms, level.asString(), event });
 
         // Write structured fields
         const FieldsType = @TypeOf(fields);
         if (@typeInfo(FieldsType) == .@"struct") {
-            inline for (std.meta.fields(FieldsType)) |field| {
-                const value = @field(fields, field.name);
-                std.debug.print(" {s}=", .{field.name});
+            inline for (@typeInfo(FieldsType).@"struct".field_names) |field_name| {
+                const value = @field(fields, field_name);
+                std.debug.print(" {s}=", .{field_name});
                 printValue(value);
             }
         }

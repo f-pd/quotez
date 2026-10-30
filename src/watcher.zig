@@ -1,4 +1,5 @@
 const std = @import("std");
+const app_io = @import("compat/io.zig");
 
 /// FileWatcher provides polling-based hot reload for quote directories
 /// Tracks modification times for directories and detects changes
@@ -6,7 +7,7 @@ pub const FileWatcher = struct {
     allocator: std.mem.Allocator,
     directories: [][]const u8, // Owned copies of directory paths
     interval_seconds: u64,
-    last_check: std.time.Instant,
+    last_check: i128,
     dir_mtimes: std.ArrayList(i128), // mtime (nanoseconds) for each directory
 
     /// Initialize FileWatcher with directories to watch and polling interval
@@ -40,7 +41,7 @@ pub const FileWatcher = struct {
             .allocator = allocator,
             .directories = owned_dirs,
             .interval_seconds = interval_seconds,
-            .last_check = try std.time.Instant.now(),
+            .last_check = app_io.nowNs(),
             .dir_mtimes = dir_mtimes,
         };
     }
@@ -57,8 +58,8 @@ pub const FileWatcher = struct {
     /// Check if any watched directory has changed since last check
     /// Returns true if changes detected, false if no changes or interval not elapsed
     pub fn check(self: *FileWatcher) !bool {
-        const now = try std.time.Instant.now();
-        const elapsed_ns = now.since(self.last_check);
+        const now = app_io.nowNs();
+        const elapsed_ns: u64 = @intCast(@max(now - self.last_check, 0));
         const interval_ns = self.interval_seconds * std.time.ns_per_s;
 
         // Return early if not enough time has passed
@@ -86,8 +87,8 @@ pub const FileWatcher = struct {
 
     /// Helper function to get directory modification time in nanoseconds
     fn getDirectoryMtime(dir_path: []const u8) !i128 {
-        const stat = try std.fs.cwd().statFile(dir_path);
-        return stat.mtime;
+        const stat = try std.Io.Dir.cwd().statFile(app_io.value, dir_path, .{});
+        return @intCast(stat.mtime.nanoseconds);
     }
 };
 

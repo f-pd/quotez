@@ -11,10 +11,10 @@ mode = "random"
 interval_seconds = 60
 
 [health]
-enabled = true
+enabled = false
 port = 8080
 
 [api]
-enabled = true
+enabled = false
 username = "admin"
 password = "quotez"

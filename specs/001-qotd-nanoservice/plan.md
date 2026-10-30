@@ -11,7 +11,7 @@ quotez is a lightweight Zig nanoservice implementing RFC 865 Quote of the Day pr
 
 ## Technical Context
 
-**Language/Version**: Zig 0.16.0 (MANDATORY)
+**Language/Version**: Zig 0.17.0 (MANDATORY)
 **Primary Dependencies**: 
   - Zig standard library (net, fs, crypto, json, fmt)
   - Embedded TOML parser (zig-toml or inline parser)

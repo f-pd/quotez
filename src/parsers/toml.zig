@@ -4,7 +4,7 @@ const parser = @import("parser.zig");
 /// Simple TOML parser for quote arrays
 /// Supports: quotes = ["quote1", "quote2"] and [[quotes]] tables with text/quote field
 pub fn parse(allocator: std.mem.Allocator, content: []const u8) !parser.ParseResult {
-    var quotes: std.ArrayList([]const u8) = .{};
+    var quotes: std.ArrayList([]const u8) = .empty;
     errdefer {
         for (quotes.items) |quote| allocator.free(quote);
         quotes.deinit(allocator);
@@ -106,7 +106,7 @@ pub fn parse(allocator: std.mem.Allocator, content: []const u8) !parser.ParseRes
 
 /// Extract quoted strings from a line
 fn extractQuotesFromLine(allocator: std.mem.Allocator, line: []const u8) !?std.ArrayList([]const u8) {
-    var results: std.ArrayList([]const u8) = .{};
+    var results: std.ArrayList([]const u8) = .empty;
     errdefer {
         for (results.items) |item| allocator.free(item);
         results.deinit(allocator);

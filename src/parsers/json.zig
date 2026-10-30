@@ -3,7 +3,7 @@ const parser = @import("parser.zig");
 
 /// Parse JSON format: array of strings, object with "quotes" array, or array of objects with "quote"/"text" field
 pub fn parse(allocator: std.mem.Allocator, content: []const u8) !parser.ParseResult {
-    var quotes: std.ArrayList([]const u8) = .{};
+    var quotes: std.ArrayList([]const u8) = .empty;
     errdefer {
         for (quotes.items) |quote| allocator.free(quote);
         quotes.deinit(allocator);

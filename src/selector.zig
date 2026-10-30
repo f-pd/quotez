@@ -1,5 +1,6 @@
 const std = @import("std");
 const config = @import("config.zig");
+const app_io = @import("compat/io.zig");
 
 const SelectionMode = config.SelectionMode;
 
@@ -44,10 +45,7 @@ pub const Selector = struct {
 
     /// Initialize selector with given mode
     pub fn init(allocator: std.mem.Allocator, mode: SelectionMode, quote_count: usize) !Selector {
-        const instant = std.time.Instant.now() catch {
-            return initWithSeed(allocator, mode, quote_count, 12345);
-        };
-        const seed = @as(u64, @intCast(instant.timestamp.sec * 1000 + @divTrunc(instant.timestamp.nsec, 1_000_000)));
+        const seed = @as(u64, @intCast(@divTrunc(app_io.nowNs(), 1_000_000)));
 
         return initWithSeed(allocator, mode, quote_count, seed);
     }

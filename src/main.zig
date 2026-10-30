@@ -9,11 +9,11 @@ const tcp_server = @import("servers/tcp.zig");
 const udp_server = @import("servers/udp.zig");
 const watcher = @import("watcher.zig");
 const http_server = @import("servers/http.zig");
+const app_io = @import("compat/io.zig");
 
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.gpa;
+    app_io.value = init.io;
 
     var log = logger.Logger.init();
 
@@ -21,15 +21,15 @@ pub fn main() !void {
     log.info("startup", .{ .service = "quotez", .version = "0.1.0" });
 
     // Parse CLI arguments for config file path
-    const args = try std.process.argsAlloc(allocator);
-    defer std.process.argsFree(allocator, args);
+    var args = std.process.Args.Iterator.init(init.minimal.args);
 
     var config_path: []const u8 = "quotez.toml";
     var show_help = false;
 
     // Process arguments (skip args[0] which is the binary name)
-    if (args.len > 1) {
-        const first_arg = args[1];
+    _ = args.next();
+    if (args.next()) |first_arg_z| {
+        const first_arg = first_arg_z[0..first_arg_z.len];
         if (std.mem.eql(u8, first_arg, "--help") or std.mem.eql(u8, first_arg, "-h")) {
             show_help = true;
         } else {
@@ -132,7 +132,7 @@ pub fn main() !void {
     defer file_watcher.deinit();
 
     // Record startup time for /api/status uptime calculation
-    const startup_time = std.time.Instant.now() catch std.time.Instant{ .timestamp = .{ .sec = 0, .nsec = 0 } };
+    const startup_time = app_io.nowNs();
 
     // Initialize HTTP server (conditional on health_enabled)
     var http_opt: ?http_server.HttpServer = null;
@@ -209,7 +209,7 @@ fn setupSignalHandlers(shutdown_requested: *std.atomic.Value(bool)) !void {
 var shutdown_flag: ?*std.atomic.Value(bool) = null;
 
 /// Signal handler for SIGTERM and SIGINT
-fn handleShutdownSignal(_: c_int) callconv(.c) void {
+fn handleShutdownSignal(_: std.posix.SIG) callconv(.c) void {
     if (shutdown_flag) |flag| {
         flag.store(true, .seq_cst);
     }

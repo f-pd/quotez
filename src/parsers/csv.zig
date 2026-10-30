@@ -3,7 +3,7 @@ const parser = @import("parser.zig");
 
 /// Parse CSV format: extract first column from each row
 pub fn parse(allocator: std.mem.Allocator, content: []const u8) !parser.ParseResult {
-    var quotes: std.ArrayList([]const u8) = .{};
+    var quotes: std.ArrayList([]const u8) = .empty;
     errdefer {
         for (quotes.items) |quote| allocator.free(quote);
         quotes.deinit(allocator);
@@ -68,9 +68,9 @@ fn isHeader(line: []const u8) bool {
     // Check for common header keywords (case-insensitive)
     const lower_keywords = [_][]const u8{ "quote", "text", "content" };
     for (lower_keywords) |keyword| {
-        if (std.ascii.indexOfIgnoreCase(line, keyword) != null) {
-            return true;
-        }
+        if (line.len >= keyword.len) for (0..line.len - keyword.len + 1) |i| {
+            if (std.ascii.eqlIgnoreCase(line[i .. i + keyword.len], keyword)) return true;
+        };
     }
     return false;
 }
@@ -82,7 +82,7 @@ fn extractFirstColumn(allocator: std.mem.Allocator, line: []const u8, delimiter:
     // Handle quoted field: "text with, comma"
     if (line[0] == '"') {
         var i: usize = 1;
-        var result: std.ArrayList(u8) = .{};
+        var result: std.ArrayList(u8) = .empty;
         errdefer result.deinit(allocator);
 
         while (i < line.len) : (i += 1) {
