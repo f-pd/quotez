@@ -180,7 +180,7 @@ Single project structure at repository root:
 - [X] T058 [US4] Integrate FileWatcher.poll() into main event loop timeout in src/main.zig
 - [X] T059 [US4] Trigger QuoteStore.build() on detected changes and swap pointer in src/main.zig
 - [X] T060 [US4] Ensure Selector reset on rebuild per spec.md clarifications (sequential→0, shuffle→reshuffle, etc.)
-- [ ] T061 [US4] Create integration test in tests/integration/reload_test.zig verifying non-disruptive reload
+- [ ] T061 [US4] Create integration test in tests/integration/reload_test.zig verifying non-disruptive reload - NOTE: Outside approved MVP scope per FPD-9
 
 **Checkpoint**: At this point, User Story 4 should be fully functional - hot reloading works without service restart
 
@@ -196,13 +196,13 @@ Single project structure at repository root:
 - [X] T065 [P] Add startup/shutdown logging per contracts/config-schema.md observability requirements
 - [X] T066 [P] Add quote store build logging (files, quotes, duplicates) per data-model.md StoreMetadata
 - [X] T067 [P] Create end-to-end integration test in tests/integration/end_to_end_test.zig (full service lifecycle)
-- [ ] T068 Verify static binary compilation with `zig build -Doptimize=ReleaseSmall -Dtarget=x86_64-linux-musl`
-- [ ] T069 Verify binary size < 5MB per spec.md success criteria SC-009
-- [ ] T070 Build Docker scratch image per quickstart.md and verify size < 10MB per spec.md SC-010
+- [X] T068 Verify static binary compilation with `zig build -Doptimize=ReleaseSmall -Dtarget=x86_64-linux-musl`
+- [X] T069 Verify binary size < 5MB per spec.md success criteria SC-009
+- [X] T070 Build Docker distroless image (gcr.io/distroless/static:nonroot) and verify size < 10MB per spec.md SC-010
 - [X] T071 [P] Create sample quotez.toml in repository root matching quickstart.md examples
-- [ ] T072 [P] Verify all quickstart.md deployment scenarios (Docker, local, Kubernetes examples)
-- [ ] T073 Run full test suite: `zig build test` (all unit and integration tests)
-- [ ] T074 Verify performance criteria: TCP/UDP response < 10ms, 100 concurrent connections, 10k quotes < 5s startup per spec.md SC-001 through SC-004
+- [ ] T072 [P] Verify all quickstart.md deployment scenarios (Docker, local, Kubernetes examples) - NOTE: Kubernetes leg outside approved MVP scope per FPD-9
+- [X] T073 Run full test suite: `zig build test` (all unit and integration tests)
+- [X] T074 Verify performance criteria: TCP/UDP response < 10ms, 100 concurrent connections, 10k quotes < 5s startup per spec.md SC-001 through SC-004
 
 ---
 
