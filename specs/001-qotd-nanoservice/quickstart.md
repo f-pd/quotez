@@ -630,18 +630,13 @@ zig build test
 
 ### Build Docker Image
 
-```dockerfile
-# Dockerfile
-FROM scratch
-COPY zig-out/bin/quotez /quotez
-ENTRYPOINT ["/quotez"]
-```
+**Note**: The standard deployment uses a distroless base image. For a scratch-based minimal image, see the Dockerfile in the repository root.
 
 ```bash
 # Build static binary
 zig build -Doptimize=ReleaseSmall -Dtarget=x86_64-linux-musl
 
-# Build image
+# Build image using the provided Dockerfile
 docker build -t quotez:local .
 
 # Run
@@ -650,6 +645,16 @@ docker run -d \
   -v ~/quotes:/data/quotes:ro \
   -v ~/quotez.toml:/quotez.toml:ro \
   quotez:local
+```
+
+**Minimal Scratch Alternative** (if you need maximum image size reduction):
+
+```dockerfile
+# Dockerfile.scratch
+FROM scratch
+COPY zig-out/bin/quotez /quotez
+COPY quotez.docker.toml /quotez.toml
+ENTRYPOINT ["/quotez", "/quotez.toml"]
 ```
 
 ---

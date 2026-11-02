@@ -62,7 +62,7 @@ FROM gcr.io/distroless/static:nonroot
 LABEL org.opencontainers.image.title="quotez"
 LABEL org.opencontainers.image.description="RFC 865 Quote of the Day (QOTD) nanoservice in Zig"
 LABEL org.opencontainers.image.version="0.1.0"
-LABEL org.opencontainers.image.source="https://github.com/fulgidus/quotez"
+LABEL org.opencontainers.image.source="https://github.com/f-pd/quotez"
 LABEL org.opencontainers.image.created="2026-03-03T00:00:00Z"
 
 # Copy binary from builder

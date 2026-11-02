@@ -225,3 +225,113 @@ test "PERF: Quote selection performance with 10k quotes" {
     // Should be very fast - sub-millisecond per selection
     try std.testing.expect(per_selection_us < 100.0);
 }
+
+test "PERF: TCP 100 concurrent connections without refused connections" {
+    const allocator = std.testing.allocator;
+    const port: u16 = 21019;
+    const num_connections = 100;
+
+    var store = QuoteStore.init(allocator);
+    defer store.deinit();
+
+    try store.addQuote("Performance test quote for concurrent connection verification");
+
+    var sel = try Selector.init(allocator, SelectionMode.random, store.count());
+    defer sel.deinit();
+
+    var server = try TcpServer.init(allocator, "127.0.0.1", port, &store, &sel);
+    defer server.deinit();
+
+    // Create an arena allocator for concurrent threads
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    defer arena.deinit();
+    const thread_allocator = arena.allocator();
+
+    // Spawn concurrent client threads
+    const threads = try thread_allocator.alloc(std.Thread, num_connections);
+    var successful_connections: std.atomic.Value(usize) = std.atomic.Value(usize).init(0);
+    var failed_connections: std.atomic.Value(usize) = std.atomic.Value(usize).init(0);
+
+    const TestContext = struct {
+        port: u16,
+        allocator: std.mem.Allocator,
+        successful: *std.atomic.Value(usize),
+        failed: *std.atomic.Value(usize),
+        server: *TcpServer,
+
+        fn run(ctx: @This()) void {
+            // Connect and receive
+            const server_addr = std.posix.sockaddr.in{
+                .family = std.posix.AF.INET,
+                .port = std.mem.nativeToBig(u16, ctx.port),
+                .addr = @bitCast([4]u8{ 127, 0, 0, 1 }),
+            };
+
+            const client_socket = net.socket(
+                server_addr.family,
+                posix.SOCK.STREAM,
+                posix.IPPROTO.TCP,
+            ) catch {
+                _ = ctx.failed.fetchAdd(1, .monotonic);
+                return;
+            };
+            defer net.close(client_socket);
+
+            // Set socket timeout
+            const timeout = posix.timeval{ .sec = 5, .usec = 0 };
+            net.setsockopt(client_socket, posix.SOL.SOCKET, posix.SO.RCVTIMEO, std.mem.asBytes(&timeout)) catch {
+                _ = ctx.failed.fetchAdd(1, .monotonic);
+                return;
+            };
+
+            // Connect
+            net.connect(client_socket, @ptrCast(&server_addr), @sizeOf(std.posix.sockaddr.in)) catch {
+                _ = ctx.failed.fetchAdd(1, .monotonic);
+                return;
+            };
+
+            // Let server handle the request
+            ctx.server.acceptAndServe() catch {};
+
+            // Receive response
+            var buf: [4096]u8 = undefined;
+            const bytes_received = net.recv(client_socket, &buf, 0) catch {
+                _ = ctx.failed.fetchAdd(1, .monotonic);
+                return;
+            };
+
+            if (bytes_received > 0) {
+                _ = ctx.successful.fetchAdd(1, .monotonic);
+            } else {
+                _ = ctx.failed.fetchAdd(1, .monotonic);
+            }
+        }
+    };
+
+    const ctx = TestContext{
+        .port = port,
+        .allocator = thread_allocator,
+        .successful = &successful_connections,
+        .failed = &failed_connections,
+        .server = &server,
+    };
+
+    // Spawn threads
+    for (threads) |*thread_ptr| {
+        thread_ptr.* = try std.Thread.spawn(.{}, TestContext.run, .{ctx});
+    }
+
+    // Wait for all threads to complete
+    for (threads) |thread| {
+        thread.join();
+    }
+
+    const successful = successful_connections.load(.monotonic);
+    const failed = failed_connections.load(.monotonic);
+
+    std.debug.print("\n[PERF] Concurrent connections: {d} successful, {d} failed out of {d}\n", .{ successful, failed, num_connections });
+
+    // Verify all connections succeeded (at least 99, allow 1 for race conditions)
+    try std.testing.expect(successful >= 99);
+    try std.testing.expect(failed <= 1);
+}

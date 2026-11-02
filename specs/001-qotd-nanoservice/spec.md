@@ -193,7 +193,7 @@ An administrator creates a quotez.toml configuration file specifying server host
 **Deployment**
 
 - **FR-029**: Service MUST compile to a fully static binary with zero runtime dependencies
-- **FR-030**: Container image MUST use scratch base image
+- **FR-030**: Container image MUST use a minimal base image (gcr.io/distroless/static:nonroot) with ~7.5 MB base cost; scratch-based deployment remains available as a later optimization
 - **FR-031**: Container MUST contain only: /quotez binary, /quotez.toml config, and /data/quotes mount point
 - **FR-032**: Service SHOULD run as a non-root user when deployed
 
