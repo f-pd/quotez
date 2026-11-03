@@ -26,8 +26,8 @@ qotd-service:
     mode: random
     pollingInterval: 60
     apiEnabled: true
-    apiUsername: admin
-    apiPassword: quotez
+    apiUsername: quotez-admin
+    apiPassword: change-me-in-production
 
 qotd-web:
   enabled: true
@@ -48,5 +48,5 @@ qotd-web:
     QOTD_API_PORT: "8080"
     QOTD_TCP_HOST: qotd-service
     QOTD_TCP_PORT: "8017"
-    QOTD_API_USERNAME: admin
-    QOTD_API_PASSWORD: quotez
+    QOTD_API_USERNAME: quotez-admin
+    QOTD_API_PASSWORD: change-me-in-production

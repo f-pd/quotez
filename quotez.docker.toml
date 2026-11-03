@@ -16,5 +16,5 @@ port = 8080
 
 [api]
 enabled = false
-username = "admin"
-password = "quotez"
+username = "quotez-admin"
+password = "change-me-in-production"

@@ -3,15 +3,21 @@ import { getQuote } from "./src/lib/qotd-client";
 import { initDb, getSetting, setSetting, getAllSettings } from "./src/lib/settings";
 import path from "node:path";
 import fs from "node:fs";
+import { timingSafeEqual } from "node:crypto";
 
 const QOTD_API_HOST = process.env.QOTD_API_HOST ?? "127.0.0.1";
 const QOTD_API_PORT = parseInt(process.env.QOTD_API_PORT ?? "8080");
 const QOTD_TCP_HOST = process.env.QOTD_TCP_HOST ?? "127.0.0.1";
-const QOTD_TCP_PORT = parseInt(process.env.QOTD_TCP_PORT ?? "17");
-const QOTD_API_USERNAME = process.env.QOTD_API_USERNAME ?? "admin";
-const QOTD_API_PASSWORD = process.env.QOTD_API_PASSWORD ?? "quotez";
+const QOTD_TCP_PORT = parseInt(process.env.QOTD_TCP_PORT ?? "8017");
+const QOTD_API_USERNAME = process.env.QOTD_API_USERNAME ?? "quotez-admin";
+const QOTD_API_PASSWORD = process.env.QOTD_API_PASSWORD ?? "change-me-in-production";
 const PORT = parseInt(process.env.PORT ?? "3000");
 const DB_PATH = process.env.DB_PATH ?? path.join(import.meta.dir, "data", "settings.db");
+
+if (QOTD_API_USERNAME === "admin" || QOTD_API_PASSWORD === "quotez") {
+  console.error("[server] FATAL: Default credentials detected. Set QOTD_API_USERNAME and QOTD_API_PASSWORD.");
+  process.exit(1);
+}
 
 const dbDir = path.dirname(DB_PATH);
 if (!fs.existsSync(dbDir)) {
@@ -28,6 +34,32 @@ function serviceUnavailable(): Response {
     status: 503,
     headers: { "Content-Type": "application/json" },
   });
+}
+
+function unauthorized(): Response {
+  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    status: 401,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+function validateAuthHeader(authHeader: string | null): boolean {
+  if (!authHeader) return false;
+  if (!authHeader.startsWith("Basic ")) return false;
+
+  try {
+    const encoded = authHeader.slice(6);
+    const decoded = atob(encoded);
+    const [username, password] = decoded.split(":", 2);
+
+    const expectedAuth = Buffer.from(`${QOTD_API_USERNAME}:${QOTD_API_PASSWORD}`);
+    const receivedAuth = Buffer.from(`${username}:${password}`);
+
+    if (expectedAuth.length !== receivedAuth.length) return false;
+    return timingSafeEqual(expectedAuth, receivedAuth);
+  } catch {
+    return false;
+  }
 }
 
 async function serveStatic(pathname: string): Promise<Response> {
@@ -106,6 +138,13 @@ const server = Bun.serve({
       } catch (err) {
         console.error("[server] QOTD TCP error:", err);
         return serviceUnavailable();
+      }
+    }
+
+    if (pathname === "/settings" || pathname.startsWith("/api/")) {
+      const authHeader = req.headers.get("Authorization");
+      if (!validateAuthHeader(authHeader)) {
+        return unauthorized();
       }
     }
 
