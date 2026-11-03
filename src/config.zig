@@ -63,9 +63,9 @@ pub const Configuration = struct {
         pub const health_port: u16 = 8080;
         pub const selection_mode: SelectionMode = .random;
         pub const polling_interval: u32 = 60;
-        pub const api_enabled: bool = true;
-        pub const api_username: []const u8 = "admin";
-        pub const api_password: []const u8 = "quotez";
+        pub const api_enabled: bool = false;
+        pub const api_username: []const u8 = "";
+        pub const api_password: []const u8 = "";
         pub const api_quotes_path: []const u8 = "/data/quotes/api-managed.json";
     };
     /// Load and parse configuration from file
@@ -248,6 +248,14 @@ const TomlParser = struct {
         if (config.polling_interval == 0) {
             self.log.err("config_error", .{ .reason = "polling interval must be positive" });
             return error.InvalidInterval;
+        }
+
+        // Validate API credentials
+        if (config.api_enabled) {
+            if (config.api_username.len == 0 or config.api_password.len == 0) {
+                self.log.err("config_error", .{ .reason = "api.username and api.password are required when api.enabled is true" });
+                return error.MissingApiCredentials;
+            }
         }
 
         // Log defaults that were applied
