@@ -1,0 +1,28 @@
+services:
+  quotes-init:
+    image: busybox:latest
+    command: ["sh", "-c", "mkdir -p /data/quotes && chown -R 65532:65532 /data/quotes"]
+    volumes:
+      - quotes:/data/quotes
+    restart: "no"
+
+  qotd-service:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    depends_on:
+      quotes-init:
+        condition: service_completed_successfully
+    ports:
+      - "8017:8017/tcp"
+      - "8017:8017/udp"
+      - "127.0.0.1:8080:8080"
+      # add after 8017 is verified:
+      # - "17:8017/tcp"
+      # - "17:8017/udp"
+    volumes:
+      - quotes:/data/quotes
+
+volumes:
+  quotes:

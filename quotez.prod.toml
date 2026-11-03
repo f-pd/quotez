@@ -1,0 +1,21 @@
+[server]
+host = "0.0.0.0"
+tcp_port = 8017
+udp_port = 8017
+
+[quotes]
+directories = ["/data/quotes"]
+mode = "random"
+
+[polling]
+interval_seconds = 60
+
+[health]
+enabled = true
+port = 8080
+
+[api]
+enabled = true
+username = "CHANGE_ME_ADMIN_USERNAME"
+password = "CHANGE_ME_LONG_RANDOM_SECRET"
+quotes_path = "/data/quotes/api-managed.json"
