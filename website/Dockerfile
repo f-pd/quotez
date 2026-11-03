@@ -54,9 +54,9 @@ ENV PORT=3000 \
     QOTD_API_HOST=qotd-service \
     QOTD_API_PORT=8080 \
     QOTD_TCP_HOST=qotd-service \
-    QOTD_TCP_PORT=17 \
-    QOTD_API_USERNAME=admin \
-    QOTD_API_PASSWORD=quotez \
+    QOTD_TCP_PORT=8017 \
+    QOTD_API_USERNAME=quotez-admin \
+    QOTD_API_PASSWORD=change-me-in-production \
     DB_PATH=/data/settings.db
 
 # Create data directory for SQLite database
