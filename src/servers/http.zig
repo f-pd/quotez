@@ -200,6 +200,11 @@ pub const HttpServer = struct {
         } else if (std.mem.eql(u8, path, "/ready")) {
             try self.handleReady(client_fd, method);
         } else if (std.mem.startsWith(u8, path, "/api/")) {
+            // Gate API routes on api_enabled config flag
+            if (!self.config_ref.api_enabled) {
+                try self.sendErrorResponse(client_fd, 404, "Not Found", "Not Found");
+                return;
+            }
             // Auth required for all /api/ routes
             if (!self.checkAuth(request)) {
                 try self.sendUnauthorized(client_fd);
@@ -1130,4 +1135,107 @@ test "api quotes CRUD endpoint behavior" {
         "\r\n";
     const get_deleted_resp = try testSendHttpRequestOnce(&server, 18081, get_deleted_req, &response_storage);
     try std.testing.expect(std.mem.indexOf(u8, get_deleted_resp, "404 Not Found") != null);
+}
+
+test "api_enabled=true allows API routes" {
+    const allocator = std.testing.allocator;
+    const auth_header = "Authorization: Basic YWRtaW46cXVvdGV6\r\n";
+
+    var store = quote_store.QuoteStore.init(allocator);
+    defer store.deinit();
+    try store.add("Test quote");
+
+    var config = config_mod.Configuration{
+        .host = "127.0.0.1",
+        .tcp_port = 8017,
+        .udp_port = 8017,
+        .health_enabled = true,
+        .health_port = 8080,
+        .directories = &.{},
+        .selection_mode = .random,
+        .polling_interval = 60,
+        .api_enabled = true,
+        .api_username = "admin",
+        .api_password = "quotez",
+        .api_quotes_path = "api-managed.json",
+        .allocator = allocator,
+    };
+
+    var server = HttpServer.init(allocator, "127.0.0.1", 18082, &store, "admin", "quotez", undefined, undefined, undefined, "api-managed.json", &config) catch |err| {
+        if (err == error.AddressInUse) return error.SkipZigTest;
+        return err;
+    };
+    defer server.deinit();
+
+    var response_storage: [8192]u8 = undefined;
+
+    // GET /api/quotes should work
+    const get_req =
+        "GET /api/quotes HTTP/1.1\r\n" ++
+        "Host: localhost\r\n" ++
+        auth_header ++
+        "\r\n";
+    const resp = try testSendHttpRequestOnce(&server, 18082, get_req, &response_storage);
+    try std.testing.expect(std.mem.indexOf(u8, resp, "200 OK") != null);
+    try std.testing.expect(std.mem.indexOf(u8, testResponseBody(resp), "Test quote") != null);
+}
+
+test "api_enabled=false blocks API routes but allows health endpoints" {
+    const allocator = std.testing.allocator;
+    const auth_header = "Authorization: Basic YWRtaW46cXVvdGV6\r\n";
+
+    var store = quote_store.QuoteStore.init(allocator);
+    defer store.deinit();
+    try store.add("Test quote");
+
+    var config = config_mod.Configuration{
+        .host = "127.0.0.1",
+        .tcp_port = 8017,
+        .udp_port = 8017,
+        .health_enabled = true,
+        .health_port = 8080,
+        .directories = &.{},
+        .selection_mode = .random,
+        .polling_interval = 60,
+        .api_enabled = false,
+        .api_username = "admin",
+        .api_password = "quotez",
+        .api_quotes_path = "api-managed.json",
+        .allocator = allocator,
+    };
+
+    var server = HttpServer.init(allocator, "127.0.0.1", 18083, &store, "admin", "quotez", undefined, undefined, undefined, "api-managed.json", &config) catch |err| {
+        if (err == error.AddressInUse) return error.SkipZigTest;
+        return err;
+    };
+    defer server.deinit();
+
+    var response_storage: [8192]u8 = undefined;
+
+    // GET /health should still work
+    const health_req =
+        "GET /health HTTP/1.1\r\n" ++
+        "Host: localhost\r\n" ++
+        "\r\n";
+    const health_resp = try testSendHttpRequestOnce(&server, 18083, health_req, &response_storage);
+    try std.testing.expect(std.mem.indexOf(u8, health_resp, "200 OK") != null);
+    try std.testing.expect(std.mem.indexOf(u8, testResponseBody(health_resp), "ok") != null);
+
+    // GET /ready should still work
+    const ready_req =
+        "GET /ready HTTP/1.1\r\n" ++
+        "Host: localhost\r\n" ++
+        "\r\n";
+    const ready_resp = try testSendHttpRequestOnce(&server, 18083, ready_req, &response_storage);
+    try std.testing.expect(std.mem.indexOf(u8, ready_resp, "200 OK") != null);
+    try std.testing.expect(std.mem.indexOf(u8, testResponseBody(ready_resp), "ready") != null);
+
+    // GET /api/quotes should return 404
+    const api_req =
+        "GET /api/quotes HTTP/1.1\r\n" ++
+        "Host: localhost\r\n" ++
+        auth_header ++
+        "\r\n";
+    const api_resp = try testSendHttpRequestOnce(&server, 18083, api_req, &response_storage);
+    try std.testing.expect(std.mem.indexOf(u8, api_resp, "404 Not Found") != null);
 }
