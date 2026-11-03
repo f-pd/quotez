@@ -45,7 +45,7 @@ FROM oven/bun:1
 LABEL org.opencontainers.image.title="quotez-web"
 LABEL org.opencontainers.image.description="quotez website server - React SPA with Bun"
 LABEL org.opencontainers.image.version="0.1.0"
-LABEL org.opencontainers.image.source="https://github.com/fulgidus/quotez"
+LABEL org.opencontainers.image.source="https://github.com/f-pd/quotez"
 
 WORKDIR /app
 
@@ -55,8 +55,6 @@ ENV PORT=3000 \
     QOTD_API_PORT=8080 \
     QOTD_TCP_HOST=qotd-service \
     QOTD_TCP_PORT=8017 \
-    QOTD_API_USERNAME=quotez-admin \
-    QOTD_API_PASSWORD=change-me-in-production \
     DB_PATH=/data/settings.db
 
 # Create data directory for SQLite database

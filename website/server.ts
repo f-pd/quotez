@@ -9,13 +9,13 @@ const QOTD_API_HOST = process.env.QOTD_API_HOST ?? "127.0.0.1";
 const QOTD_API_PORT = parseInt(process.env.QOTD_API_PORT ?? "8080");
 const QOTD_TCP_HOST = process.env.QOTD_TCP_HOST ?? "127.0.0.1";
 const QOTD_TCP_PORT = parseInt(process.env.QOTD_TCP_PORT ?? "8017");
-const QOTD_API_USERNAME = process.env.QOTD_API_USERNAME ?? "quotez-admin";
-const QOTD_API_PASSWORD = process.env.QOTD_API_PASSWORD ?? "change-me-in-production";
+const QOTD_API_USERNAME = process.env.QOTD_API_USERNAME;
+const QOTD_API_PASSWORD = process.env.QOTD_API_PASSWORD;
 const PORT = parseInt(process.env.PORT ?? "3000");
 const DB_PATH = process.env.DB_PATH ?? path.join(import.meta.dir, "data", "settings.db");
 
-if (QOTD_API_USERNAME === "admin" || QOTD_API_PASSWORD === "quotez") {
-  console.error("[server] FATAL: Default credentials detected. Set QOTD_API_USERNAME and QOTD_API_PASSWORD.");
+if (!QOTD_API_USERNAME || !QOTD_API_PASSWORD) {
+  console.error("[server] FATAL: QOTD_API_USERNAME and QOTD_API_PASSWORD are required.");
   process.exit(1);
 }
 
@@ -50,7 +50,11 @@ function validateAuthHeader(authHeader: string | null): boolean {
   try {
     const encoded = authHeader.slice(6);
     const decoded = atob(encoded);
-    const [username, password] = decoded.split(":", 2);
+    const colonIdx = decoded.indexOf(":");
+    if (colonIdx === -1) return false;
+
+    const username = decoded.slice(0, colonIdx);
+    const password = decoded.slice(colonIdx + 1);
 
     const expectedAuth = Buffer.from(`${QOTD_API_USERNAME}:${QOTD_API_PASSWORD}`);
     const receivedAuth = Buffer.from(`${username}:${password}`);
