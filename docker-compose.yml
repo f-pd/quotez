@@ -18,9 +18,10 @@ services:
       - "8017:8017/tcp"
       - "8017:8017/udp"
       - "127.0.0.1:8080:8080"
-      # add after 8017 is verified:
-      # - "17:8017/tcp"
-      # - "17:8017/udp"
+      # RFC 865 standard port: Docker binds host port 17, the container
+      # keeps listening on unprivileged 8017 as the nonroot user.
+      - "17:8017/tcp"
+      - "17:8017/udp"
     volumes:
       - ./quotez.prod.toml:/quotez.toml:ro
       - quotes:/data/quotes
