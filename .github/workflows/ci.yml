@@ -67,7 +67,22 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Optional: redeploy production only once the new image is on GHCR.
+      - uses: docker/build-push-action@v6
+        with:
+          context: website
+          file: website/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}-web:latest
+            ghcr.io/${{ github.repository }}-web:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max
+
+      # Optional: redeploy production only once the new images are on GHCR.
       # Set the repo secret DOKPLOY_DEPLOY_WEBHOOK to the compose service's
       # deploy webhook URL (Deployments tab; its token only redeploys this
       # service). In Dokploy keep Autodeploy ON but set Trigger Type to "Tag",
