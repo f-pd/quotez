@@ -1,19 +1,10 @@
 services:
-  quotes-init:
-    image: busybox:latest
-    command: ["sh", "-c", "mkdir -p /data/quotes && chown -R 65532:65532 /data/quotes"]
-    volumes:
-      - quotes:/data/quotes
-    restart: "no"
-
   qotd-service:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    # Built and published by CI (.github/workflows/ci.yml); the deploy only
+    # pulls it. Pin a commit tag (ghcr.io/f-pd/quotez:sha-<short>) to roll back.
+    image: ghcr.io/f-pd/quotez:latest
+    pull_policy: always
     restart: unless-stopped
-    depends_on:
-      quotes-init:
-        condition: service_completed_successfully
     ports:
       - "8017:8017/tcp"
       - "8017:8017/udp"
@@ -29,7 +20,6 @@ services:
       QOTD_API_PASSWORD: ${QOTD_API_PASSWORD:?set QOTD_API_PASSWORD in Dokploy Environment}
     volumes:
       - ./quotez.prod.toml:/quotez.toml:ro
-      - ./quotes:/data/seed-quotes:ro
       - quotes:/data/quotes
 
 volumes:
