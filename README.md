@@ -209,3 +209,7 @@ tests/
 └── fixtures/
     └── quotes/           # Sample quote files for testing
 ```
+
+## License
+
+GPL-3.0. See [LICENSE](LICENSE).

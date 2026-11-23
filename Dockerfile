@@ -57,6 +57,7 @@ FROM scratch
 LABEL org.opencontainers.image.title="quotez"
 LABEL org.opencontainers.image.description="RFC 865 Quote of the Day (QOTD) nanoservice in Zig"
 LABEL org.opencontainers.image.source="https://github.com/f-pd/quotez"
+LABEL org.opencontainers.image.licenses="GPL-3.0"
 
 # Ownership is preserved: /data/quotes belongs to the runtime user, so a fresh
 # named volume mounted there inherits it (no init container needed).
