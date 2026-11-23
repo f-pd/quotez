@@ -1,30 +1,27 @@
-# quotez QOTD nanoservice - Multi-stage multi-arch Docker build
+# quotez QOTD nanoservice - FROM scratch image
 #
-# Build single-arch:
+# CI builds and publishes this to ghcr.io/f-pd/quotez (see
+# .github/workflows/ci.yml); production only pulls it.
+#
+# Local build:
 #   docker build -t quotez:latest .
-#
-# Build multi-arch:
+# Multi-arch:
 #   docker buildx build --platform linux/amd64,linux/arm64 -t quotez:latest .
-#
-# Run:
-#   docker run -d -p 8017:8017/tcp -p 8017:8017/udp -p 8080:8080/tcp \
-#     -v ./quotes:/data/quotes:ro \
-#     quotez:latest
 
 # ==============================================================================
-# Stage 1: Builder - Alpine + released Zig 0.17.0
+# Stage 1: builder runs natively on the build host and cross-compiles with Zig,
+# so multi-arch builds need no QEMU emulation.
 # ==============================================================================
-FROM alpine:latest AS builder
+FROM --platform=$BUILDPLATFORM alpine:3.22 AS builder
 
-# Install dependencies for Zig download and build
-RUN apk add --no-cache binutils curl tar xz
+RUN apk add --no-cache curl tar xz
 
 ARG ZIG_VERSION=0.17.0
-ARG TARGETARCH
-RUN case "${TARGETARCH}" in \
+ARG BUILDARCH
+RUN case "${BUILDARCH}" in \
       amd64) ZIG_ARCH="x86_64" ;; \
       arm64) ZIG_ARCH="aarch64" ;; \
-      *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
+      *) echo "Unsupported build architecture: ${BUILDARCH}" && exit 1 ;; \
     esac && \
     curl -fsSL "https://ziglang.org/download/${ZIG_VERSION}/zig-${ZIG_ARCH}-linux-${ZIG_VERSION}.tar.xz" -o zig.tar.xz && \
     tar -xf zig.tar.xz && \
@@ -32,51 +29,43 @@ RUN case "${TARGETARCH}" in \
     rm zig.tar.xz
 
 ENV PATH="/opt/zig:${PATH}"
-
-# Set working directory
 WORKDIR /build
 
-# Copy source files
-COPY src/ src/
 COPY build.zig build.zig
+COPY src/ src/
 
-# Build a static binary with Zig's native cross-compilation support.
+# ReleaseSmall output is already stripped; static musl, no runtime deps.
 ARG TARGETARCH
 RUN case "${TARGETARCH}" in \
       amd64) ZIG_TARGET="x86_64-linux-musl" ;; \
       arm64) ZIG_TARGET="aarch64-linux-musl" ;; \
-      *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
+      *) echo "Unsupported target architecture: ${TARGETARCH}" && exit 1 ;; \
     esac && \
-    zig build \
-      -Doptimize=ReleaseSmall \
-      -Dtarget=${ZIG_TARGET} && \
-    cp zig-out/bin/quotez quotez && \
-    strip quotez
+    zig build -Doptimize=ReleaseSmall -Dtarget=${ZIG_TARGET} && \
+    mkdir -p /rootfs/data/quotes && \
+    chown 65532:65532 /rootfs/data/quotes && \
+    cp zig-out/bin/quotez /rootfs/quotez
+
+COPY quotez.docker.toml /rootfs/quotez.toml
+COPY quotes/ /rootfs/data/seed-quotes/
 
 # ==============================================================================
-# Stage 2: Runtime - Distroless static with nonroot user
+# Stage 2: runtime - nothing but the binary, its config and the quote dirs.
 # ==============================================================================
-FROM gcr.io/distroless/static:nonroot
+FROM scratch
 
-# OCI labels
 LABEL org.opencontainers.image.title="quotez"
 LABEL org.opencontainers.image.description="RFC 865 Quote of the Day (QOTD) nanoservice in Zig"
-LABEL org.opencontainers.image.version="0.1.0"
 LABEL org.opencontainers.image.source="https://github.com/f-pd/quotez"
-LABEL org.opencontainers.image.created="2026-03-03T00:00:00Z"
+LABEL org.opencontainers.image.licenses="MIT"
 
-# Copy binary from builder
-COPY --from=builder /build/quotez /quotez
+# Ownership is preserved: /data/quotes belongs to the runtime user, so a fresh
+# named volume mounted there inherits it (no init container needed).
+COPY --from=builder /rootfs/ /
 
-# Copy production configuration
-COPY quotez.docker.toml /quotez.toml
-
-# Expose ports
 EXPOSE 8017/tcp
 EXPOSE 8017/udp
+EXPOSE 8080/tcp
 
-# Run as nonroot (UID 65532) - inherited from distroless/static:nonroot
-USER 65532
-
-# Entrypoint with config path argument
+USER 65532:65532
 ENTRYPOINT ["/quotez", "/quotez.toml"]

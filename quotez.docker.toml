@@ -4,7 +4,7 @@ tcp_port = 8017
 udp_port = 8017
 
 [quotes]
-directories = ["/data/quotes"]
+directories = ["/data/seed-quotes", "/data/quotes"]
 mode = "random"
 
 [polling]
