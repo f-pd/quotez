@@ -11,6 +11,7 @@ interface RichModeProps {
 export function RichMode({ quote, loading, error, onNewQuote }: RichModeProps) {
   const [visible, setVisible] = useState(false);
   const [quoteCount, setQuoteCount] = useState(0);
+  const [typed, setTyped] = useState(0);
 
   useEffect(() => {
     if (quote && !loading && !error) {
@@ -20,6 +21,22 @@ export function RichMode({ quote, loading, error, onNewQuote }: RichModeProps) {
     } else {
       setVisible(false);
     }
+  }, [quote, loading, error]);
+
+  // Typewriter effect that reveals characters one by one, so long quotes
+  // wrap onto several lines instead of being clipped on a single line.
+  useEffect(() => {
+    setTyped(0);
+    if (!quote || loading || error) return;
+    const total = quote.length;
+    const step = Math.max(10, Math.min(40, 2000 / Math.max(total, 1)));
+    let n = 0;
+    const timer = setInterval(() => {
+      n += 1;
+      setTyped(n);
+      if (n >= total) clearInterval(timer);
+    }, step);
+    return () => clearInterval(timer);
   }, [quote, loading, error]);
 
   const renderContent = () => {
@@ -57,11 +74,10 @@ export function RichMode({ quote, loading, error, onNewQuote }: RichModeProps) {
           Quote #{quoteCount}
         </div>
         <div className="rich-quote-wrapper">
-          <div 
-            className={`rich-quote ${visible ? 'typing' : ''}`} 
-            data-testid="quote-text"
-          >
-            {text}
+          <div className="rich-quote" data-testid="quote-text" aria-label={text}>
+            <span aria-hidden="true">{text.slice(0, typed)}</span>
+            <span className={`rich-caret ${typed >= text.length ? 'done' : ''}`} aria-hidden="true" />
+            <span className="rich-quote-rest" aria-hidden="true">{text.slice(typed)}</span>
           </div>
           {author && (
             <div className={`rich-author ${visible ? 'visible' : ''}`}>

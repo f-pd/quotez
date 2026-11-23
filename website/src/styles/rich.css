@@ -1,4 +1,5 @@
 .rich-container {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -60,30 +61,39 @@
 }
 
 .rich-quote {
-  font-size: 2rem;
+  font-size: clamp(1.25rem, 4.5vw, 2rem);
   font-weight: 600;
   line-height: 1.4;
   color: var(--color-text);
   margin-bottom: var(--spacing-md);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  max-width: 100%;
+}
+
+/* Untyped text keeps its space so the card does not jump while typing. */
+.rich-quote-rest {
+  visibility: hidden;
+}
+
+.rich-caret {
   display: inline-block;
-  overflow: hidden;
-  white-space: nowrap;
-  border-right: 2px solid var(--color-accent);
-  width: 0;
+  width: 2px;
+  height: 1.1em;
+  margin: 0 1px;
+  vertical-align: text-bottom;
+  background: var(--color-accent);
+  animation: blink 0.75s step-end infinite;
 }
 
-.rich-quote.typing {
-  animation: typing 2s steps(40, end) forwards, blink 0.75s step-end infinite;
-}
-
-@keyframes typing {
-  from { width: 0; }
-  to { width: 100%; }
+.rich-caret.done {
+  animation: blink 0.75s step-end 4 forwards;
 }
 
 @keyframes blink {
-  from, to { border-color: transparent; }
-  50% { border-color: var(--color-accent); }
+  from, to { opacity: 0; }
+  50% { opacity: 1; }
 }
 
 .rich-author {
@@ -132,4 +142,14 @@
 
 .rich-error {
   color: #ff6b6b;
+}
+
+@media (max-width: 600px) {
+  .rich-container {
+    padding: var(--spacing-md);
+  }
+
+  .rich-card {
+    padding: var(--spacing-lg);
+  }
 }
