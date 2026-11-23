@@ -139,6 +139,24 @@ pub fn build(b: *std.Build) void {
     const reload_step = b.step("test-reload", "Run hot reload integration test");
     reload_step.dependOn(&run_reload_tests.step);
 
+    // Backoffice API test module
+    const backoffice_module = b.createModule(.{
+        .root_source_file = b.path("tests/integration/backoffice_test.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    backoffice_module.addImport("src", src_module);
+
+    const backoffice_tests = b.addTest(.{
+        .root_module = backoffice_module,
+    });
+
+    const run_backoffice_tests = b.addRunArtifact(backoffice_tests);
+
+    const backoffice_step = b.step("test-backoffice", "Run backoffice API integration tests");
+    backoffice_step.dependOn(&run_backoffice_tests.step);
+
     // All tests step
     const all_tests_step = b.step("test-all", "Run all tests");
     // The integration suites use fixed localhost ports. Chain them so the
@@ -147,5 +165,6 @@ pub fn build(b: *std.Build) void {
     run_e2e_tests.step.dependOn(&run_integration_tests.step);
     run_perf_tests.step.dependOn(&run_e2e_tests.step);
     run_reload_tests.step.dependOn(&run_perf_tests.step);
-    all_tests_step.dependOn(&run_reload_tests.step);
+    run_backoffice_tests.step.dependOn(&run_reload_tests.step);
+    all_tests_step.dependOn(&run_backoffice_tests.step);
 }

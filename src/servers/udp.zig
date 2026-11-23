@@ -4,6 +4,7 @@ const quote_store = @import("../quote_store.zig");
 const selector_mod = @import("../selector.zig");
 const posix_net = @import("../compat/posix_net.zig");
 const net = @import("../net.zig");
+const runtime = @import("../runtime.zig");
 
 /// UDP QOTD server implementing RFC 865
 pub const UdpServer = struct {
@@ -118,42 +119,33 @@ pub const UdpServer = struct {
 
         self.log.debug("udp_datagram_received", .{ .bytes = recv_len });
 
-        // Check if quote store is empty
-        if (self.store.isEmpty()) {
+        // Decide what to send (maintenance message, quote, debug trailer)
+        var trailer_buf: [256]u8 = undefined;
+        const reply = runtime.nextReply(self.store, self.selector, .udp, &trailer_buf) orelse {
             // Silent drop (no response per UDP semantics and contract)
             self.log.debug("udp_request_empty_store", .{});
             return;
-        }
-
-        // Select next quote
-        const quote_index = self.selector.next();
-        const quote = (if (quote_index) |qi| self.store.get(qi) else null) orelse {
-            // Quote index out of bounds (shouldn't happen)
-            self.log.warn("udp_invalid_quote_index", .{ .index = quote_index });
-            return;
         };
+        const quote = reply.body;
 
-        // Prepare response buffer
+        // Prepare response buffer: body + trailer, truncated to one datagram
         var send_buf: [MAX_DATAGRAM_SIZE]u8 = undefined;
         const response = blk: {
-            // Format: quote + newline
-            if (quote.len + 1 > MAX_DATAGRAM_SIZE) {
-                // Quote too large, truncate
+            const total = quote.len + reply.trailer.len;
+            if (total > MAX_DATAGRAM_SIZE) {
                 self.log.warn("udp_quote_truncated", .{
-                    .original_length = quote.len,
+                    .original_length = total,
                     .max_size = MAX_DATAGRAM_SIZE,
                 });
-                // Copy what fits, leaving room for newline
-                const truncated_len = MAX_DATAGRAM_SIZE - 1;
-                @memcpy(send_buf[0..truncated_len], quote[0..truncated_len]);
-                send_buf[truncated_len] = '\n';
-                break :blk send_buf[0 .. truncated_len + 1];
-            } else {
-                // Normal case: quote + newline
-                @memcpy(send_buf[0..quote.len], quote);
-                send_buf[quote.len] = '\n';
-                break :blk send_buf[0 .. quote.len + 1];
+                // Copy what fits, leaving room for the newline
+                const body_len = @min(quote.len, MAX_DATAGRAM_SIZE - 1);
+                @memcpy(send_buf[0..body_len], quote[0..body_len]);
+                send_buf[body_len] = '\n';
+                break :blk send_buf[0 .. body_len + 1];
             }
+            @memcpy(send_buf[0..quote.len], quote);
+            @memcpy(send_buf[quote.len..total], reply.trailer);
+            break :blk send_buf[0..total];
         };
 
         // Send response to client

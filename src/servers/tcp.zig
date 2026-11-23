@@ -4,6 +4,7 @@ const quote_store = @import("../quote_store.zig");
 const selector_mod = @import("../selector.zig");
 const posix_net = @import("../compat/posix_net.zig");
 const net = @import("../net.zig");
+const runtime = @import("../runtime.zig");
 
 /// TCP QOTD server implementing RFC 865
 pub const TcpServer = struct {
@@ -113,50 +114,39 @@ pub const TcpServer = struct {
         };
         defer posix_net.close(client_fd);
 
-        // Check if quote store is empty
-        if (self.store.isEmpty()) {
-            // Close immediately without sending (per contract)
+        // Decide what to send (maintenance message, quote, debug trailer)
+        var trailer_buf: [256]u8 = undefined;
+        const reply = runtime.nextReply(self.store, self.selector, .tcp, &trailer_buf) orelse {
+            // Empty store: close immediately without sending (per contract)
             self.log.debug("tcp_request_empty_store", .{});
             return;
+        };
+
+        for ([_][]const u8{ reply.body, reply.trailer }) |chunk| {
+            sendAll(client_fd, chunk) catch |err| {
+                switch (err) {
+                    error.BrokenPipe, error.ConnectionResetByPeer => {
+                        // Client disconnected, ignore
+                        self.log.debug("tcp_client_disconnected", .{});
+                    },
+                    else => self.log.warn("tcp_serve_error", .{ .err = @errorName(err) }),
+                }
+                return;
+            };
         }
-
-        // Select next quote
-        const quote_index = self.selector.next();
-        const quote = (if (quote_index) |qi| self.store.get(qi) else null) orelse {
-            // Quote index out of bounds (shouldn't happen)
-            self.log.warn("tcp_invalid_quote_index", .{ .index = quote_index });
-            return;
-        };
-
-        // Send quote
-        _ = posix_net.send(client_fd, quote, 0) catch |err| {
-            // Handle send errors
-            switch (err) {
-                error.BrokenPipe, error.ConnectionResetByPeer => {
-                    // Client disconnected, ignore
-                    self.log.debug("tcp_client_disconnected", .{});
-                    return;
-                },
-                else => {
-                    self.log.warn("tcp_serve_error", .{ .err = @errorName(err) });
-                    return;
-                },
-            }
-        };
-
-        // Send newline
-        _ = posix_net.send(client_fd, "\n", 0) catch |err| {
-            switch (err) {
-                error.BrokenPipe, error.ConnectionResetByPeer => return,
-                else => {
-                    self.log.warn("tcp_serve_error", .{ .err = @errorName(err) });
-                    return;
-                },
-            }
-        };
+        const quote = reply.body;
 
         // Connection closes automatically when client_fd is deferred
         self.log.debug("tcp_request_served", .{ .quote_length = quote.len });
+    }
+
+    fn sendAll(fd: std.posix.socket_t, data: []const u8) !void {
+        var sent: usize = 0;
+        while (sent < data.len) {
+            const n = try posix_net.send(fd, data[sent..], 0);
+            if (n == 0) return error.BrokenPipe;
+            sent += n;
+        }
     }
 
     /// Run server loop (blocking, serves connections until stopped)

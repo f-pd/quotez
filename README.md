@@ -92,7 +92,11 @@ For the Dokploy Compose deployment, set `QOTD_API_USERNAME` and `QOTD_API_PASSWO
 | `/api/status` | GET | Service status and metrics |
 | `/api/config` | GET/PATCH | View or update runtime configuration |
 | `/api/reload` | POST | Trigger immediate reload from disk |
-| `/api/maintenance` | POST | Toggle maintenance mode |
+| `/api/maintenance` | GET/POST | Maintenance mode: `{"enabled":bool,"message":"..."}`. While on, TCP/UDP clients get the message instead of a quote |
+| `/api/debug` | GET/POST | Debug mode: `{"enabled":bool}`. Logs every request and appends selection details to QOTD replies |
+| `/api/stats` | GET | Serving statistics: totals per protocol, requests per minute (last hour), most served quotes (`?top=N`) |
+| `/api/stats/reset` | POST | Reset all counters |
+| `/api/logs` | GET | Recent log lines (`?since=SEQ&limit=N&level=info`), used by the backoffice live tail |
 
 ## Website
 

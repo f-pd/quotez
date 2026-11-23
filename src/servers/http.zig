@@ -7,6 +7,7 @@ const selector_mod = @import("../selector.zig");
 const watcher_mod = @import("../watcher.zig");
 const config_mod = @import("../config.zig");
 const app_io = @import("../compat/io.zig");
+const runtime = @import("../runtime.zig");
 
 /// HTTP health endpoint server
 pub const HttpServer = struct {
@@ -20,7 +21,6 @@ pub const HttpServer = struct {
     selector: *selector_mod.Selector,
     watcher: *watcher_mod.FileWatcher,
     startup_time: i128,
-    maintenance_mode: bool,
     api_quotes_path: []const u8,
     config_ref: *const config_mod.Configuration,
 
@@ -100,7 +100,6 @@ pub const HttpServer = struct {
             .selector = sel,
             .watcher = file_watcher,
             .startup_time = startup,
-            .maintenance_mode = false,
             .api_quotes_path = api_quotes_path,
             .config_ref = config,
         };
@@ -156,7 +155,21 @@ pub const HttpServer = struct {
             return;
         }
 
-        const request = buf[0..n];
+        var total = n;
+        // Keep reading until the declared body has fully arrived
+        if (HttpServer.parseContentLength(buf[0..total])) |content_length| {
+            if (std.mem.indexOf(u8, buf[0..total], "\r\n\r\n")) |hdr_end| {
+                const wanted = hdr_end + 4 + content_length;
+                while (total < wanted and total < buf.len) {
+                    const m = posix_net.recv(client_fd, buf[total..], 0) catch break;
+                    if (m == 0) break;
+                    total += m;
+                }
+            }
+        }
+
+        const request = buf[0..total];
+        runtime.state.http_requests += 1;
 
         // Reject bodies larger than 64KB
         if (HttpServer.parseContentLength(request)) |content_length| {
@@ -185,7 +198,11 @@ pub const HttpServer = struct {
         };
 
         // Trim trailing \r from path if present
-        const path = if (std.mem.endsWith(u8, path_raw, "\r")) path_raw[0 .. path_raw.len - 1] else path_raw;
+        const full_path = if (std.mem.endsWith(u8, path_raw, "\r")) path_raw[0 .. path_raw.len - 1] else path_raw;
+        // Split off the query string for routing
+        const query_pos = std.mem.indexOfScalar(u8, full_path, '?');
+        const path = if (query_pos) |q| full_path[0..q] else full_path;
+        const query = if (query_pos) |q| full_path[q + 1 ..] else "";
 
         // Extract body (available for route handlers that need it)
         const body_info = HttpServer.findBody(request);
@@ -207,9 +224,11 @@ pub const HttpServer = struct {
             }
             // Auth required for all /api/ routes
             if (!self.checkAuth(request)) {
+                runtime.state.auth_failures += 1;
                 try self.sendUnauthorized(client_fd);
                 return;
             }
+            runtime.state.api_requests += 1;
             // Route to API handlers
             if (std.mem.eql(u8, path, "/api/quotes")) {
                 try self.handleQuotes(client_fd, method, request_body);
@@ -228,6 +247,14 @@ pub const HttpServer = struct {
                 try self.handleReload(client_fd, method);
             } else if (std.mem.eql(u8, path, "/api/maintenance")) {
                 try self.handleMaintenance(client_fd, method, request_body);
+            } else if (std.mem.eql(u8, path, "/api/debug")) {
+                try self.handleDebug(client_fd, method, request_body);
+            } else if (std.mem.eql(u8, path, "/api/stats")) {
+                try self.handleStats(client_fd, method, query);
+            } else if (std.mem.eql(u8, path, "/api/stats/reset")) {
+                try self.handleStatsReset(client_fd, method);
+            } else if (std.mem.eql(u8, path, "/api/logs")) {
+                try self.handleLogs(client_fd, method, query);
             } else {
                 try self.sendErrorResponse(client_fd, 404, "Not Found", "Not Found");
             }
@@ -286,7 +313,16 @@ pub const HttpServer = struct {
                 try json_buf.appendSlice(self.allocator, id_str);
                 try json_buf.appendSlice(self.allocator, ",\"text\":\"");
                 try appendJsonEscaped(&json_buf, self.allocator, text);
-                try json_buf.appendSlice(self.allocator, "\"}");
+                var served_buf: [48]u8 = undefined;
+                try json_buf.appendSlice(self.allocator, try std.fmt.bufPrint(&served_buf, "\",\"served\":{d},\"source\":", .{runtime.state.servedCount(text)}));
+                if (self.store.quotes.items[i].source_path) |src| {
+                    try json_buf.append(self.allocator, '"');
+                    try appendJsonEscaped(&json_buf, self.allocator, src);
+                    try json_buf.append(self.allocator, '"');
+                } else {
+                    try json_buf.appendSlice(self.allocator, "null");
+                }
+                try json_buf.append(self.allocator, '}');
             }
             var count_buf: [32]u8 = undefined;
             const count_str = try std.fmt.bufPrint(&count_buf, "],\"count\":{d}}}", .{count});
@@ -294,10 +330,13 @@ pub const HttpServer = struct {
 
             try self.sendJsonResponse(client_fd, 200, "OK", json_buf.items);
         } else if (std.mem.eql(u8, method, "POST")) {
-            const text = extractTextField(body) catch {
+            const raw_text = extractTextField(body) catch {
                 try self.sendErrorResponse(client_fd, 400, "Bad Request", "Invalid JSON body");
                 return;
             };
+            const decoded = try decodeJsonString(self.allocator, raw_text);
+            defer self.allocator.free(decoded);
+            const text = std.mem.trim(u8, decoded, " \t\n\r");
             if (text.len == 0) {
                 try self.sendErrorResponse(client_fd, 400, "Bad Request", "Quote text cannot be empty");
                 return;
@@ -360,10 +399,13 @@ pub const HttpServer = struct {
                 return;
             }
 
-            const text = extractTextField(body) catch {
+            const raw_text = extractTextField(body) catch {
                 try self.sendErrorResponse(client_fd, 400, "Bad Request", "Invalid JSON body");
                 return;
             };
+            const decoded = try decodeJsonString(self.allocator, raw_text);
+            defer self.allocator.free(decoded);
+            const text = std.mem.trim(u8, decoded, " \t\n\r");
             if (text.len == 0) {
                 try self.sendErrorResponse(client_fd, 400, "Bad Request", "Quote text cannot be empty");
                 return;
@@ -449,7 +491,7 @@ pub const HttpServer = struct {
         const now = app_io.nowNs();
         const uptime_ns = now - self.startup_time;
         const uptime_s = @divTrunc(uptime_ns, std.time.ns_per_s);
-        const status_str: []const u8 = if (self.maintenance_mode) "maintenance" else "ok";
+        const status_str: []const u8 = if (runtime.state.maintenance) "maintenance" else "ok";
         const mode_str = self.selector.mode.asString();
         const quote_count = self.store.count();
         const interval = self.watcher.interval_seconds;
@@ -457,8 +499,8 @@ pub const HttpServer = struct {
         var json_buf: [512]u8 = undefined;
         const body = try std.fmt.bufPrint(
             &json_buf,
-            "{{\"status\":\"{s}\",\"quotes\":{d},\"mode\":\"{s}\",\"uptime_seconds\":{d},\"polling_interval\":{d}}}",
-            .{ status_str, quote_count, mode_str, uptime_s, interval },
+            "{{\"status\":\"{s}\",\"quotes\":{d},\"mode\":\"{s}\",\"uptime_seconds\":{d},\"polling_interval\":{d},\"maintenance\":{},\"debug\":{},\"served_total\":{d}}}",
+            .{ status_str, quote_count, mode_str, uptime_s, interval, runtime.state.maintenance, runtime.state.debug, runtime.state.totalServed() },
         );
         try self.sendJsonResponse(client_fd, 200, "OK", body);
     }
@@ -539,6 +581,8 @@ pub const HttpServer = struct {
             return;
         };
         self.selector.reset(self.store.count()) catch {};
+        runtime.state.reloads += 1;
+        self.log.info("api_reload", .{ .quotes = self.store.count() });
 
         var json_buf: [128]u8 = undefined;
         const resp_body = try std.fmt.bufPrint(
@@ -549,25 +593,214 @@ pub const HttpServer = struct {
         try self.sendJsonResponse(client_fd, 200, "OK", resp_body);
     }
 
-    /// Handle /api/maintenance endpoint — POST only, sets/clears maintenance flag
+    /// Handle /api/maintenance — GET current state, POST {"enabled":bool,"message":"..."}
+    /// While enabled, TCP/UDP clients receive the maintenance message instead of a quote.
     fn handleMaintenance(self: *HttpServer, client_fd: std.posix.socket_t, method: []const u8, body: []const u8) !void {
+        if (std.mem.eql(u8, method, "POST")) {
+            const enabled_opt: ?bool = extractBoolField(body, "enabled") catch |err| switch (err) {
+                error.FieldNotFound => null,
+                else => {
+                    try self.sendErrorResponse(client_fd, 400, "Bad Request", "Invalid 'enabled' field");
+                    return;
+                },
+            };
+            const message_raw = extractJsonStringField(body, "message");
+            if (enabled_opt == null and message_raw == null) {
+                try self.sendErrorResponse(client_fd, 400, "Bad Request", "Missing or invalid 'enabled' field");
+                return;
+            }
+            if (message_raw) |raw| {
+                const msg = try decodeJsonString(self.allocator, raw);
+                defer self.allocator.free(msg);
+                runtime.state.setMaintenanceMessage(msg);
+            }
+            if (enabled_opt) |enabled| {
+                if (enabled != runtime.state.maintenance) {
+                    self.log.info("maintenance_mode_changed", .{ .enabled = enabled });
+                }
+                runtime.state.maintenance = enabled;
+            }
+        } else if (!std.mem.eql(u8, method, "GET")) {
+            try self.sendErrorResponse(client_fd, 405, "Method Not Allowed", "Method Not Allowed");
+            return;
+        }
+
+        var json_buf: std.ArrayList(u8) = .empty;
+        defer json_buf.deinit(self.allocator);
+        try json_buf.appendSlice(self.allocator, if (runtime.state.maintenance) "{\"status\":\"ok\",\"maintenance\":true,\"message\":\"" else "{\"status\":\"ok\",\"maintenance\":false,\"message\":\"");
+        try appendJsonEscaped(&json_buf, self.allocator, runtime.state.maintenanceMessage());
+        try json_buf.appendSlice(self.allocator, "\"}");
+        try self.sendJsonResponse(client_fd, 200, "OK", json_buf.items);
+    }
+
+    /// Handle /api/debug — GET current state, POST {"enabled":bool}
+    /// Debug mode logs every request and appends internal state to QOTD replies.
+    fn handleDebug(self: *HttpServer, client_fd: std.posix.socket_t, method: []const u8, body: []const u8) !void {
+        if (std.mem.eql(u8, method, "POST")) {
+            const enabled = extractBoolField(body, "enabled") catch {
+                try self.sendErrorResponse(client_fd, 400, "Bad Request", "Missing or invalid 'enabled' field");
+                return;
+            };
+            if (enabled != runtime.state.debug) {
+                // Log before disabling / after enabling so the change is visible at info level
+                self.log.info("debug_mode_changed", .{ .enabled = enabled });
+            }
+            runtime.state.setDebug(enabled);
+        } else if (!std.mem.eql(u8, method, "GET")) {
+            try self.sendErrorResponse(client_fd, 405, "Method Not Allowed", "Method Not Allowed");
+            return;
+        }
+        const resp = if (runtime.state.debug) "{\"status\":\"ok\",\"debug\":true}" else "{\"status\":\"ok\",\"debug\":false}";
+        try self.sendJsonResponse(client_fd, 200, "OK", resp);
+    }
+
+    /// Handle /api/stats — GET serving statistics. Query: top=N (default 10, max 100)
+    fn handleStats(self: *HttpServer, client_fd: std.posix.socket_t, method: []const u8, query: []const u8) !void {
+        if (!std.mem.eql(u8, method, "GET")) {
+            try self.sendErrorResponse(client_fd, 405, "Method Not Allowed", "Method Not Allowed");
+            return;
+        }
+        const rt = &runtime.state;
+        const now = app_io.nowNs();
+        const top_n: usize = @min(queryUint(query, "top") orelse 10, 100);
+
+        var out: std.ArrayList(u8) = .empty;
+        defer out.deinit(self.allocator);
+
+        const since_ns = if (rt.stats_since_ns != 0) rt.stats_since_ns else self.startup_time;
+        try out.print(
+            self.allocator,
+            "{{\"uptime_seconds\":{d},\"stats_window_seconds\":{d},\"quotes\":{d},\"mode\":\"{s}\",\"maintenance\":{},\"debug\":{}," ++
+                "\"served\":{{\"total\":{d},\"tcp\":{d},\"udp\":{d},\"maintenance\":{d},\"empty\":{d}}}," ++
+                "\"http\":{{\"requests\":{d},\"api_requests\":{d},\"auth_failures\":{d}}},\"reloads\":{d},",
+            .{
+                @divTrunc(now - self.startup_time, std.time.ns_per_s),
+                @divTrunc(now - since_ns, std.time.ns_per_s),
+                self.store.count(),
+                self.selector.mode.asString(),
+                rt.maintenance,
+                rt.debug,
+                rt.totalServed(),
+                rt.tcp_served,
+                rt.udp_served,
+                rt.maintenance_served,
+                rt.empty_responses,
+                rt.http_requests,
+                rt.api_requests,
+                rt.auth_failures,
+                rt.reloads,
+            },
+        );
+        if (rt.last_served_ns != 0) {
+            try out.print(self.allocator, "\"last_served_seconds_ago\":{d},", .{@divTrunc(now - rt.last_served_ns, std.time.ns_per_s)});
+        } else {
+            try out.appendSlice(self.allocator, "\"last_served_seconds_ago\":null,");
+        }
+
+        const md = self.store.metadata;
+        try out.print(
+            self.allocator,
+            "\"store\":{{\"files_parsed\":{d},\"quotes_loaded\":{d},\"duplicates_removed\":{d}}},",
+            .{ md.total_files_parsed, md.total_quotes_loaded, md.duplicates_removed },
+        );
+
+        var tl: [runtime.TIMELINE_MINUTES]u32 = undefined;
+        rt.timeline(&tl);
+        try out.appendSlice(self.allocator, "\"timeline_per_minute\":[");
+        for (tl, 0..) |v, k| {
+            if (k > 0) try out.append(self.allocator, ',');
+            try out.print(self.allocator, "{d}", .{v});
+        }
+        try out.appendSlice(self.allocator, "],");
+
+        // Top N most served quotes (simple insertion into a small sorted list)
+        var top_ids: [100]usize = undefined;
+        var top_counts: [100]u64 = undefined;
+        var top_len: usize = 0;
+        var never_served: usize = 0;
+        const count = self.store.count();
+        var i: usize = 0;
+        while (i < count) : (i += 1) {
+            const c = rt.servedCount(self.store.get(i).?);
+            if (c == 0) {
+                never_served += 1;
+                continue;
+            }
+            if (top_n == 0) continue;
+            if (top_len == top_n and c <= top_counts[top_len - 1]) continue;
+            var pos = if (top_len < top_n) top_len else top_n - 1;
+            if (top_len < top_n) top_len += 1;
+            while (pos > 0 and top_counts[pos - 1] < c) : (pos -= 1) {
+                top_counts[pos] = top_counts[pos - 1];
+                top_ids[pos] = top_ids[pos - 1];
+            }
+            top_counts[pos] = c;
+            top_ids[pos] = i;
+        }
+        try out.print(self.allocator, "\"never_served\":{d},\"top\":[", .{never_served});
+        for (top_ids[0..top_len], top_counts[0..top_len], 0..) |id, c, k| {
+            if (k > 0) try out.append(self.allocator, ',');
+            try out.print(self.allocator, "{{\"id\":{d},\"served\":{d},\"text\":\"", .{ id, c });
+            try appendJsonEscaped(&out, self.allocator, self.store.get(id).?);
+            try out.appendSlice(self.allocator, "\"}");
+        }
+        try out.appendSlice(self.allocator, "]}");
+
+        try self.sendJsonResponse(client_fd, 200, "OK", out.items);
+    }
+
+    /// Handle /api/stats/reset — POST clears all counters
+    fn handleStatsReset(self: *HttpServer, client_fd: std.posix.socket_t, method: []const u8) !void {
         if (!std.mem.eql(u8, method, "POST")) {
             try self.sendErrorResponse(client_fd, 405, "Method Not Allowed", "Method Not Allowed");
             return;
         }
-        const enabled = extractBoolField(body, "enabled") catch {
-            try self.sendErrorResponse(client_fd, 400, "Bad Request", "Missing or invalid 'enabled' field");
-            return;
-        };
-        self.maintenance_mode = enabled;
+        runtime.state.resetStats();
+        self.log.info("stats_reset", .{});
+        try self.sendJsonResponse(client_fd, 200, "OK", "{\"status\":\"ok\"}");
+    }
 
-        var json_buf: [64]u8 = undefined;
-        const resp_body = try std.fmt.bufPrint(
-            &json_buf,
-            "{{\"status\":\"ok\",\"maintenance\":{}}}",
-            .{enabled},
-        );
-        try self.sendJsonResponse(client_fd, 200, "OK", resp_body);
+    /// Handle /api/logs — GET recent log lines.
+    /// Query: since=SEQ (only lines after SEQ), limit=N (default 200), level=debug|info|warn|error
+    fn handleLogs(self: *HttpServer, client_fd: std.posix.socket_t, method: []const u8, query: []const u8) !void {
+        if (!std.mem.eql(u8, method, "GET")) {
+            try self.sendErrorResponse(client_fd, 405, "Method Not Allowed", "Method Not Allowed");
+            return;
+        }
+        const ring = &logger.ring;
+        const limit: u64 = @max(@min(queryUint(query, "limit") orelse 200, logger.RING_SIZE), 1);
+        const since: u64 = queryUint(query, "since") orelse 0;
+        const min_level: logger.Level = if (queryParam(query, "level")) |lv| parseLevel(lv) orelse .debug else .debug;
+
+        // Walk backwards from the newest line to collect up to `limit` matches
+        var seqs: [logger.RING_SIZE]u64 = undefined;
+        var n: usize = 0;
+        var seq = ring.next_seq;
+        const floor = @max(ring.oldestSeq(), since + 1);
+        while (seq > floor and n < limit) {
+            seq -= 1;
+            const e = ring.get(seq) orelse break;
+            if (@backingInt(e.level) < @backingInt(min_level)) continue;
+            seqs[n] = seq;
+            n += 1;
+        }
+
+        var out: std.ArrayList(u8) = .empty;
+        defer out.deinit(self.allocator);
+        try out.print(self.allocator, "{{\"next_seq\":{d},\"debug\":{},\"lines\":[", .{ ring.next_seq, runtime.state.debug });
+        var k: usize = n;
+        var first = true;
+        while (k > 0) {
+            k -= 1;
+            const e = ring.get(seqs[k]).?;
+            if (!first) try out.append(self.allocator, ',');
+            first = false;
+            try out.print(self.allocator, "{{\"seq\":{d},\"ts\":{d},\"level\":\"{s}\",\"message\":\"", .{ e.seq, e.ts_ms, e.level.asString() });
+            try appendJsonEscaped(&out, self.allocator, e.message());
+            try out.appendSlice(self.allocator, "\"}");
+        }
+        try out.appendSlice(self.allocator, "]}");
+        try self.sendJsonResponse(client_fd, 200, "OK", out.items);
     }
 
     /// Send a JSON response with the given status and body
@@ -696,30 +929,112 @@ pub const HttpServer = struct {
         content_type: []const u8,
         body: []const u8,
     ) !void {
-        // Build response
-        var response_buf: [4096]u8 = undefined;
-        const response = try std.fmt.bufPrint(
-            &response_buf,
-            "HTTP/1.1 {d} {s}\r\nContent-Type: {s}\r\nContent-Length: {d}\r\n\r\n{s}",
-            .{ status_code, status_text, content_type, body.len, body },
+        // Headers go out first; the body is streamed so responses of any size work
+        var header_buf: [256]u8 = undefined;
+        const header = try std.fmt.bufPrint(
+            &header_buf,
+            "HTTP/1.1 {d} {s}\r\nContent-Type: {s}\r\nContent-Length: {d}\r\nConnection: close\r\n\r\n",
+            .{ status_code, status_text, content_type, body.len },
         );
 
-        // Send response
-        _ = posix_net.send(client_fd, response, 0) catch |err| {
-            switch (err) {
-                error.BrokenPipe, error.ConnectionResetByPeer => {
-                    // Client disconnected, ignore
-                    self.log.debug("http_client_disconnected", .{});
-                    return;
-                },
-                else => {
-                    self.log.warn("http_send_error", .{ .err = @errorName(err) });
-                    return;
-                },
-            }
-        };
+        for ([_][]const u8{ header, body }) |chunk| {
+            sendAll(client_fd, chunk) catch |err| {
+                switch (err) {
+                    error.BrokenPipe, error.ConnectionResetByPeer => {
+                        // Client disconnected, ignore
+                        self.log.debug("http_client_disconnected", .{});
+                    },
+                    else => self.log.warn("http_send_error", .{ .err = @errorName(err) }),
+                }
+                return;
+            };
+        }
     }
 };
+
+fn sendAll(fd: std.posix.socket_t, data: []const u8) !void {
+    var sent: usize = 0;
+    while (sent < data.len) {
+        const n = try posix_net.send(fd, data[sent..], 0);
+        if (n == 0) return error.BrokenPipe;
+        sent += n;
+    }
+}
+
+/// Return the raw value of `name` in a query string like "a=1&b=2"
+fn queryParam(query: []const u8, name: []const u8) ?[]const u8 {
+    var it = std.mem.splitScalar(u8, query, '&');
+    while (it.next()) |pair| {
+        const eq = std.mem.indexOfScalar(u8, pair, '=') orelse continue;
+        if (std.mem.eql(u8, pair[0..eq], name)) return pair[eq + 1 ..];
+    }
+    return null;
+}
+
+fn queryUint(query: []const u8, name: []const u8) ?u64 {
+    const v = queryParam(query, name) orelse return null;
+    return std.fmt.parseInt(u64, v, 10) catch null;
+}
+
+fn parseLevel(s: []const u8) ?logger.Level {
+    if (std.ascii.eqlIgnoreCase(s, "debug")) return .debug;
+    if (std.ascii.eqlIgnoreCase(s, "info")) return .info;
+    if (std.ascii.eqlIgnoreCase(s, "warn")) return .warn;
+    if (std.ascii.eqlIgnoreCase(s, "error") or std.ascii.eqlIgnoreCase(s, "err")) return .err;
+    return null;
+}
+
+/// Decode the escapes of a raw JSON string value (\n, \", \\, \uXXXX, ...).
+/// Caller owns the returned slice.
+fn decodeJsonString(allocator: std.mem.Allocator, raw: []const u8) ![]u8 {
+    var out: std.ArrayList(u8) = .empty;
+    errdefer out.deinit(allocator);
+    try out.ensureTotalCapacity(allocator, raw.len);
+    var i: usize = 0;
+    while (i < raw.len) : (i += 1) {
+        const c = raw[i];
+        if (c != '\\' or i + 1 >= raw.len) {
+            try out.append(allocator, c);
+            continue;
+        }
+        i += 1;
+        switch (raw[i]) {
+            'n' => try out.append(allocator, '\n'),
+            't' => try out.append(allocator, '\t'),
+            'r' => try out.append(allocator, '\r'),
+            'b' => try out.append(allocator, 8),
+            'f' => try out.append(allocator, 12),
+            'u' => {
+                if (i + 4 >= raw.len) {
+                    try out.append(allocator, 'u');
+                    continue;
+                }
+                var cp: u21 = std.fmt.parseInt(u16, raw[i + 1 .. i + 5], 16) catch {
+                    try out.append(allocator, 'u');
+                    continue;
+                };
+                i += 4;
+                // Surrogate pair
+                if (cp >= 0xD800 and cp <= 0xDBFF and i + 6 < raw.len and raw[i + 1] == '\\' and raw[i + 2] == 'u') {
+                    if (std.fmt.parseInt(u16, raw[i + 3 .. i + 7], 16)) |lo| {
+                        if (lo >= 0xDC00 and lo <= 0xDFFF) {
+                            cp = 0x10000 + ((cp - 0xD800) << 10) + (lo - 0xDC00);
+                            i += 6;
+                        }
+                    } else |_| {}
+                }
+                var enc: [4]u8 = undefined;
+                const len = std.unicode.utf8Encode(cp, &enc) catch {
+                    try out.appendSlice(allocator, "\u{FFFD}");
+                    continue;
+                };
+                try out.appendSlice(allocator, enc[0..len]);
+            },
+            else => |e| try out.append(allocator, e), // \" \\ \/
+        }
+    }
+    return out.toOwnedSlice(allocator);
+}
 
 /// Extract a JSON string field value: finds "field_name":"value" in body
 /// Returns slice into body (not allocated)
@@ -807,6 +1122,7 @@ fn appendJsonEscaped(buf: *std.ArrayList(u8), allocator: std.mem.Allocator, s: [
             '\n' => try buf.appendSlice(allocator, "\\n"),
             '\r' => try buf.appendSlice(allocator, "\\r"),
             '\t' => try buf.appendSlice(allocator, "\\t"),
+            0...8, 11, 12, 14...31, 127 => try buf.print(allocator, "\\u{x:0>4}", .{c}),
             else => try buf.append(allocator, c),
         }
     }
@@ -830,7 +1146,13 @@ fn testSendHttpRequestOnce(server: *HttpServer, port: u16, request: []const u8, 
     try posix_net.connect(client_fd, @ptrCast(&addr), @sizeOf(std.posix.sockaddr.in));
     _ = try posix_net.send(client_fd, request, 0);
     try server.acceptAndServe();
-    const n = try posix_net.recv(client_fd, response_buf, 0);
+    // The server closes the connection after responding: read until EOF
+    var n: usize = 0;
+    while (n < response_buf.len) {
+        const m = try posix_net.recv(client_fd, response_buf[n..], 0);
+        if (m == 0) break;
+        n += m;
+    }
     return response_buf[0..n];
 }
 
@@ -934,7 +1256,6 @@ test "checkAuth with valid credentials" {
         .selector = undefined,
         .watcher = undefined,
         .startup_time = undefined,
-        .maintenance_mode = false,
         .api_quotes_path = "api-managed.json",
         .config_ref = undefined,
     };
@@ -960,7 +1281,6 @@ test "checkAuth with invalid credentials" {
         .selector = undefined,
         .watcher = undefined,
         .startup_time = undefined,
-        .maintenance_mode = false,
         .api_quotes_path = "api-managed.json",
         .config_ref = undefined,
     };
@@ -986,7 +1306,6 @@ test "checkAuth with missing Authorization header" {
         .selector = undefined,
         .watcher = undefined,
         .startup_time = undefined,
-        .maintenance_mode = false,
         .api_quotes_path = "api-managed.json",
         .config_ref = undefined,
     };

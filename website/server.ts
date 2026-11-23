@@ -96,7 +96,9 @@ async function proxyToZig(req: Request, pathname: string, search: string): Promi
   for (const [key, value] of req.headers.entries()) {
     // Strip hop-by-hop headers that should not be forwarded
     const lower = key.toLowerCase();
-    if (lower === "host" || lower === "connection" || lower === "keep-alive") continue;
+    // Drop the browser's Authorization too: it is replaced below with the
+    // service credentials, and keeping both would send a merged, invalid header.
+    if (lower === "host" || lower === "connection" || lower === "keep-alive" || lower === "authorization") continue;
     headers[key] = value;
   }
   headers["Authorization"] = authHeader;
