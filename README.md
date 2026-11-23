@@ -209,7 +209,3 @@ tests/
 └── fixtures/
     └── quotes/           # Sample quote files for testing
 ```
-
-## License
-
-MIT

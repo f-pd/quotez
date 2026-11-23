@@ -24,5 +24,4 @@ yarn-error.log*
 .eslintcache
 .prettierignore
 README.md
-LICENSE
 .gitkeep

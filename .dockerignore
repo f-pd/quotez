@@ -17,7 +17,6 @@ helm/
 # Documentation
 *.md
 README.md
-LICENSE
 
 # Docker files
 Dockerfile
