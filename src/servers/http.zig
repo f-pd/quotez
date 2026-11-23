@@ -8,6 +8,7 @@ const watcher_mod = @import("../watcher.zig");
 const config_mod = @import("../config.zig");
 const app_io = @import("../compat/io.zig");
 const runtime = @import("../runtime.zig");
+const public_routes = @import("public_routes.zig");
 
 /// HTTP health endpoint server
 pub const HttpServer = struct {
@@ -23,6 +24,8 @@ pub const HttpServer = struct {
     startup_time: i128,
     api_quotes_path: []const u8,
     config_ref: *const config_mod.Configuration,
+    /// RNG for the public /quote and /n routes (independent of the QOTD selector)
+    rng: std.Random.DefaultPrng,
 
     /// Initialize and bind HTTP server
     pub fn init(
@@ -102,6 +105,7 @@ pub const HttpServer = struct {
             .startup_time = startup,
             .api_quotes_path = api_quotes_path,
             .config_ref = config,
+            .rng = std.Random.DefaultPrng.init(@truncate(@as(u128, @bitCast(app_io.nowNs())))),
         };
     }
 
@@ -216,6 +220,12 @@ pub const HttpServer = struct {
             try self.handleHealth(client_fd, method);
         } else if (std.mem.eql(u8, path, "/ready")) {
             try self.handleReady(client_fd, method);
+        } else if (try public_routes.handle(self.allocator, self.store, self.rng.random(), method, full_path, request)) |resp| {
+            // Public read-only routes: /help, /quote, /n/:num, /tags
+            defer resp.deinit(self.allocator);
+            public_routes.send(client_fd, resp) catch |err| {
+                self.log.debug("http_send_error", .{ .err = @errorName(err) });
+            };
         } else if (std.mem.startsWith(u8, path, "/api/")) {
             // Gate API routes on api_enabled config flag
             if (!self.config_ref.api_enabled) {
@@ -322,7 +332,23 @@ pub const HttpServer = struct {
                 } else {
                     try json_buf.appendSlice(self.allocator, "null");
                 }
-                try json_buf.append(self.allocator, '}');
+                const q = &self.store.quotes.items[i];
+                try json_buf.appendSlice(self.allocator, ",\"author\":");
+                if (q.author) |author| {
+                    try json_buf.append(self.allocator, '"');
+                    try appendJsonEscaped(&json_buf, self.allocator, author);
+                    try json_buf.append(self.allocator, '"');
+                } else {
+                    try json_buf.appendSlice(self.allocator, "null");
+                }
+                try json_buf.appendSlice(self.allocator, ",\"tags\":[");
+                for (q.tags, 0..) |tag, t| {
+                    if (t > 0) try json_buf.append(self.allocator, ',');
+                    try json_buf.append(self.allocator, '"');
+                    try appendJsonEscaped(&json_buf, self.allocator, tag);
+                    try json_buf.append(self.allocator, '"');
+                }
+                try json_buf.appendSlice(self.allocator, "]}");
             }
             var count_buf: [32]u8 = undefined;
             const count_str = try std.fmt.bufPrint(&count_buf, "],\"count\":{d}}}", .{count});
@@ -471,7 +497,26 @@ pub const HttpServer = struct {
 
             try json_buf.appendSlice(self.allocator, "{\"text\":\"");
             try appendJsonEscaped(&json_buf, self.allocator, text);
-            try json_buf.appendSlice(self.allocator, "\"}");
+            try json_buf.append(self.allocator, '"');
+            // Persist metadata too, so a reload keeps author and tags
+            if (self.store.getQuote(i)) |q| {
+                if (q.author) |author| {
+                    try json_buf.appendSlice(self.allocator, ",\"author\":\"");
+                    try appendJsonEscaped(&json_buf, self.allocator, author);
+                    try json_buf.append(self.allocator, '"');
+                }
+                if (q.tags.len > 0) {
+                    try json_buf.appendSlice(self.allocator, ",\"tags\":[");
+                    for (q.tags, 0..) |tag, t| {
+                        if (t > 0) try json_buf.append(self.allocator, ',');
+                        try json_buf.append(self.allocator, '"');
+                        try appendJsonEscaped(&json_buf, self.allocator, tag);
+                        try json_buf.append(self.allocator, '"');
+                    }
+                    try json_buf.append(self.allocator, ']');
+                }
+            }
+            try json_buf.append(self.allocator, '}');
         }
         try json_buf.appendSlice(self.allocator, "]}");
 

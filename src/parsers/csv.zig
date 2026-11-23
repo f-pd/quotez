@@ -63,14 +63,14 @@ fn detectDelimiter(content: []const u8) u8 {
     return ','; // Default to comma
 }
 
-/// Check if line looks like a header
+/// Check if line looks like a header: its first field is exactly one of the
+/// known column names (a quote merely containing "quote" is not a header)
 fn isHeader(line: []const u8) bool {
-    // Check for common header keywords (case-insensitive)
-    const lower_keywords = [_][]const u8{ "quote", "text", "content" };
-    for (lower_keywords) |keyword| {
-        if (line.len >= keyword.len) for (0..line.len - keyword.len + 1) |i| {
-            if (std.ascii.eqlIgnoreCase(line[i .. i + keyword.len], keyword)) return true;
-        };
+    const delim_pos = std.mem.indexOfAny(u8, line, ",\t") orelse line.len;
+    const first = std.mem.trim(u8, line[0..delim_pos], " \"");
+    const keywords = [_][]const u8{ "quote", "quotes", "text", "content" };
+    for (keywords) |keyword| {
+        if (std.ascii.eqlIgnoreCase(first, keyword)) return true;
     }
     return false;
 }

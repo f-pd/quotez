@@ -98,6 +98,31 @@ For the Dokploy Compose deployment, set `QOTD_API_USERNAME` and `QOTD_API_PASSWO
 | `/api/stats/reset` | POST | Reset all counters |
 | `/api/logs` | GET | Recent log lines (`?since=SEQ&limit=N&level=info`), used by the backoffice live tail |
 
+### Public HTTP routes
+
+Served on the health port (default 8080) without authentication, independent of `[api] enabled`. RFC 865 has no commands or addressing (the server sends one quote and closes), so filters exist only over HTTP.
+
+| Route | Description |
+|-------|-------------|
+| `/help` | Plain-text description of every route |
+| `/quote` | One random quote |
+| `/n/:num` | `:num` distinct random quotes, 1 to 50 (larger values are clamped) |
+| `/tags` | Every tag with the number of quotes carrying it |
+
+`/quote` and `/n/:num` accept `tag=a,b` (every listed tag must match, the parameter can repeat) and `author=name` (case-insensitive substring; for plain-text quotes the author is read from a trailing ` - Author`). Responses are plain text, one quote per line, unless `format=json` or `Accept: application/json` is sent.
+
+```bash
+curl localhost:8080/n/5?tag=stoic
+curl 'localhost:8080/quote?author=seneca&format=json'
+```
+
+### Tags
+
+- Sub-folders of a quote directory become tags: `quotes/philosophy/stoic/seneca.txt` gives `philosophy` and `stoic`.
+- JSON quote objects can set `author`, `category` and `tags` (array or comma-separated string):
+  `[{"quote": "...", "author": "Seneca", "category": "Stoicism", "tags": ["time", "life"]}]`
+- Tags are lowercased; spaces and underscores become `-`. When the same quote appears in several files, its tags are merged.
+
 ## Website
 
 A modern web interface for browsing quotes and managing the service.

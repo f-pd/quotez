@@ -348,4 +348,7 @@ test {
     _ = config;
     _ = runtime;
     _ = logger;
+    _ = quote_store;
+    _ = @import("parsers/json.zig");
+    _ = @import("servers/public_routes.zig");
 }

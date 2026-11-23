@@ -17,16 +17,41 @@ pub const Format = enum {
     plaintext,
 };
 
+/// Optional per-quote metadata extracted by structured parsers (JSON).
+/// All slices are owned by the ParseResult allocator.
+pub const QuoteMeta = struct {
+    author: ?[]const u8 = null,
+    /// Raw tags as found in the source file (not yet normalized)
+    tags: []const []const u8 = &.{},
+
+    pub fn deinit(self: QuoteMeta, allocator: std.mem.Allocator) void {
+        if (self.author) |a| allocator.free(a);
+        for (self.tags) |t| allocator.free(t);
+        if (self.tags.len > 0) allocator.free(self.tags);
+    }
+};
+
 /// Result of parsing a file
 pub const ParseResult = struct {
     quotes: std.ArrayList([]const u8),
     format: Format,
+    /// Metadata parallel to `quotes`. Either empty (format without metadata)
+    /// or exactly as long as `quotes`.
+    metas: std.ArrayList(QuoteMeta) = .empty,
 
     pub fn deinit(self: *ParseResult, allocator: std.mem.Allocator) void {
         for (self.quotes.items) |quote| {
             allocator.free(quote);
         }
         self.quotes.deinit(allocator);
+        for (self.metas.items) |m| m.deinit(allocator);
+        self.metas.deinit(allocator);
+    }
+
+    /// Metadata for quote `i`, if the parser provided any
+    pub fn meta(self: *const ParseResult, i: usize) QuoteMeta {
+        if (self.metas.items.len != self.quotes.items.len) return .{};
+        return self.metas.items[i];
     }
 };
 
@@ -50,6 +75,10 @@ pub fn detectFormat(file_path: []const u8, content: []const u8) Format {
         if (looksLikeToml(content)) return .toml;
     } else if (std.mem.endsWith(u8, file_path, ".yaml") or std.mem.endsWith(u8, file_path, ".yml")) {
         if (looksLikeYaml(content)) return .yaml;
+    } else if (std.mem.endsWith(u8, file_path, ".txt")) {
+        // One quote per line: a comma or a "key: value" inside a quote must not
+        // turn the file into CSV/YAML. Only an obvious JSON document is sniffed.
+        return if (looksLikeJson(content)) .json else .plaintext;
     }
 
     // Try format detection by content in order: JSON → CSV → TOML → YAML → plaintext
@@ -66,7 +95,29 @@ pub fn detectFormat(file_path: []const u8, content: []const u8) Format {
 fn looksLikeJson(content: []const u8) bool {
     const trimmed = std.mem.trim(u8, content, &std.ascii.whitespace);
     if (trimmed.len == 0) return false;
-    return trimmed[0] == '{' or trimmed[0] == '[';
+    if (trimmed[0] == '{') return true;
+    if (trimmed[0] != '[') return false;
+    // "[section]" is a TOML table, not a JSON array: look at the first value
+    const rest = std.mem.trimStart(u8, trimmed[1..], &std.ascii.whitespace);
+    if (rest.len == 0) return false;
+    return switch (rest[0]) {
+        '"', '[', '{', ']', '-', '0'...'9', 't', 'f', 'n' => !looksLikeTomlTable(trimmed),
+        else => false,
+    };
+}
+
+/// "[name]" or "[[name]]" on the first line with a bare identifier inside
+fn looksLikeTomlTable(trimmed: []const u8) bool {
+    const line_end = std.mem.indexOfScalar(u8, trimmed, '\n') orelse trimmed.len;
+    const line = std.mem.trim(u8, trimmed[0..line_end], " \t\r");
+    if (line.len < 3 or line[line.len - 1] != ']') return false;
+    const inner = std.mem.trim(u8, line, "[]");
+    if (inner.len == 0) return false;
+    for (inner) |c| {
+        if (!(std.ascii.isAlphanumeric(c) or c == '_' or c == '-' or c == '.')) return false;
+    }
+    return !std.ascii.isDigit(inner[0]) and !std.mem.eql(u8, inner, "true") and
+        !std.mem.eql(u8, inner, "false") and !std.mem.eql(u8, inner, "null");
 }
 
 /// Check if content looks like CSV
@@ -202,21 +253,24 @@ test "detectFormat - JSON" {
 
 test "detectFormat - CSV" {
     try std.testing.expectEqual(Format.csv, detectFormat("test.csv", "quote,author\nHello,World"));
-    try std.testing.expectEqual(Format.csv, detectFormat("test.txt", "one,two,three"));
+    try std.testing.expectEqual(Format.csv, detectFormat("test", "one,two,three"));
 }
 
 test "detectFormat - TOML" {
     try std.testing.expectEqual(Format.toml, detectFormat("test.toml", "quotes = []"));
-    try std.testing.expectEqual(Format.toml, detectFormat("test.txt", "[section]"));
+    try std.testing.expectEqual(Format.toml, detectFormat("test", "[section]"));
 }
 
 test "detectFormat - YAML" {
     try std.testing.expectEqual(Format.yaml, detectFormat("test.yaml", "---\n- quote"));
-    try std.testing.expectEqual(Format.yaml, detectFormat("test.txt", "key: value"));
+    try std.testing.expectEqual(Format.yaml, detectFormat("test", "key: value"));
 }
 
 test "detectFormat - plaintext fallback" {
     try std.testing.expectEqual(Format.plaintext, detectFormat("test.txt", "Just plain text"));
+    // .txt quotes with commas or colons stay plaintext
+    try std.testing.expectEqual(Format.plaintext, detectFormat("q.txt", "Short life, long waste. - Seneca"));
+    try std.testing.expectEqual(Format.plaintext, detectFormat("q.txt", "Rule one: be kind."));
 }
 
 test "normalizeQuote - basic trim" {

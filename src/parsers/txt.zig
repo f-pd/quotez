@@ -14,7 +14,7 @@ pub fn parse(allocator: std.mem.Allocator, content: []const u8) !parser.ParseRes
     while (it.next()) |line| {
         // Normalize and trim each line
         if (try parser.normalizeQuote(allocator, line)) |normalized| {
-        try quotes.append(allocator, normalized);
+            try quotes.append(allocator, normalized);
         }
     }
 
@@ -32,9 +32,9 @@ pub const txtParser = parser.Parser{
 test "txt - basic parsing" {
     const allocator = std.testing.allocator;
     const content = "First quote\nSecond quote\nThird quote";
-    
+
     var result = try parse(allocator, content);
-    defer result.deinit();
+    defer result.deinit(allocator);
 
     try std.testing.expectEqual(@as(usize, 3), result.quotes.items.len);
     try std.testing.expectEqualStrings("First quote", result.quotes.items[0]);
@@ -45,9 +45,9 @@ test "txt - basic parsing" {
 test "txt - skip empty lines" {
     const allocator = std.testing.allocator;
     const content = "First quote\n\n\nSecond quote\n   \nThird quote";
-    
+
     var result = try parse(allocator, content);
-    defer result.deinit();
+    defer result.deinit(allocator);
 
     try std.testing.expectEqual(@as(usize, 3), result.quotes.items.len);
     try std.testing.expectEqualStrings("First quote", result.quotes.items[0]);
@@ -58,9 +58,9 @@ test "txt - skip empty lines" {
 test "txt - trim whitespace" {
     const allocator = std.testing.allocator;
     const content = "  Leading spaces\nTrailing spaces  \n  Both  ";
-    
+
     var result = try parse(allocator, content);
-    defer result.deinit();
+    defer result.deinit(allocator);
 
     try std.testing.expectEqual(@as(usize, 3), result.quotes.items.len);
     try std.testing.expectEqualStrings("Leading spaces", result.quotes.items[0]);
@@ -71,9 +71,9 @@ test "txt - trim whitespace" {
 test "txt - empty file" {
     const allocator = std.testing.allocator;
     const content = "";
-    
+
     var result = try parse(allocator, content);
-    defer result.deinit();
+    defer result.deinit(allocator);
 
     try std.testing.expectEqual(@as(usize, 0), result.quotes.items.len);
 }
@@ -81,9 +81,9 @@ test "txt - empty file" {
 test "txt - only whitespace" {
     const allocator = std.testing.allocator;
     const content = "   \n\n  \n\t\t\n";
-    
+
     var result = try parse(allocator, content);
-    defer result.deinit();
+    defer result.deinit(allocator);
 
     try std.testing.expectEqual(@as(usize, 0), result.quotes.items.len);
 }

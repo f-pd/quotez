@@ -2,11 +2,16 @@ const std = @import("std");
 const parser = @import("parser.zig");
 
 /// Parse JSON format: array of strings, object with "quotes" array, or array of objects with "quote"/"text" field
+/// Objects may also carry metadata: "author" (string), "category" (string)
+/// and "tags" (array of strings or comma-separated string).
 pub fn parse(allocator: std.mem.Allocator, content: []const u8) !parser.ParseResult {
     var quotes: std.ArrayList([]const u8) = .empty;
+    var metas: std.ArrayList(parser.QuoteMeta) = .empty;
     errdefer {
         for (quotes.items) |quote| allocator.free(quote);
         quotes.deinit(allocator);
+        for (metas.items) |m| m.deinit(allocator);
+        metas.deinit(allocator);
     }
 
     // Parse JSON
@@ -24,44 +29,13 @@ pub fn parse(allocator: std.mem.Allocator, content: []const u8) !parser.ParseRes
     switch (root) {
         .array => |arr| {
             // Could be array of strings or array of objects
-            for (arr.items) |item| {
-                switch (item) {
-                    .string => |str| {
-                        if (try parser.normalizeQuote(allocator, str)) |normalized| {
-                            try quotes.append(allocator, normalized);
-                        }
-                    },
-                    .object => |obj| {
-                        // Try to extract "quote" or "text" field
-                        if (obj.get("quote")) |quote_val| {
-                            if (quote_val == .string) {
-                                if (try parser.normalizeQuote(allocator, quote_val.string)) |normalized| {
-                                    try quotes.append(allocator, normalized);
-                                }
-                            }
-                        } else if (obj.get("text")) |text_val| {
-                            if (text_val == .string) {
-                                if (try parser.normalizeQuote(allocator, text_val.string)) |normalized| {
-                                    try quotes.append(allocator, normalized);
-                                }
-                            }
-                        }
-                    },
-                    else => {}, // Ignore non-string, non-object items
-                }
-            }
+            for (arr.items) |item| try appendItem(allocator, &quotes, &metas, item);
         },
         .object => |obj| {
-            // Look for "quotes" key containing an array
+            // Look for "quotes" key containing an array (strings or objects)
             if (obj.get("quotes")) |quotes_val| {
                 if (quotes_val == .array) {
-                    for (quotes_val.array.items) |item| {
-                        if (item == .string) {
-                            if (try parser.normalizeQuote(allocator, item.string)) |normalized| {
-                                try quotes.append(allocator, normalized);
-                            }
-                        }
-                    }
+                    for (quotes_val.array.items) |item| try appendItem(allocator, &quotes, &metas, item);
                 }
             }
         },
@@ -77,6 +51,84 @@ pub fn parse(allocator: std.mem.Allocator, content: []const u8) !parser.ParseRes
     return parser.ParseResult{
         .quotes = quotes,
         .format = .json,
+        .metas = metas,
+    };
+}
+
+/// Append one JSON array item (string or object) keeping `metas` parallel to `quotes`
+fn appendItem(
+    allocator: std.mem.Allocator,
+    quotes: *std.ArrayList([]const u8),
+    metas: *std.ArrayList(parser.QuoteMeta),
+    item: std.json.Value,
+) !void {
+    switch (item) {
+        .string => |str| {
+            const normalized = (try parser.normalizeQuote(allocator, str)) orelse return;
+            errdefer allocator.free(normalized);
+            try metas.ensureUnusedCapacity(allocator, 1);
+            try quotes.append(allocator, normalized);
+            metas.appendAssumeCapacity(.{});
+        },
+        .object => |obj| {
+            // Try to extract "quote" or "text" field
+            const text_val = obj.get("quote") orelse obj.get("text") orelse return;
+            if (text_val != .string) return;
+            const normalized = (try parser.normalizeQuote(allocator, text_val.string)) orelse return;
+            errdefer allocator.free(normalized);
+
+            const meta = try extractMeta(allocator, obj);
+            errdefer meta.deinit(allocator);
+
+            try metas.ensureUnusedCapacity(allocator, 1);
+            try quotes.append(allocator, normalized);
+            metas.appendAssumeCapacity(meta);
+        },
+        else => {}, // Ignore non-string, non-object items
+    }
+}
+
+/// Read "author", "category" and "tags" from a quote object
+fn extractMeta(allocator: std.mem.Allocator, obj: std.json.ObjectMap) !parser.QuoteMeta {
+    var tags: std.ArrayList([]const u8) = .empty;
+    errdefer {
+        for (tags.items) |t| allocator.free(t);
+        tags.deinit(allocator);
+    }
+
+    if (obj.get("category")) |cat| {
+        if (cat == .string and std.mem.trim(u8, cat.string, " \t").len > 0) {
+            try tags.append(allocator, try allocator.dupe(u8, cat.string));
+        }
+    }
+    if (obj.get("tags")) |tags_val| {
+        switch (tags_val) {
+            .array => |arr| for (arr.items) |t| {
+                if (t == .string) try tags.append(allocator, try allocator.dupe(u8, t.string));
+            },
+            .string => |str| {
+                var it = std.mem.splitScalar(u8, str, ',');
+                while (it.next()) |t| try tags.append(allocator, try allocator.dupe(u8, t));
+            },
+            else => {},
+        }
+    }
+
+    var author: ?[]const u8 = null;
+    if (obj.get("author")) |a| {
+        if (a == .string) {
+            const trimmed = std.mem.trim(u8, a.string, " \t\r\n");
+            if (trimmed.len > 0) author = try allocator.dupe(u8, trimmed);
+        }
+    }
+    errdefer if (author) |a| allocator.free(a);
+
+    return .{
+        .author = author,
+        .tags = if (tags.items.len == 0) blk: {
+            tags.deinit(allocator);
+            break :blk &.{};
+        } else try tags.toOwnedSlice(allocator),
     };
 }
 
@@ -85,6 +137,47 @@ pub const jsonParser = parser.Parser{
 };
 
 // Tests
+test "json - metadata: author, category and tags" {
+    const allocator = std.testing.allocator;
+    const content =
+        \\[
+        \\  {"quote": "First", "author": "Seneca", "category": "Stoicism", "tags": ["time", "life"]},
+        \\  "Plain string",
+        \\  {"text": "Third", "tags": "a, b"}
+        \\]
+    ;
+
+    var result = try parse(allocator, content);
+    defer result.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 3), result.quotes.items.len);
+    try std.testing.expectEqual(@as(usize, 3), result.metas.items.len);
+
+    const m0 = result.meta(0);
+    try std.testing.expectEqualStrings("Seneca", m0.author.?);
+    try std.testing.expectEqual(@as(usize, 3), m0.tags.len);
+    try std.testing.expectEqualStrings("Stoicism", m0.tags[0]);
+    try std.testing.expectEqualStrings("life", m0.tags[2]);
+
+    try std.testing.expect(result.meta(1).author == null);
+    try std.testing.expectEqual(@as(usize, 0), result.meta(1).tags.len);
+
+    try std.testing.expectEqual(@as(usize, 2), result.meta(2).tags.len);
+}
+
+test "json - object with quotes array of objects" {
+    const allocator = std.testing.allocator;
+    const content =
+        \\{"quotes": [{"quote": "Only", "author": "Me"}]}
+    ;
+
+    var result = try parse(allocator, content);
+    defer result.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 1), result.quotes.items.len);
+    try std.testing.expectEqualStrings("Me", result.meta(0).author.?);
+}
+
 test "json - array of strings" {
     const allocator = std.testing.allocator;
     const content =
