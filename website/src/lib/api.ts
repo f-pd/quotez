@@ -10,17 +10,69 @@ async function apiFetch(path: string, options?: RequestInit): Promise<Response> 
       ...options?.headers,
     },
   });
-  if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+  if (!res.ok) {
+    let message = `${res.status}`;
+    try {
+      const data = await res.json();
+      if (data?.error) message = `${data.error} (${res.status})`;
+    } catch {
+      /* body was not JSON */
+    }
+    throw new Error(message);
+  }
   return res;
 }
 
-export async function fetchQuotes(): Promise<Array<{id: number, text: string}>> {
+export type Quote = {
+  id: number;
+  text: string;
+  /** Times served over TCP/UDP since start or last stats reset */
+  served?: number;
+  /** File the quote was loaded from; null when added through the API */
+  source?: string | null;
+};
+
+export type Status = {
+  status: string;
+  quotes: number;
+  mode: string;
+  uptime_seconds: number;
+  polling_interval: number;
+  maintenance?: boolean;
+  debug?: boolean;
+  served_total?: number;
+};
+
+export type Stats = {
+  uptime_seconds: number;
+  stats_window_seconds: number;
+  quotes: number;
+  mode: string;
+  maintenance: boolean;
+  debug: boolean;
+  served: { total: number; tcp: number; udp: number; maintenance: number; empty: number };
+  http: { requests: number; api_requests: number; auth_failures: number };
+  reloads: number;
+  last_served_seconds_ago: number | null;
+  store: { files_parsed: number; quotes_loaded: number; duplicates_removed: number };
+  /** Requests per minute for the last 60 minutes, oldest first */
+  timeline_per_minute: number[];
+  never_served: number;
+  top: Array<{ id: number; served: number; text: string }>;
+};
+
+export type LogLine = { seq: number; ts: number; level: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'; message: string };
+export type LogsResponse = { next_seq: number; debug: boolean; lines: LogLine[] };
+
+export type Maintenance = { maintenance: boolean; message: string };
+
+export async function fetchQuotes(): Promise<Quote[]> {
   const res = await apiFetch('/api/quotes');
   const data = await res.json();
   return data.quotes;
 }
 
-export async function createQuote(text: string): Promise<{id: number, text: string}> {
+export async function createQuote(text: string): Promise<Quote> {
   const res = await apiFetch('/api/quotes', {
     method: 'POST',
     body: JSON.stringify({ text }),
@@ -28,7 +80,7 @@ export async function createQuote(text: string): Promise<{id: number, text: stri
   return res.json();
 }
 
-export async function updateQuote(id: number, text: string): Promise<{id: number, text: string}> {
+export async function updateQuote(id: number, text: string): Promise<Quote> {
   const res = await apiFetch(`/api/quotes/${id}`, {
     method: 'PUT',
     body: JSON.stringify({ text }),
@@ -42,8 +94,26 @@ export async function deleteQuote(id: number): Promise<void> {
   });
 }
 
-export async function fetchStatus(): Promise<{status: string, quotes: number, mode: string, uptime_seconds: number, polling_interval: number}> {
+export async function fetchStatus(): Promise<Status> {
   const res = await apiFetch('/api/status');
+  return res.json();
+}
+
+export async function fetchStats(top = 10): Promise<Stats> {
+  const res = await apiFetch(`/api/stats?top=${top}`);
+  return res.json();
+}
+
+export async function resetStats(): Promise<void> {
+  await apiFetch('/api/stats/reset', { method: 'POST' });
+}
+
+export async function fetchLogs(params: { since?: number; limit?: number; level?: string } = {}): Promise<LogsResponse> {
+  const q = new URLSearchParams();
+  if (params.since !== undefined) q.set('since', String(params.since));
+  if (params.limit !== undefined) q.set('limit', String(params.limit));
+  if (params.level) q.set('level', params.level);
+  const res = await apiFetch(`/api/logs?${q.toString()}`);
   return res.json();
 }
 
@@ -66,9 +136,33 @@ export async function triggerReload(): Promise<{status: string, quotes: number}>
   return res.json();
 }
 
+export async function fetchMaintenance(): Promise<Maintenance> {
+  const res = await apiFetch('/api/maintenance');
+  return res.json();
+}
+
+export async function setMaintenance(changes: { enabled?: boolean; message?: string }): Promise<Maintenance> {
+  const res = await apiFetch('/api/maintenance', {
+    method: 'POST',
+    body: JSON.stringify(changes),
+  });
+  return res.json();
+}
+
+/** @deprecated use setMaintenance */
 export async function toggleMaintenance(enabled: boolean): Promise<void> {
-  await apiFetch('/api/maintenance', {
+  await setMaintenance({ enabled });
+}
+
+export async function fetchDebug(): Promise<{ debug: boolean }> {
+  const res = await apiFetch('/api/debug');
+  return res.json();
+}
+
+export async function setDebug(enabled: boolean): Promise<{ debug: boolean }> {
+  const res = await apiFetch('/api/debug', {
     method: 'POST',
     body: JSON.stringify({ enabled }),
   });
+  return res.json();
 }

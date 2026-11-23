@@ -5,6 +5,7 @@ import { PublicPage } from './routes/public';
 import { AdminPage } from './pages/admin/DashboardPage';
 import { AdminQuotesPage } from './pages/admin/QuotesPage';
 import { AdminConfigPage } from './pages/admin/ConfigPage';
+import { AdminLogsPage } from './pages/admin/LogsPage';
 import { LoginPage } from './routes/login';
 import { getCredentials } from './lib/auth';
 
@@ -62,10 +63,16 @@ const adminConfigRoute = createRoute({
   component: AdminConfigPage,
 });
 
+const adminLogsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: '/admin/logs',
+  component: AdminLogsPage,
+});
+
 const routeTree = rootRoute.addChildren([
   publicLayoutRoute.addChildren([indexRoute]),
   loginRoute,
-  adminLayoutRoute.addChildren([adminIndexRoute, adminQuotesRoute, adminConfigRoute]),
+  adminLayoutRoute.addChildren([adminIndexRoute, adminQuotesRoute, adminLogsRoute, adminConfigRoute]),
 ]);
 
 export const router = createRouter({ routeTree });

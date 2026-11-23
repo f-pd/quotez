@@ -1,18 +1,29 @@
-import { useState, useEffect } from 'react';
-import { fetchQuotes, createQuote, updateQuote, deleteQuote } from '../../lib/api';
+import { useEffect, useMemo, useState } from 'react';
+import { fetchQuotes, createQuote, updateQuote, deleteQuote, type Quote } from '../../lib/api';
 
-type Quote = { id: number; text: string };
+type SortKey = 'id' | 'served' | 'text';
+
+function sourceLabel(source: string | null | undefined): string {
+  if (!source) return 'API';
+  const parts = source.split('/');
+  return parts[parts.length - 1] || source;
+}
 
 export function AdminQuotesPage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
   const [formText, setFormText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [search, setSearch] = useState('');
+  const [sourceFilter, setSourceFilter] = useState('all');
+  const [sortKey, setSortKey] = useState<SortKey>('id');
+  const [sortDesc, setSortDesc] = useState(false);
 
   useEffect(() => {
     loadQuotes();
@@ -23,18 +34,52 @@ export function AdminQuotesPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const loadQuotes = async () => {
+  // Ids are positions in the server-side store and shift after every
+  // add/edit/delete, so the list is always reloaded after a mutation.
+  const loadQuotes = async (showSpinner = true) => {
     try {
-      setLoading(true);
+      if (showSpinner) setLoading(true);
       setError(null);
-      const data = await fetchQuotes();
-      setQuotes(data);
+      setQuotes(await fetchQuotes());
     } catch (err: any) {
       setError(err.message || 'Failed to load quotes');
     } finally {
       setLoading(false);
     }
   };
+
+  const sources = useMemo(() => {
+    const set = new Set(quotes.map((q) => sourceLabel(q.source)));
+    return Array.from(set).sort();
+  }, [quotes]);
+
+  const visible = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    const list = quotes.filter(
+      (q) =>
+        (sourceFilter === 'all' || sourceLabel(q.source) === sourceFilter) &&
+        (!needle || q.text.toLowerCase().includes(needle)),
+    );
+    list.sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === 'id') cmp = a.id - b.id;
+      else if (sortKey === 'served') cmp = (a.served ?? 0) - (b.served ?? 0);
+      else cmp = a.text.localeCompare(b.text);
+      return sortDesc ? -cmp : cmp;
+    });
+    return list;
+  }, [quotes, search, sourceFilter, sortKey, sortDesc]);
+
+  const totalServed = useMemo(() => quotes.reduce((a, q) => a + (q.served ?? 0), 0), [quotes]);
+
+  const sortBy = (key: SortKey) => {
+    if (sortKey === key) setSortDesc(!sortDesc);
+    else {
+      setSortKey(key);
+      setSortDesc(key === 'served');
+    }
+  };
+  const arrow = (key: SortKey) => (sortKey === key ? (sortDesc ? ' ↓' : ' ↑') : '');
 
   const handleAddClick = () => {
     setEditingQuote(null);
@@ -46,15 +91,16 @@ export function AdminQuotesPage() {
     setEditingQuote(quote);
     setFormText(quote.text);
     setIsFormOpen(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDeleteClick = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this quote?')) return;
-    
+  const handleDeleteClick = async (quote: Quote) => {
+    const preview = quote.text.length > 80 ? quote.text.slice(0, 80) + '…' : quote.text;
+    if (!window.confirm(`Delete this quote?\n\n"${preview}"`)) return;
     try {
-      await deleteQuote(id);
-      setQuotes(quotes.filter(q => q.id !== id));
-      showToast('Quote deleted successfully', 'success');
+      await deleteQuote(quote.id);
+      showToast('Quote deleted', 'success');
+      await loadQuotes(false);
     } catch (err: any) {
       showToast(err.message || 'Failed to delete quote', 'error');
     }
@@ -63,19 +109,17 @@ export function AdminQuotesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formText.trim()) return;
-
     try {
       setIsSubmitting(true);
       if (editingQuote) {
-        const updated = await updateQuote(editingQuote.id, formText);
-        setQuotes(quotes.map(q => q.id === updated.id ? updated : q));
-        showToast('Quote updated successfully', 'success');
+        await updateQuote(editingQuote.id, formText);
+        showToast('Quote updated', 'success');
       } else {
-        const created = await createQuote(formText);
-        setQuotes([...quotes, created]);
-        showToast('Quote created successfully', 'success');
+        await createQuote(formText);
+        showToast('Quote created', 'success');
       }
       setIsFormOpen(false);
+      await loadQuotes(false);
     } catch (err: any) {
       showToast(err.message || 'Failed to save quote', 'error');
     } finally {
@@ -83,199 +127,126 @@ export function AdminQuotesPage() {
     }
   };
 
-  const truncate = (text: string, max: number) => {
-    return text.length > max ? text.substring(0, max) + '...' : text;
-  };
-
   return (
-    <div style={{ position: 'relative' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
-        <h1 style={{ margin: 0 }}>Quotes Management</h1>
-        <button 
-          data-testid="add-quote-btn"
-          onClick={handleAddClick}
-          style={{
-            backgroundColor: 'var(--color-accent)',
-            color: '#fff',
-            border: 'none',
-            padding: 'var(--spacing-sm) var(--spacing-md)',
-            borderRadius: 'var(--radius)',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            transition: 'background-color var(--transition)'
-          }}
-        >
-          Add Quote
-        </button>
+    <div>
+      <div className="page-head">
+        <div>
+          <h1>Quotes</h1>
+          <div className="muted small">
+            {quotes.length} quotes · {totalServed} served in the current stats window
+          </div>
+        </div>
+        <div className="actions">
+          <button className="btn" onClick={() => loadQuotes()}>
+            Refresh
+          </button>
+          <button data-testid="add-quote-btn" className="btn primary" onClick={handleAddClick}>
+            Add quote
+          </button>
+        </div>
       </div>
 
-      {toast && (
-        <div style={{
-          position: 'fixed',
-          top: 'var(--spacing-lg)',
-          right: 'var(--spacing-lg)',
-          padding: 'var(--spacing-md)',
-          borderRadius: 'var(--radius)',
-          backgroundColor: toast.type === 'success' ? '#2e7d32' : '#d32f2f',
-          color: '#fff',
-          zIndex: 1000,
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-        }}>
-          {toast.message}
-        </div>
+      {isFormOpen && (
+        <form className="card" style={{ marginBottom: 'var(--spacing-lg)' }} onSubmit={handleSubmit}>
+          <h2>{editingQuote ? `Edit quote #${editingQuote.id}` : 'New quote'}</h2>
+          <textarea
+            data-testid="quote-textarea"
+            className="textarea"
+            rows={4}
+            value={formText}
+            onChange={(e) => setFormText(e.target.value)}
+            placeholder="Quote text"
+            autoFocus
+            required
+          />
+          {editingQuote?.source && (
+            <div className="muted small" style={{ marginTop: 6 }}>
+              This quote comes from <span className="mono">{editingQuote.source}</span>. The edited version is saved in the
+              API-managed file; the original line stays in its source file and comes back on reload.
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 'var(--spacing-sm)', justifyContent: 'flex-end', marginTop: 'var(--spacing-md)' }}>
+            <button type="button" className="btn" onClick={() => setIsFormOpen(false)}>
+              Cancel
+            </button>
+            <button type="submit" data-testid="quote-submit" className="btn primary" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </form>
       )}
 
-      {isFormOpen && (
-        <div style={{
-          backgroundColor: 'var(--color-surface)',
-          padding: 'var(--spacing-lg)',
-          borderRadius: 'var(--radius)',
-          marginBottom: 'var(--spacing-lg)',
-          border: '1px solid var(--color-border)'
-        }}>
-          <h2 style={{ marginTop: 0, marginBottom: 'var(--spacing-md)' }}>
-            {editingQuote ? 'Edit Quote' : 'Add New Quote'}
-          </h2>
-          <form onSubmit={handleSubmit}>
-            <textarea
-              data-testid="quote-textarea"
-              value={formText}
-              onChange={(e) => setFormText(e.target.value)}
-              style={{
-                width: '100%',
-                minHeight: '100px',
-                padding: 'var(--spacing-sm)',
-                backgroundColor: 'var(--color-bg)',
-                color: 'var(--color-text)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius)',
-                marginBottom: 'var(--spacing-md)',
-                fontFamily: 'inherit',
-                resize: 'vertical'
-              }}
-              placeholder="Enter quote text here..."
-              required
-            />
-            <div style={{ display: 'flex', gap: 'var(--spacing-sm)', justifyContent: 'flex-end' }}>
-              <button
-                type="button"
-                onClick={() => setIsFormOpen(false)}
-                style={{
-                  backgroundColor: 'transparent',
-                  color: 'var(--color-text)',
-                  border: '1px solid var(--color-border)',
-                  padding: 'var(--spacing-sm) var(--spacing-md)',
-                  borderRadius: 'var(--radius)',
-                  cursor: 'pointer'
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                data-testid="quote-submit"
-                disabled={isSubmitting}
-                style={{
-                  backgroundColor: 'var(--color-accent)',
-                  color: '#fff',
-                  border: 'none',
-                  padding: 'var(--spacing-sm) var(--spacing-md)',
-                  borderRadius: 'var(--radius)',
-                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                  opacity: isSubmitting ? 0.7 : 1
-                }}
-              >
-                {isSubmitting ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+      <div className="toolbar">
+        <input
+          className="input grow"
+          type="search"
+          placeholder="Search quotes…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <select className="select" value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}>
+          <option value="all">All sources</option>
+          {sources.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)', color: 'var(--color-text-muted)' }}>
-          Loading quotes...
-        </div>
+        <div className="empty">Loading quotes…</div>
       ) : error ? (
-        <div style={{ 
-          backgroundColor: 'rgba(211, 47, 47, 0.1)', 
-          color: '#ff5252', 
-          padding: 'var(--spacing-md)', 
-          borderRadius: 'var(--radius)',
-          border: '1px solid rgba(211, 47, 47, 0.3)'
-        }}>
-          {error}
-        </div>
+        <div className="banner err">{error}</div>
       ) : quotes.length === 0 ? (
-        <div style={{ 
-          textAlign: 'center', 
-          padding: 'var(--spacing-xl)', 
-          backgroundColor: 'var(--color-surface)',
-          borderRadius: 'var(--radius)',
-          color: 'var(--color-text-muted)'
-        }}>
-          No quotes yet. Click "Add Quote" to create one.
-        </div>
+        <div className="card empty">No quotes yet. Click "Add quote" to create one.</div>
+      ) : visible.length === 0 ? (
+        <div className="card empty">No quotes match your filters.</div>
       ) : (
-        <div data-testid="quotes-list" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-          {quotes.map(quote => (
-            <div 
-              key={quote.id} 
-              data-testid={`quote-row-${quote.id}`}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: 'var(--spacing-md)',
-                backgroundColor: 'var(--color-surface)',
-                borderRadius: 'var(--radius)',
-                border: '1px solid var(--color-border)'
-              }}
-            >
-              <div style={{ flex: 1, marginRight: 'var(--spacing-md)', overflow: 'hidden' }}>
-                <div style={{ 
-                  fontSize: '0.8em', 
-                  color: 'var(--color-text-muted)', 
-                  marginBottom: '4px' 
-                }}>
-                  ID: {quote.id}
-                </div>
-                <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {truncate(quote.text, 80)}
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
-                <button
-                  onClick={() => handleEditClick(quote)}
-                  style={{
-                    backgroundColor: 'transparent',
-                    color: 'var(--color-accent)',
-                    border: '1px solid var(--color-accent)',
-                    padding: '4px 12px',
-                    borderRadius: 'var(--radius)',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteClick(quote.id)}
-                  style={{
-                    backgroundColor: 'transparent',
-                    color: '#ff5252',
-                    border: '1px solid #ff5252',
-                    padding: '4px 12px',
-                    borderRadius: 'var(--radius)',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
+        <div className="card table-wrap" style={{ padding: 0 }}>
+          <table className="data" data-testid="quotes-list">
+            <thead>
+              <tr>
+                <th className="sortable num" onClick={() => sortBy('id')}>
+                  #{arrow('id')}
+                </th>
+                <th className="sortable" onClick={() => sortBy('text')}>
+                  Quote{arrow('text')}
+                </th>
+                <th>Source</th>
+                <th className="sortable num" onClick={() => sortBy('served')}>
+                  Served{arrow('served')}
+                </th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((quote) => (
+                <tr key={quote.id} data-testid={`quote-row-${quote.id}`}>
+                  <td className="num muted">{quote.id}</td>
+                  <td style={{ whiteSpace: 'pre-wrap' }}>{quote.text}</td>
+                  <td>
+                    <span className="pill" title={quote.source ?? 'Added through the API'}>
+                      {sourceLabel(quote.source)}
+                    </span>
+                  </td>
+                  <td className="num">{quote.served ?? 0}</td>
+                  <td className="actions">
+                    <button className="btn sm" onClick={() => handleEditClick(quote)}>
+                      Edit
+                    </button>{' '}
+                    <button className="btn sm danger" onClick={() => handleDeleteClick(quote)}>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
+
+      {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}
     </div>
   );
 }

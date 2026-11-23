@@ -10,6 +10,7 @@ const udp_server = @import("servers/udp.zig");
 const watcher = @import("watcher.zig");
 const http_server = @import("servers/http.zig");
 const app_io = @import("compat/io.zig");
+const runtime = @import("runtime.zig");
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
@@ -279,6 +280,7 @@ fn runEventLoop(
                 log.info("hot_reload_triggered", .{});
                 try store.build(cfg.directories);
                 try sel.reset(store.count());
+                runtime.state.reloads += 1;
                 log.info("hot_reload_complete", .{ .quotes = store.count() });
             }
             continue;
@@ -339,8 +341,11 @@ pub const tcp_server_mod = tcp_server;
 pub const udp_server_mod = udp_server;
 pub const watcher_mod = watcher;
 pub const http_server_mod = http_server;
+pub const runtime_mod = runtime;
 
 test {
     // Pull config.zig unit tests into `zig build test`
     _ = config;
+    _ = runtime;
+    _ = logger;
 }
