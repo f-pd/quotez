@@ -44,7 +44,7 @@ pub fn main(init: std.process.Init) !void {
     }
 
     // Load configuration
-    var cfg = config.Configuration.load(allocator, config_path) catch |err| {
+    var cfg = config.Configuration.load(allocator, config_path, init.environ_map) catch |err| {
         log.err("fatal", .{
             .reason = "failed to load configuration",
             .file = config_path,
@@ -339,3 +339,8 @@ pub const tcp_server_mod = tcp_server;
 pub const udp_server_mod = udp_server;
 pub const watcher_mod = watcher;
 pub const http_server_mod = http_server;
+
+test {
+    // Pull config.zig unit tests into `zig build test`
+    _ = config;
+}

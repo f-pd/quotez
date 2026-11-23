@@ -68,8 +68,23 @@ pub const Configuration = struct {
         pub const api_password: []const u8 = "";
         pub const api_quotes_path: []const u8 = "/data/quotes/api-managed.json";
     };
-    /// Load and parse configuration from file
-    pub fn load(allocator: std.mem.Allocator, path: []const u8) !Configuration {
+    /// Environment variables that override `[api]` credentials from the TOML file.
+    /// The `_FILE` variants point to a file holding the value (Docker/Compose secrets);
+    /// a single trailing newline in that file is ignored. The plain variable wins over `_FILE`.
+    pub const EnvVars = struct {
+        pub const api_username = "QOTD_API_USERNAME";
+        pub const api_username_file = "QOTD_API_USERNAME_FILE";
+        pub const api_password = "QOTD_API_PASSWORD";
+        pub const api_password_file = "QOTD_API_PASSWORD_FILE";
+    };
+
+    /// Prefix of the placeholder credentials shipped in example configs.
+    /// The service refuses to start with the API enabled while these are still in place.
+    pub const placeholder_prefix = "CHANGE_ME";
+
+    /// Load and parse configuration from file.
+    /// `env` (usually `init.environ_map`) supplies credential overrides; pass null to ignore the environment.
+    pub fn load(allocator: std.mem.Allocator, path: []const u8, env: ?*const std.process.Environ.Map) !Configuration {
         var log = logger.Logger.init();
 
         const content = std.Io.Dir.cwd().readFileAlloc(app_io.value, path, allocator, .limited(1024 * 1024)) catch |err| {
@@ -80,6 +95,7 @@ pub const Configuration = struct {
 
         // Parse TOML
         var parser = TomlParser.init(allocator, content);
+        parser.env = env;
         defer parser.deinit();
 
         var config = try parser.parse();
@@ -135,6 +151,9 @@ const TomlParser = struct {
     api_password: ?[]const u8 = null,
     api_quotes_path: ?[]const u8 = null,
 
+    /// Optional environment used to override API credentials (see Configuration.EnvVars)
+    env: ?*const std.process.Environ.Map = null,
+
     pub fn init(allocator: std.mem.Allocator, content: []const u8) TomlParser {
         return .{
             .allocator = allocator,
@@ -185,6 +204,10 @@ const TomlParser = struct {
             self.log.err("config_error", .{ .reason = "missing required field: quotes.directories" });
             return error.MissingRequiredField;
         }
+
+        // Environment overrides for secrets (env > *_FILE > TOML)
+        try self.applyEnvOverride(&self.api_username, Configuration.EnvVars.api_username, Configuration.EnvVars.api_username_file);
+        try self.applyEnvOverride(&self.api_password, Configuration.EnvVars.api_password, Configuration.EnvVars.api_password_file);
 
         // Apply defaults and build configuration
         // Allocate owned strings first so we can errdefer them if validation fails
@@ -238,6 +261,11 @@ const TomlParser = struct {
         self.api_username = null;
         self.api_password = null;
         self.api_quotes_path = null;
+        // Directories were moved out of the ArrayList; free them if validation fails below
+        errdefer {
+            for (config.directories) |dir| self.allocator.free(dir);
+            self.allocator.free(config.directories);
+        }
 
         // Validate ranges
         if (config.tcp_port == 0 or config.udp_port == 0) {
@@ -255,6 +283,12 @@ const TomlParser = struct {
             if (config.api_username.len == 0 or config.api_password.len == 0) {
                 self.log.err("config_error", .{ .reason = "api.username and api.password are required when api.enabled is true" });
                 return error.MissingApiCredentials;
+            }
+            if (std.mem.startsWith(u8, config.api_username, Configuration.placeholder_prefix) or
+                std.mem.startsWith(u8, config.api_password, Configuration.placeholder_prefix))
+            {
+                self.log.err("config_error", .{ .reason = "api credentials are still CHANGE_ME placeholders; set QOTD_API_USERNAME and QOTD_API_PASSWORD" });
+                return error.PlaceholderApiCredentials;
             }
         }
 
@@ -365,6 +399,36 @@ const TomlParser = struct {
         } else if (std.mem.eql(u8, key, "port")) {
             self.health_port = try self.parseInteger(u16);
         }
+    }
+
+    /// Replace `slot` with the value of env var `name`, or with the contents of the file
+    /// named by `file_name`. Leaves `slot` untouched when neither is set (or both are empty).
+    fn applyEnvOverride(self: *TomlParser, slot: *?[]const u8, name: []const u8, file_name: []const u8) !void {
+        const env = self.env orelse return;
+
+        const new_value: []const u8 = blk: {
+            if (env.get(name)) |value| {
+                if (value.len > 0) break :blk try self.allocator.dupe(u8, value);
+            }
+            if (env.get(file_name)) |path| {
+                if (path.len > 0) {
+                    const raw = std.Io.Dir.cwd().readFileAlloc(app_io.value, path, self.allocator, .limited(64 * 1024)) catch |err| {
+                        self.log.err("config_error", .{ .reason = "failed to read secret file", .env = file_name, .path = path });
+                        return err;
+                    };
+                    defer self.allocator.free(raw);
+                    var trimmed: []const u8 = raw;
+                    if (std.mem.endsWith(u8, trimmed, "\n")) trimmed = trimmed[0 .. trimmed.len - 1];
+                    if (std.mem.endsWith(u8, trimmed, "\r")) trimmed = trimmed[0 .. trimmed.len - 1];
+                    break :blk try self.allocator.dupe(u8, trimmed);
+                }
+            }
+            return;
+        };
+
+        if (slot.*) |old| self.allocator.free(old);
+        slot.* = new_value;
+        self.log.info("env_override_applied", .{ .env = name });
     }
 
     fn parseApiValue(self: *TomlParser, key: []const u8) !void {
@@ -608,4 +672,176 @@ test "health section defaults apply when missing" {
 
     try std.testing.expectEqual(true, config.health_enabled);
     try std.testing.expectEqual(@as(u16, 8080), config.health_port);
+}
+
+const api_test_toml =
+    \\[quotes]
+    \\directories = ["/data/quotes"]
+    \\
+    \\[api]
+    \\enabled = true
+    \\username = "toml-user"
+    \\password = "toml-pass"
+;
+
+test "api credentials from TOML are used when env is absent" {
+    const allocator = std.testing.allocator;
+    var env = std.process.Environ.Map.init(allocator);
+    defer env.deinit();
+
+    var parser = TomlParser.init(allocator, api_test_toml);
+    parser.env = &env;
+    defer parser.deinit();
+
+    var config = try parser.parse();
+    defer config.deinit();
+
+    try std.testing.expectEqualStrings("toml-user", config.api_username);
+    try std.testing.expectEqualStrings("toml-pass", config.api_password);
+}
+
+test "env vars override api credentials from TOML" {
+    const allocator = std.testing.allocator;
+    var env = std.process.Environ.Map.init(allocator);
+    defer env.deinit();
+    try env.put("QOTD_API_USERNAME", "env-user");
+    try env.put("QOTD_API_PASSWORD", "env:pass:with:colons");
+
+    var parser = TomlParser.init(allocator, api_test_toml);
+    parser.env = &env;
+    defer parser.deinit();
+
+    var config = try parser.parse();
+    defer config.deinit();
+
+    try std.testing.expectEqualStrings("env-user", config.api_username);
+    try std.testing.expectEqualStrings("env:pass:with:colons", config.api_password);
+}
+
+test "env vars supply api credentials missing from TOML" {
+    const allocator = std.testing.allocator;
+    const content =
+        \\[quotes]
+        \\directories = ["/data/quotes"]
+        \\
+        \\[api]
+        \\enabled = true
+    ;
+    var env = std.process.Environ.Map.init(allocator);
+    defer env.deinit();
+    try env.put("QOTD_API_USERNAME", "env-user");
+    try env.put("QOTD_API_PASSWORD", "env-pass");
+
+    var parser = TomlParser.init(allocator, content);
+    parser.env = &env;
+    defer parser.deinit();
+
+    var config = try parser.parse();
+    defer config.deinit();
+
+    try std.testing.expectEqualStrings("env-user", config.api_username);
+    try std.testing.expectEqualStrings("env-pass", config.api_password);
+}
+
+test "empty env var does not override TOML value" {
+    const allocator = std.testing.allocator;
+    var env = std.process.Environ.Map.init(allocator);
+    defer env.deinit();
+    try env.put("QOTD_API_PASSWORD", "");
+
+    var parser = TomlParser.init(allocator, api_test_toml);
+    parser.env = &env;
+    defer parser.deinit();
+
+    var config = try parser.parse();
+    defer config.deinit();
+
+    try std.testing.expectEqualStrings("toml-pass", config.api_password);
+}
+
+test "_FILE env vars read credentials from secret files" {
+    const allocator = std.testing.allocator;
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "user", .data = "file-user\n" });
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "pass", .data = "file-pass\r\n" });
+
+    const user_path = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/{s}/user", .{tmp.sub_path});
+    defer allocator.free(user_path);
+    const pass_path = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/{s}/pass", .{tmp.sub_path});
+    defer allocator.free(pass_path);
+
+    var env = std.process.Environ.Map.init(allocator);
+    defer env.deinit();
+    try env.put("QOTD_API_USERNAME_FILE", user_path);
+    try env.put("QOTD_API_PASSWORD_FILE", pass_path);
+
+    var parser = TomlParser.init(allocator, api_test_toml);
+    parser.env = &env;
+    defer parser.deinit();
+
+    var config = try parser.parse();
+    defer config.deinit();
+
+    try std.testing.expectEqualStrings("file-user", config.api_username);
+    try std.testing.expectEqualStrings("file-pass", config.api_password);
+}
+
+test "missing secret file is a hard error" {
+    const allocator = std.testing.allocator;
+    var env = std.process.Environ.Map.init(allocator);
+    defer env.deinit();
+    try env.put("QOTD_API_PASSWORD_FILE", "/nonexistent/quotez-secret");
+
+    var parser = TomlParser.init(allocator, api_test_toml);
+    parser.env = &env;
+    defer parser.deinit();
+
+    try std.testing.expectError(error.FileNotFound, parser.parse());
+}
+
+test "placeholder api credentials are rejected when api is enabled" {
+    const allocator = std.testing.allocator;
+    const content =
+        \\[quotes]
+        \\directories = ["/data/quotes"]
+        \\
+        \\[api]
+        \\enabled = true
+        \\username = "CHANGE_ME_ADMIN_USERNAME"
+        \\password = "CHANGE_ME_LONG_RANDOM_SECRET"
+    ;
+
+    var parser = TomlParser.init(allocator, content);
+    defer parser.deinit();
+
+    try std.testing.expectError(error.PlaceholderApiCredentials, parser.parse());
+}
+
+test "env vars replace placeholder api credentials" {
+    const allocator = std.testing.allocator;
+    const content =
+        \\[quotes]
+        \\directories = ["/data/quotes"]
+        \\
+        \\[api]
+        \\enabled = true
+        \\username = "CHANGE_ME_ADMIN_USERNAME"
+        \\password = "CHANGE_ME_LONG_RANDOM_SECRET"
+    ;
+    var env = std.process.Environ.Map.init(allocator);
+    defer env.deinit();
+    try env.put("QOTD_API_USERNAME", "real-user");
+    try env.put("QOTD_API_PASSWORD", "real-pass");
+
+    var parser = TomlParser.init(allocator, content);
+    parser.env = &env;
+    defer parser.deinit();
+
+    var config = try parser.parse();
+    defer config.deinit();
+
+    try std.testing.expectEqualStrings("real-user", config.api_username);
+    try std.testing.expectEqualStrings("real-pass", config.api_password);
 }
