@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { fetchQuotes, createQuote, updateQuote, deleteQuote, type Quote } from '../../lib/api';
+import { fetchQuotes, createQuote, updateQuote, deleteQuote, fetchLocales, type Quote } from '../../lib/api';
+import { QOTD_MAX_BYTES, baseLanguage, canonicalLocale, languageName, utf8Bytes } from '../../lib/i18n';
 
 type SortKey = 'id' | 'served' | 'text';
 
@@ -7,6 +8,41 @@ function sourceLabel(source: string | null | undefined): string {
   if (!source) return 'API';
   const parts = source.split('/');
   return parts[parts.length - 1] || source;
+}
+
+/** Byte size against the RFC 865 limit; over it the text is served on the web only */
+function ByteCount({ text }: { text: string }) {
+  const bytes = utf8Bytes(text);
+  const over = bytes > QOTD_MAX_BYTES;
+  return (
+    <span className="muted small" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+      <span style={over ? { color: 'var(--color-danger, #e5484d)' } : undefined}>
+        {bytes}/{QOTD_MAX_BYTES} bytes
+      </span>
+      {over && (
+        <span className="pill warn" title="Longer than the RFC 865 limit: shown on the website, never sent on port 17/8017">
+          web only
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** Texts of a quote that exceed the QOTD limit, as language tags */
+function webOnlyLangs(q: Quote): string[] {
+  const out: string[] = [];
+  if (utf8Bytes(q.text) > QOTD_MAX_BYTES) out.push(q.original_lang ?? 'original');
+  for (const [lang, text] of Object.entries(q.translations ?? {})) {
+    if (utf8Bytes(text) > QOTD_MAX_BYTES) out.push(lang);
+  }
+  return out;
+}
+
+/** True when the quote has a text the given locale can be served from */
+function hasLanguage(q: Quote, lang: string): boolean {
+  const b = baseLanguage(lang);
+  const langs = [q.original_lang ?? '', ...Object.keys(q.translations ?? {})];
+  return langs.some((l) => l && baseLanguage(l) === b);
 }
 
 export function AdminQuotesPage() {
@@ -18,6 +54,12 @@ export function AdminQuotesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
   const [formText, setFormText] = useState('');
+  const [formAuthor, setFormAuthor] = useState('');
+  const [formLang, setFormLang] = useState('');
+  const [formTranslations, setFormTranslations] = useState<Record<string, string>>({});
+  const [newTransLang, setNewTransLang] = useState('');
+  const [locales, setLocales] = useState<{ supported: string[]; default: string }>({ supported: ['en', 'it', 'fr'], default: 'en' });
+  const [langFilter, setLangFilter] = useState('all');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [search, setSearch] = useState('');
@@ -27,6 +69,7 @@ export function AdminQuotesPage() {
 
   useEffect(() => {
     loadQuotes();
+    fetchLocales().then(setLocales).catch(() => {});
   }, []);
 
   const showToast = (message: string, type: 'success' | 'error') => {
@@ -58,6 +101,10 @@ export function AdminQuotesPage() {
     const list = quotes.filter(
       (q) =>
         (sourceFilter === 'all' || sourceLabel(q.source) === sourceFilter) &&
+        (langFilter === 'all' ||
+          (langFilter === 'web-only' && webOnlyLangs(q).length > 0) ||
+          (langFilter.startsWith('has:') && hasLanguage(q, langFilter.slice(4))) ||
+          (langFilter.startsWith('missing:') && !hasLanguage(q, langFilter.slice(8)))) &&
         (!needle || q.text.toLowerCase().includes(needle)),
     );
     list.sort((a, b) => {
@@ -68,7 +115,7 @@ export function AdminQuotesPage() {
       return sortDesc ? -cmp : cmp;
     });
     return list;
-  }, [quotes, search, sourceFilter, sortKey, sortDesc]);
+  }, [quotes, search, sourceFilter, langFilter, sortKey, sortDesc]);
 
   const totalServed = useMemo(() => quotes.reduce((a, q) => a + (q.served ?? 0), 0), [quotes]);
 
@@ -84,12 +131,18 @@ export function AdminQuotesPage() {
   const handleAddClick = () => {
     setEditingQuote(null);
     setFormText('');
+    setFormAuthor('');
+    setFormLang('');
+    setFormTranslations({});
     setIsFormOpen(true);
   };
 
   const handleEditClick = (quote: Quote) => {
     setEditingQuote(quote);
     setFormText(quote.text);
+    setFormAuthor(quote.author ?? '');
+    setFormLang(quote.lang ?? '');
+    setFormTranslations({ ...(quote.translations ?? {}) });
     setIsFormOpen(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -106,16 +159,52 @@ export function AdminQuotesPage() {
     }
   };
 
+  const effectiveLang = formLang || locales.default;
+  // One translation box per supported locale (except the original language),
+  // plus any other language the quote already has
+  const translationLangs = useMemo(() => {
+    const list = locales.supported.filter((l) => baseLanguage(l) !== baseLanguage(effectiveLang));
+    for (const l of Object.keys(formTranslations)) {
+      if (!list.includes(l) && baseLanguage(l) !== baseLanguage(effectiveLang)) list.push(l);
+    }
+    return list;
+  }, [locales, effectiveLang, formTranslations]);
+  const langOptions = useMemo(() => {
+    const list = [...locales.supported];
+    if (formLang && !list.includes(formLang)) list.push(formLang);
+    return list;
+  }, [locales, formLang]);
+
+  const addTranslationLang = () => {
+    const tag = canonicalLocale(newTransLang);
+    if (!tag) {
+      showToast('Invalid language tag (use it, it-IT, pt-BR…)', 'error');
+      return;
+    }
+    setFormTranslations({ ...formTranslations, [tag]: formTranslations[tag] ?? '' });
+    setNewTransLang('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formText.trim()) return;
     try {
       setIsSubmitting(true);
+      const translations: Record<string, string> = {};
+      for (const [lang, text] of Object.entries(formTranslations)) {
+        if (text.trim() && baseLanguage(lang) !== baseLanguage(effectiveLang)) translations[lang] = text.trim();
+      }
+      const input = {
+        text: formText,
+        author: formAuthor.trim() || null,
+        lang: formLang || null,
+        translations,
+      };
       if (editingQuote) {
-        await updateQuote(editingQuote.id, formText);
+        await updateQuote(editingQuote.id, input);
         showToast('Quote updated', 'success');
       } else {
-        await createQuote(formText);
+        await createQuote(input);
         showToast('Quote created', 'success');
       }
       setIsFormOpen(false);
@@ -155,10 +244,67 @@ export function AdminQuotesPage() {
             rows={4}
             value={formText}
             onChange={(e) => setFormText(e.target.value)}
-            placeholder="Quote text"
+            placeholder="Quote text, in its original language"
             autoFocus
             required
           />
+          <div style={{ display: 'flex', gap: 'var(--spacing-md)', flexWrap: 'wrap', alignItems: 'center', marginTop: 6 }}>
+            <ByteCount text={formText} />
+            <label className="small" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+              Original language
+              <select data-testid="quote-lang" className="select" value={formLang} onChange={(e) => setFormLang(e.target.value)}>
+                <option value="">Default ({languageName(locales.default, 'en')})</option>
+                {langOptions.map((l) => (
+                  <option key={l} value={l}>
+                    {languageName(l, 'en')} ({l})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <input
+              className="input"
+              placeholder="Author"
+              value={formAuthor}
+              onChange={(e) => setFormAuthor(e.target.value)}
+              style={{ minWidth: 200 }}
+            />
+          </div>
+
+          <h3 style={{ marginTop: 'var(--spacing-lg)' }}>Translations</h3>
+          <div className="muted small" style={{ marginBottom: 6 }}>
+            A page in another language shows only quotes translated into it, never a different language. Leave a box empty
+            to drop that translation.
+          </div>
+          {translationLangs.map((lang) => (
+            <div key={lang} style={{ marginBottom: 'var(--spacing-md)' }}>
+              <div className="small" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <strong>
+                  {languageName(lang, 'en')} <span className="mono muted">{lang}</span>
+                </strong>
+                <ByteCount text={formTranslations[lang] ?? ''} />
+              </div>
+              <textarea
+                data-testid={`translation-${lang}`}
+                className="textarea"
+                rows={2}
+                lang={lang}
+                value={formTranslations[lang] ?? ''}
+                onChange={(e) => setFormTranslations({ ...formTranslations, [lang]: e.target.value })}
+                placeholder={`Translation in ${languageName(lang, 'en')}`}
+              />
+            </div>
+          ))}
+          <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+            <input
+              className="input"
+              placeholder="Other language (e.g. de, pt-BR)"
+              value={newTransLang}
+              onChange={(e) => setNewTransLang(e.target.value)}
+            />
+            <button type="button" className="btn sm" onClick={addTranslationLang} disabled={!newTransLang.trim()}>
+              Add language
+            </button>
+          </div>
           {editingQuote?.source && (
             <div className="muted small" style={{ marginTop: 6 }}>
               This quote comes from <span className="mono">{editingQuote.source}</span>. The edited version is saved in the
@@ -192,6 +338,20 @@ export function AdminQuotesPage() {
             </option>
           ))}
         </select>
+        <select className="select" value={langFilter} onChange={(e) => setLangFilter(e.target.value)}>
+          <option value="all">All languages</option>
+          {locales.supported.map((l) => (
+            <option key={`has:${l}`} value={`has:${l}`}>
+              In {languageName(l, 'en')}
+            </option>
+          ))}
+          {locales.supported.map((l) => (
+            <option key={`missing:${l}`} value={`missing:${l}`}>
+              Missing {languageName(l, 'en')}
+            </option>
+          ))}
+          <option value="web-only">Web only (over {QOTD_MAX_BYTES} bytes)</option>
+        </select>
       </div>
 
       {loading ? (
@@ -213,6 +373,7 @@ export function AdminQuotesPage() {
                 <th className="sortable" onClick={() => sortBy('text')}>
                   Quote{arrow('text')}
                 </th>
+                <th>Languages</th>
                 <th>Source</th>
                 <th className="sortable num" onClick={() => sortBy('served')}>
                   Served{arrow('served')}
@@ -224,7 +385,29 @@ export function AdminQuotesPage() {
               {visible.map((quote) => (
                 <tr key={quote.id} data-testid={`quote-row-${quote.id}`}>
                   <td className="num muted">{quote.id}</td>
-                  <td style={{ whiteSpace: 'pre-wrap' }}>{quote.text}</td>
+                  <td style={{ whiteSpace: 'pre-wrap' }}>
+                    {quote.text}
+                    {quote.author && !quote.text.includes(quote.author) && <span className="muted"> — {quote.author}</span>}
+                  </td>
+                  <td>
+                    <span className="pill info" title={quote.lang ? 'Original language' : 'Original language not declared: default assumed'}>
+                      {quote.original_lang ?? locales.default}
+                      {!quote.lang && '*'}
+                    </span>{' '}
+                    {Object.keys(quote.translations ?? {}).map((l) => (
+                      <span key={l} className="pill" title={quote.translations?.[l]}>
+                        {l}
+                      </span>
+                    ))}{' '}
+                    {webOnlyLangs(quote).length > 0 && (
+                      <span
+                        className="pill warn"
+                        title={`Over ${QOTD_MAX_BYTES} bytes, served on the website only: ${webOnlyLangs(quote).join(', ')}`}
+                      >
+                        web only: {webOnlyLangs(quote).join(', ')}
+                      </span>
+                    )}
+                  </td>
                   <td>
                     <span className="pill" title={quote.source ?? 'Added through the API'}>
                       {sourceLabel(quote.source)}

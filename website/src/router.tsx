@@ -23,6 +23,13 @@ const indexRoute = createRoute({
   component: PublicPage,
 });
 
+// Same page with the quote language in the URL: /it, /it-IT, /fr
+const localeRoute = createRoute({
+  getParentRoute: () => publicLayoutRoute,
+  path: '/$locale',
+  component: PublicPage,
+});
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin/login',
@@ -70,7 +77,7 @@ const adminLogsRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
-  publicLayoutRoute.addChildren([indexRoute]),
+  publicLayoutRoute.addChildren([indexRoute, localeRoute]),
   loginRoute,
   adminLayoutRoute.addChildren([adminIndexRoute, adminQuotesRoute, adminLogsRoute, adminConfigRoute]),
 ]);

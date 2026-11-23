@@ -30,6 +30,23 @@ export type Quote = {
   served?: number;
   /** File the quote was loaded from; null when added through the API */
   source?: string | null;
+  author?: string | null;
+  tags?: string[];
+  /** Original language as declared by the source; null = default locale assumed */
+  lang?: string | null;
+  /** Effective original language (lang or the default locale) */
+  original_lang?: string;
+  /** Language tag -> translated text */
+  translations?: Record<string, string>;
+};
+
+/** Editable fields; on update, omitted fields keep their current value */
+export type QuoteInput = {
+  text?: string;
+  author?: string | null;
+  lang?: string | null;
+  tags?: string[];
+  translations?: Record<string, string>;
 };
 
 export type Status = {
@@ -72,19 +89,25 @@ export async function fetchQuotes(): Promise<Quote[]> {
   return data.quotes;
 }
 
-export async function createQuote(text: string): Promise<Quote> {
+export async function createQuote(input: QuoteInput | string): Promise<Quote> {
   const res = await apiFetch('/api/quotes', {
     method: 'POST',
-    body: JSON.stringify({ text }),
+    body: JSON.stringify(typeof input === 'string' ? { text: input } : input),
   });
   return res.json();
 }
 
-export async function updateQuote(id: number, text: string): Promise<Quote> {
+export async function updateQuote(id: number, input: QuoteInput | string): Promise<Quote> {
   const res = await apiFetch(`/api/quotes/${id}`, {
     method: 'PUT',
-    body: JSON.stringify({ text }),
+    body: JSON.stringify(typeof input === 'string' ? { text: input } : input),
   });
+  return res.json();
+}
+
+export async function fetchLocales(): Promise<{ supported: string[]; default: string }> {
+  const res = await fetch('/locales?format=json');
+  if (!res.ok) return { supported: ['en', 'it', 'fr'], default: 'en' };
   return res.json();
 }
 

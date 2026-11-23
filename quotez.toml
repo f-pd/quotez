@@ -36,3 +36,9 @@ interval_seconds = 60
 enabled = true
 username = "admin"
 password = "quotez"
+
+[locales]
+# Quote languages (BCP 47). Pages and QOTD requests in other languages get 404 / an info line.
+supported = ["en", "it", "fr"]
+# Language assumed for quotes that do not declare one
+default = "en"

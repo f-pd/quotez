@@ -18,3 +18,9 @@ port = 8080
 enabled = false
 username = "quotez-admin"
 password = "change-me-in-production"
+
+[locales]
+# Quote languages (BCP 47). Pages and QOTD requests in other languages get 404 / an info line.
+supported = ["en", "it", "fr"]
+# Language assumed for quotes that do not declare one
+default = "en"

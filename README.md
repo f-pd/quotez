@@ -100,13 +100,16 @@ For the Dokploy Compose deployment, set `QOTD_API_USERNAME` and `QOTD_API_PASSWO
 
 ### Public HTTP routes
 
-Served on the health port (default 8080) without authentication, independent of `[api] enabled`. RFC 865 has no commands or addressing (the server sends one quote and closes), so filters exist only over HTTP.
+Served on the health port (default 8080) without authentication, independent of `[api] enabled`. Tag and author filters exist only over HTTP.
 
 | Route | Description |
 |-------|-------------|
 | `/help` | Plain-text description of every route |
 | `/quote` | One random quote |
 | `/n/:num` | `:num` distinct random quotes, 1 to 50 (larger values are clamped) |
+| `/:locale/quote` | One random quote in that language, e.g. `/it/quote`, `/it-IT/quote` |
+| `/:locale/n/:num` | `:num` quotes in that language, e.g. `/fr/n/5` |
+| `/locales` | Supported languages and the default one |
 | `/tags` | Every tag with the number of quotes carrying it |
 
 `/quote` and `/n/:num` accept `tag=a,b` (every listed tag must match, the parameter can repeat) and `author=name` (case-insensitive substring; for plain-text quotes the author is read from a trailing ` - Author`). Responses are plain text, one quote per line, unless `format=json` or `Accept: application/json` is sent.
@@ -115,6 +118,23 @@ Served on the health port (default 8080) without authentication, independent of 
 curl localhost:8080/n/5?tag=stoic
 curl 'localhost:8080/quote?author=seneca&format=json'
 ```
+
+### Languages
+
+Every quote has an original language and optional translations. Languages are BCP 47 tags (`it`, `it-IT`, `fr`, `en-US`).
+
+- Supported languages are configured in `quotez.toml` (default `en`, `it`, `fr`); `default` is the language assumed for quotes that do not declare one:
+  ```toml
+  [locales]
+  supported = ["en", "it", "fr"]
+  default = "en"
+  ```
+- The original language comes from a JSON `"lang"` field or from the file name (`seneca.it.txt`, `poems.pt_BR.json`). Translations are a JSON `"translations"` object, or are edited in the backoffice:
+  `[{"text": "Fatti non foste a viver come bruti", "author": "Dante", "lang": "it", "translations": {"en": "You were not made to live as brutes", "fr": "..."}}]`
+- `/it-IT/...` serves only text written in `it-IT` or, failing that, in `it`; `/it/...` also accepts regional Italian. Quotes with no text in the requested language are skipped and never shown in another language (404 when none is left). `?lang=it` works like the prefix. Without a locale, quotes are served in their original language.
+- JSON replies carry `lang`, `original_lang`, `translated` and, for a translation, `original` with the text in its original language. The website uses it for its "Show original" button.
+- QOTD (port 17/8017) stays RFC 865: a client that sends nothing gets one quote in its original language. As an optional extension a client may send one line `[locale] [n count]`: `echo it | nc host 17`, `echo "it-IT n 3" | nc host 17` (UDP: the same text in the datagram). Over TCP the line must arrive within 5 ms of connecting, which `echo ... | nc` does.
+- RFC 865 asks for quotes shorter than 512 characters (ASCII), so any text or translation over 511 UTF-8 bytes is **web only**: it is served over HTTP but never selected on QOTD. The backoffice shows the byte count of every text and flags web-only ones.
 
 ### Tags
 

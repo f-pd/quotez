@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { ModeLabels } from '../../lib/i18n';
 import '../../styles/zen.css';
 
 interface ZenModeProps {
@@ -6,9 +7,12 @@ interface ZenModeProps {
   loading: boolean;
   error: boolean;
   onNewQuote: () => void;
+  labels?: ModeLabels;
 }
 
-export function ZenMode({ quote, loading, error, onNewQuote }: ZenModeProps) {
+const DEFAULT_LABELS: ModeLabels = { newQuote: 'New Quote', loading: 'Loading...', couldNotLoad: 'Could not load quote', retry: 'Retry' };
+
+export function ZenMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS }: ZenModeProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -23,14 +27,14 @@ export function ZenMode({ quote, loading, error, onNewQuote }: ZenModeProps) {
 
   const renderContent = () => {
     if (loading && !quote) {
-      return <div className="zen-status">Loading...</div>;
+      return <div className="zen-status">{labels.loading}</div>;
     }
 
     if (error) {
       return (
         <div className="zen-error">
-          <p>Could not load quote</p>
-          <button className="zen-button" onClick={onNewQuote}>Retry</button>
+          <p>{labels.couldNotLoad}</p>
+          <button className="zen-button" onClick={onNewQuote}>{labels.retry}</button>
         </div>
       );
     }
@@ -79,7 +83,7 @@ export function ZenMode({ quote, loading, error, onNewQuote }: ZenModeProps) {
           onClick={onNewQuote}
           disabled={loading}
         >
-          New Quote
+          {labels.newQuote}
         </button>
       </div>
     </div>

@@ -29,6 +29,8 @@ initDb(db);
 
 const distDir = path.join(import.meta.dir, "dist");
 
+const PUBLIC_ROUTE = /^(?:\/help|\/tags|\/locales|(?:\/[A-Za-z]{2,3}(?:[-_][A-Za-z0-9]{1,8})*)?\/(?:quote|n\/[^/]*))$/;
+
 function serviceUnavailable(): Response {
   return new Response(JSON.stringify({ error: "Service unavailable" }), {
     status: 503,
@@ -180,11 +182,9 @@ const server = Bun.serve({
       return proxyToZig(req, pathname, search);
     }
 
-    // Public read-only routes served by the Zig service (no auth).
-    if (
-      req.method === "GET" &&
-      (pathname === "/help" || pathname === "/quote" || pathname === "/tags" || pathname.startsWith("/n/"))
-    ) {
+    // Public read-only routes served by the Zig service (no auth), also
+    // with a BCP 47 locale prefix: /it/quote, /it-IT/n/5
+    if (req.method === "GET" && PUBLIC_ROUTE.test(pathname)) {
       return proxyToZig(req, pathname, search);
     }
 

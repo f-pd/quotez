@@ -22,3 +22,9 @@ enabled = true
 # QOTD_API_USERNAME / QOTD_API_PASSWORD (or the *_FILE variants for secret
 # files). In Dokploy set them in the Compose service "Environment" tab.
 quotes_path = "/data/quotes/api-managed.json"
+
+[locales]
+# Quote languages (BCP 47). Pages and QOTD requests in other languages get 404 / an info line.
+supported = ["en", "it", "fr"]
+# Language assumed for quotes that do not declare one
+default = "en"

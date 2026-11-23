@@ -1,12 +1,38 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ZenMode } from './display-modes/ZenMode';
 import { RichMode } from './display-modes/RichMode';
 import { SimpleMode } from './display-modes/SimpleMode';
 import { ModeSelector } from './ModeSelector';
+import { LocaleSelector } from './LocaleSelector';
+import {
+  labelsFor,
+  languageName,
+  matchSupported,
+  pickLocale,
+  saveLocale,
+  type LocalesInfo,
+  type LocalizedQuote,
+} from '../lib/i18n';
+import '../styles/locale.css';
 
 export type DisplayMode = 'zen' | 'rich' | 'simple';
 
-export function QuoteDisplay() {
+const FALLBACK_LOCALES: LocalesInfo = { supported: ['en', 'it', 'fr'], default: 'en' };
+
+/** "text - author" as the display modes expect it */
+function joinAuthor(text: string, author: string | null): string {
+  if (!author || text.includes(author)) return text;
+  return `${text} - ${author}`;
+}
+
+interface QuoteDisplayProps {
+  /** Locale from the URL (/it, /it-IT), if any */
+  urlLocale?: string | null;
+  /** Called when the visitor picks another locale */
+  onLocaleChange?: (locale: string) => void;
+}
+
+export function QuoteDisplay({ urlLocale, onLocaleChange }: QuoteDisplayProps) {
   const [mode, setMode] = useState<DisplayMode>(() => {
     const savedMode = localStorage.getItem('display_mode');
     if (savedMode === 'zen' || savedMode === 'rich' || savedMode === 'simple') {
@@ -14,27 +40,62 @@ export function QuoteDisplay() {
     }
     return 'zen';
   });
-  const [quote, setQuote] = useState<string | null>(null);
+  const [locales, setLocales] = useState<LocalesInfo | null>(null);
+  const [locale, setLocale] = useState<string | null>(null);
+  const [quote, setQuote] = useState<LocalizedQuote | null>(null);
+  const [showOriginal, setShowOriginal] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<boolean>(false);
+  const [error, setError] = useState<'none' | 'failed' | 'no-quotes'>('none');
+
+  // Supported languages come from the service
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/locales?format=json')
+      .then((r) => (r.ok ? r.json() : FALLBACK_LOCALES))
+      .catch(() => FALLBACK_LOCALES)
+      .then((info: LocalesInfo) => {
+        if (cancelled) return;
+        setLocales(info);
+        setLocale(pickLocale(info, urlLocale));
+      });
+    return () => {
+      cancelled = true;
+    };
+    // urlLocale changes are handled below
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!locales || !urlLocale) return;
+    const picked = pickLocale(locales, urlLocale);
+    setLocale((current) => (current === picked ? current : picked));
+  }, [urlLocale, locales]);
+
+  useEffect(() => {
+    if (locale) document.documentElement.lang = locale;
+  }, [locale]);
 
   const fetchQuote = useCallback(async () => {
+    if (!locale) return;
     setLoading(true);
-    setError(false);
+    setError('none');
+    setShowOriginal(false);
     try {
-      const response = await fetch('/qotd');
-      if (!response.ok) {
-        throw new Error('Failed to fetch quote');
+      const response = await fetch(`/${encodeURIComponent(locale)}/quote?format=json`);
+      if (response.status === 404) {
+        setQuote(null);
+        setError('no-quotes');
+        return;
       }
-      const text = await response.text();
-      setQuote(text.trim());
+      if (!response.ok) throw new Error('Failed to fetch quote');
+      setQuote((await response.json()) as LocalizedQuote);
     } catch (err) {
       console.error('Error fetching quote:', err);
-      setError(true);
+      setError('failed');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     fetchQuote();
@@ -45,35 +106,42 @@ export function QuoteDisplay() {
     localStorage.setItem('display_mode', newMode);
   };
 
+  const handleLocaleChange = (newLocale: string) => {
+    saveLocale(newLocale);
+    setLocale(newLocale);
+    onLocaleChange?.(newLocale);
+  };
+
+  const uiLocale = locale ?? 'en';
+  const labels = labelsFor(uiLocale);
+  const modeLabels = useMemo(
+    () => ({
+      ...labels,
+      couldNotLoad: error === 'no-quotes' ? labels.noQuotesInLanguage : labels.couldNotLoad,
+    }),
+    [labels, error],
+  );
+
+  const shown = quote
+    ? joinAuthor(showOriginal && quote.original ? quote.original : quote.text, quote.author)
+    : null;
+
+  const props = {
+    quote: shown,
+    loading,
+    error: error !== 'none',
+    onNewQuote: fetchQuote,
+    labels: modeLabels,
+  };
+
   const renderMode = () => {
     switch (mode) {
       case 'zen':
-        return (
-          <ZenMode 
-            quote={quote} 
-            loading={loading} 
-            error={error} 
-            onNewQuote={fetchQuote} 
-          />
-        );
+        return <ZenMode {...props} />;
       case 'rich':
-        return (
-          <RichMode 
-            quote={quote} 
-            loading={loading} 
-            error={error} 
-            onNewQuote={fetchQuote} 
-          />
-        );
+        return <RichMode {...props} />;
       case 'simple':
-        return (
-          <SimpleMode 
-            quote={quote} 
-            loading={loading} 
-            error={error} 
-            onNewQuote={fetchQuote} 
-          />
-        );
+        return <SimpleMode {...props} />;
       default:
         return <div>Mode {mode} not implemented yet</div>;
     }
@@ -82,7 +150,27 @@ export function QuoteDisplay() {
   return (
     <div className="quote-display-container">
       <ModeSelector mode={mode} onModeChange={handleModeChange} />
+      {locales && locale && (
+        <LocaleSelector
+          locales={locales.supported}
+          value={matchSupported(locale, locales.supported) ?? locale}
+          label={labels.language}
+          onChange={handleLocaleChange}
+        />
+      )}
       {renderMode()}
+      {quote?.translated && quote.original && !loading && (
+        <button
+          className="original-toggle"
+          data-testid="original-toggle"
+          onClick={() => setShowOriginal(!showOriginal)}
+          lang={showOriginal ? uiLocale : quote.original_lang}
+        >
+          {showOriginal
+            ? labels.showTranslation(languageName(quote.lang, uiLocale))
+            : labels.showOriginal(languageName(quote.original_lang, uiLocale))}
+        </button>
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { ModeLabels } from '../../lib/i18n';
 import '../../styles/rich.css';
 
 interface RichModeProps {
@@ -6,9 +7,12 @@ interface RichModeProps {
   loading: boolean;
   error: boolean;
   onNewQuote: () => void;
+  labels?: ModeLabels;
 }
 
-export function RichMode({ quote, loading, error, onNewQuote }: RichModeProps) {
+const DEFAULT_LABELS: ModeLabels = { newQuote: 'New Quote', loading: 'Loading...', couldNotLoad: 'Could not load quote', retry: 'Retry' };
+
+export function RichMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS }: RichModeProps) {
   const [visible, setVisible] = useState(false);
   const [quoteCount, setQuoteCount] = useState(0);
   const [typed, setTyped] = useState(0);
@@ -41,14 +45,14 @@ export function RichMode({ quote, loading, error, onNewQuote }: RichModeProps) {
 
   const renderContent = () => {
     if (loading && !quote) {
-      return <div className="rich-status">Loading...</div>;
+      return <div className="rich-status">{labels.loading}</div>;
     }
 
     if (error) {
       return (
         <div className="rich-error">
-          <p>Could not load quote</p>
-          <button className="rich-button" onClick={onNewQuote}>Retry</button>
+          <p>{labels.couldNotLoad}</p>
+          <button className="rich-button" onClick={onNewQuote}>{labels.retry}</button>
         </div>
       );
     }
@@ -91,7 +95,7 @@ export function RichMode({ quote, loading, error, onNewQuote }: RichModeProps) {
           onClick={onNewQuote}
           disabled={loading}
         >
-          New Quote
+          {labels.newQuote}
         </button>
       </div>
     );

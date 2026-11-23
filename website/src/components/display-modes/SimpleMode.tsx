@@ -1,3 +1,4 @@
+import type { ModeLabels } from '../../lib/i18n';
 import '../../styles/simple.css';
 
 interface SimpleModeProps {
@@ -5,19 +6,22 @@ interface SimpleModeProps {
   loading: boolean;
   error: boolean;
   onNewQuote: () => void;
+  labels?: ModeLabels;
 }
 
-export function SimpleMode({ quote, loading, error, onNewQuote }: SimpleModeProps) {
+const DEFAULT_LABELS: ModeLabels = { newQuote: 'New Quote', loading: 'Loading...', couldNotLoad: 'Could not load quote', retry: 'Retry' };
+
+export function SimpleMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS }: SimpleModeProps) {
   const renderContent = () => {
     if (loading && !quote) {
-      return <div className="simple-status">Loading...</div>;
+      return <div className="simple-status">{labels.loading}</div>;
     }
 
     if (error) {
       return (
         <div className="simple-error">
-          <p>Could not load quote</p>
-          <button className="simple-button" onClick={onNewQuote}>Retry</button>
+          <p>{labels.couldNotLoad}</p>
+          <button className="simple-button" onClick={onNewQuote}>{labels.retry}</button>
         </div>
       );
     }
@@ -61,7 +65,7 @@ export function SimpleMode({ quote, loading, error, onNewQuote }: SimpleModeProp
           onClick={onNewQuote}
           disabled={loading}
         >
-          New Quote
+          {labels.newQuote}
         </button>
       )}
     </div>
