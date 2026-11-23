@@ -67,11 +67,21 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Optional: set the repo secret DOKPLOY_DEPLOY_WEBHOOK to the compose
-      # service's deploy webhook URL so production redeploys only once the new
-      # image is on GHCR (turn off Dokploy's own auto-deploy on push).
+      # Optional: redeploy production only once the new image is on GHCR.
+      # Set the repo secret DOKPLOY_DEPLOY_WEBHOOK to the compose service's
+      # deploy webhook URL (Deployments tab; its token only redeploys this
+      # service). In Dokploy keep Autodeploy ON but set Trigger Type to "Tag",
+      # so plain pushes no longer deploy before the image exists. The endpoint
+      # expects a GitHub push payload for the configured branch.
       - name: Trigger Dokploy redeploy
         env:
           DOKPLOY_DEPLOY_WEBHOOK: ${{ secrets.DOKPLOY_DEPLOY_WEBHOOK }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         if: env.DOKPLOY_DEPLOY_WEBHOOK != ''
-        run: curl -fsS -X POST "$DOKPLOY_DEPLOY_WEBHOOK"
+        run: |
+          payload=$(jq -n --arg ref "$GITHUB_REF" --arg sha "$GITHUB_SHA" --arg msg "$COMMIT_MSG" \
+            '{ref: $ref, after: $sha, head_commit: {id: $sha, message: $msg}, commits: []}')
+          curl -fsS -X POST "$DOKPLOY_DEPLOY_WEBHOOK" \
+            -H 'Content-Type: application/json' \
+            -H 'X-GitHub-Event: push' \
+            --data "$payload"
