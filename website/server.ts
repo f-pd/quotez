@@ -180,6 +180,14 @@ const server = Bun.serve({
       return proxyToZig(req, pathname, search);
     }
 
+    // Public read-only routes served by the Zig service (no auth).
+    if (
+      req.method === "GET" &&
+      (pathname === "/help" || pathname === "/quote" || pathname === "/tags" || pathname.startsWith("/n/"))
+    ) {
+      return proxyToZig(req, pathname, search);
+    }
+
     return serveStatic(pathname);
   },
 

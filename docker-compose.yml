@@ -22,5 +22,25 @@ services:
       - ./quotez.prod.toml:/quotez.toml:ro
       - quotes:/data/quotes
 
+  # Backoffice (/admin) and public site; also proxies the public read-only
+  # routes (/help, /quote, /n/:num, /tags). Not published on the host: point
+  # the Dokploy domain at this service, port 3000.
+  web:
+    image: ghcr.io/f-pd/quotez-web:latest
+    pull_policy: always
+    restart: unless-stopped
+    depends_on:
+      - qotd-service
+    environment:
+      QOTD_API_HOST: qotd-service
+      QOTD_API_PORT: "8080"
+      QOTD_TCP_HOST: qotd-service
+      QOTD_TCP_PORT: "8017"
+      QOTD_API_USERNAME: ${QOTD_API_USERNAME:?set QOTD_API_USERNAME in Dokploy Environment}
+      QOTD_API_PASSWORD: ${QOTD_API_PASSWORD:?set QOTD_API_PASSWORD in Dokploy Environment}
+    volumes:
+      - web-data:/data
+
 volumes:
   quotes:
+  web-data:
