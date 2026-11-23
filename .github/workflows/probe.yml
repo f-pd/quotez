@@ -8,11 +8,7 @@ jobs:
     steps:
       - run: |
           set +e
-          H=v.fulgid.us
-          dig +short $H
-          for p in 17 8017; do echo "== tcp $p"; timeout 8 nc -w5 $H $p </dev/null | head -c 300; echo " rc=$?"; done
-          echo "== udp 8017"; echo | timeout 6 nc -u -w4 $H 8017 | head -c 300; echo
-          for u in / /help /quote /tags /health /admin; do echo "$u $(curl -s -m10 -o /dev/null -w '%{http_code}' https://$H$u)"; done
-          curl -s -m10 -i https://$H/quote | head -20
-          curl -s -m10 -i http://$H/ | head -10
-          curl -s -m10 https://$H/ | head -c 400
+          for H in quotez.fulgid.us qotd.fulgid.us quotes.fulgid.us quote.fulgid.us fulgid.us www.fulgid.us; do
+            echo "== $H $(dig +short $H | tr '\n' ' ')"
+            for u in / /quote /admin; do echo "  $u $(curl -s -m8 -o /tmp/b -w '%{http_code}' https://$H$u) $(head -c 120 /tmp/b | tr -d '\n')"; done
+          done
