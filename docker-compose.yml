@@ -24,6 +24,7 @@ services:
       - "17:8017/udp"
     volumes:
       - ./quotez.prod.toml:/quotez.toml:ro
+      - ./quotes:/data/seed-quotes:ro
       - quotes:/data/quotes
 
 volumes:

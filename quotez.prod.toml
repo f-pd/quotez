@@ -4,7 +4,9 @@ tcp_port = 8017
 udp_port = 8017
 
 [quotes]
-directories = ["/data/quotes"]
+# seed-quotes ships with the repo so the service never starts empty;
+# /data/quotes is the persistent volume for API-managed quotes.
+directories = ["/data/seed-quotes", "/data/quotes"]
 mode = "random"
 
 [polling]
