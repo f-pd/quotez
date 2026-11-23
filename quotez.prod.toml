@@ -18,6 +18,7 @@ port = 8080
 
 [api]
 enabled = true
-username = "CHANGE_ME_ADMIN_USERNAME"
-password = "CHANGE_ME_LONG_RANDOM_SECRET"
+# Credentials are NOT stored here. They are injected at runtime via
+# QOTD_API_USERNAME / QOTD_API_PASSWORD (or the *_FILE variants for secret
+# files). In Dokploy set them in the Compose service "Environment" tab.
 quotes_path = "/data/quotes/api-managed.json"

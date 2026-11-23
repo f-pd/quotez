@@ -68,7 +68,16 @@ The repository also contains an HTTP API and website implementation, but they ar
 
 ### Authentication
 
-All `/api/*` endpoints require **Basic HTTP Authentication**. Configure credentials in the `[api]` section of `quotez.toml`.
+All `/api/*` endpoints require **Basic HTTP Authentication**. Credentials can be set in the `[api]` section of `quotez.toml`, but in production they should come from the environment, which overrides the file:
+
+| Variable | Meaning |
+|----------|---------|
+| `QOTD_API_USERNAME` / `QOTD_API_PASSWORD` | Credential values |
+| `QOTD_API_USERNAME_FILE` / `QOTD_API_PASSWORD_FILE` | Path to a file holding the value (Docker/Compose secrets); a trailing newline is ignored |
+
+The plain variable wins over `_FILE`, which wins over the TOML value. Empty variables are ignored. The service refuses to start with the API enabled if a credential still starts with `CHANGE_ME`.
+
+For the Dokploy Compose deployment, set `QOTD_API_USERNAME` and `QOTD_API_PASSWORD` in the service's **Environment** tab; `docker-compose.yml` passes them through and fails the deploy if they are missing. The website uses the same variable names, so one pair serves both.
 
 ### Key Endpoints
 
