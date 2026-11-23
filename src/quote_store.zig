@@ -8,6 +8,17 @@ const json_parser = @import("parsers/json.zig");
 const csv_parser = @import("parsers/csv.zig");
 const toml_parser = @import("parsers/toml.zig");
 const yaml_parser = @import("parsers/yaml.zig");
+const i18n = @import("i18n.zig");
+
+/// A translation of a quote into another language
+pub const Translation = parser_mod.Translation;
+
+/// Text chosen for a requested locale, see `Quote.resolve`
+pub const Resolved = struct {
+    text: []const u8,
+    lang: []const u8,
+    translated: bool,
+};
 
 /// Quote entity - immutable quote with content-based hash
 pub const Quote = struct {
@@ -18,6 +29,11 @@ pub const Quote = struct {
     author: ?[]const u8 = null,
     /// Normalized tags (lowercase, deduplicated), see `normalizeTag`
     tags: []const []const u8 = &.{},
+    /// Original language (canonical BCP 47), null when the source does not say;
+    /// callers then assume the configured default language
+    lang: ?[]const u8 = null,
+    /// Translations, at most one per language, never in the original language
+    translations: []const Translation = &.{},
 
     /// Create a new quote from content
     pub fn init(allocator: std.mem.Allocator, content: []const u8, source_path: ?[]const u8) !Quote {
@@ -32,6 +48,20 @@ pub const Quote = struct {
         source_path: ?[]const u8,
         author: ?[]const u8,
         raw_tags: []const []const u8,
+    ) !Quote {
+        return initFull(allocator, content, source_path, author, raw_tags, null, &.{});
+    }
+
+    /// Like `initWithMeta`, plus original language and translations (raw,
+    /// canonicalized here; invalid tags, empty texts and duplicates are dropped).
+    pub fn initFull(
+        allocator: std.mem.Allocator,
+        content: []const u8,
+        source_path: ?[]const u8,
+        author: ?[]const u8,
+        raw_tags: []const []const u8,
+        raw_lang: ?[]const u8,
+        raw_translations: []const Translation,
     ) !Quote {
         // Normalize content: trim whitespace
         const normalized = std.mem.trim(u8, content, " \t\n\r");
@@ -63,14 +93,81 @@ pub const Quote = struct {
         errdefer if (owned_author) |a| allocator.free(a);
 
         const owned_tags = try normalizeTags(allocator, raw_tags);
+        errdefer freeTags(allocator, owned_tags);
 
-        return Quote{
+        const owned_lang = if (raw_lang) |l| try i18n.dupeCanonical(allocator, l) else null;
+        errdefer if (owned_lang) |l| allocator.free(l);
+
+        var q = Quote{
             .content = owned_content,
             .hash = hash,
             .source_path = owned_path,
             .author = owned_author,
             .tags = owned_tags,
+            .lang = owned_lang,
         };
+        try q.setTranslations(allocator, raw_translations);
+        return q;
+    }
+
+    /// Replace all translations (raw input, canonicalized and deduplicated)
+    pub fn setTranslations(self: *Quote, allocator: std.mem.Allocator, raw: []const Translation) !void {
+        var list: std.ArrayList(Translation) = .empty;
+        errdefer {
+            for (list.items) |t| freeTranslation(allocator, t);
+            list.deinit(allocator);
+        }
+        for (raw) |t| try self.appendTranslation(allocator, &list, t);
+        freeTranslations(allocator, self.translations);
+        self.translations = if (list.items.len == 0) blk: {
+            list.deinit(allocator);
+            break :blk &.{};
+        } else try list.toOwnedSlice(allocator);
+    }
+
+    fn appendTranslation(self: *const Quote, allocator: std.mem.Allocator, list: *std.ArrayList(Translation), t: Translation) !void {
+        var buf: [i18n.max_tag_len]u8 = undefined;
+        const lang = i18n.canonicalize(t.lang, &buf) orelse return;
+        const text = std.mem.trim(u8, t.text, " \t\n\r");
+        if (text.len == 0) return;
+        if (self.lang) |orig| {
+            if (std.mem.eql(u8, orig, lang)) return;
+        }
+        for (list.items) |existing| {
+            if (std.mem.eql(u8, existing.lang, lang)) return;
+        }
+        const owned_lang = try allocator.dupe(u8, lang);
+        errdefer allocator.free(owned_lang);
+        const owned_text = try allocator.dupe(u8, text);
+        errdefer allocator.free(owned_text);
+        try list.append(allocator, .{ .lang = owned_lang, .text = owned_text });
+    }
+
+    /// Translation in exactly `lang` (canonical), if any
+    pub fn translation(self: Quote, lang: []const u8) ?[]const u8 {
+        for (self.translations) |t| {
+            if (std.mem.eql(u8, t.lang, lang)) return t.text;
+        }
+        return null;
+    }
+
+    /// Best text for `requested` (canonical BCP 47) among the original and the
+    /// translations, or null when the quote has no text in that language.
+    /// `default_lang` is assumed when the quote does not declare its language.
+    /// The original wins ties.
+    pub fn resolve(self: *const Quote, requested: []const u8, default_lang: []const u8) ?Resolved {
+        const orig_lang = self.lang orelse default_lang;
+        var best: ?Resolved = null;
+        var best_score: u8 = i18n.matchScore(orig_lang, requested);
+        if (best_score > 0) best = .{ .text = self.content, .lang = orig_lang, .translated = false };
+        for (self.translations) |t| {
+            const score = i18n.matchScore(t.lang, requested);
+            if (score > best_score) {
+                best_score = score;
+                best = .{ .text = t.text, .lang = t.lang, .translated = true };
+            }
+        }
+        return best;
     }
 
     /// Free quote memory
@@ -81,12 +178,29 @@ pub const Quote = struct {
         }
         if (self.author) |a| allocator.free(a);
         freeTags(allocator, self.tags);
+        if (self.lang) |l| allocator.free(l);
+        freeTranslations(allocator, self.translations);
     }
 
-    /// Merge author/tags of a duplicate into this quote (author: first one wins)
+    /// Merge author/tags/language/translations of a duplicate into this quote
+    /// (author and language: first one wins; translations: added per missing language)
     pub fn mergeMeta(self: *Quote, allocator: std.mem.Allocator, other: Quote) !void {
         if (self.author == null) {
             if (other.author) |a| self.author = try allocator.dupe(u8, a);
+        }
+        if (self.lang == null) {
+            if (other.lang) |l| {
+                self.lang = try allocator.dupe(u8, l);
+                // Drops a translation in the now-known original language
+                try self.setTranslations(allocator, self.translations);
+            }
+        }
+        if (other.translations.len > 0) {
+            var list: std.ArrayList(Translation) = .empty;
+            defer list.deinit(allocator);
+            try list.appendSlice(allocator, self.translations);
+            try list.appendSlice(allocator, other.translations);
+            try self.setTranslations(allocator, list.items);
         }
         var missing: usize = 0;
         for (other.tags) |t| {
@@ -166,6 +280,35 @@ fn normalizeTags(allocator: std.mem.Allocator, raw_tags: []const []const u8) ![]
         return &.{};
     }
     return list.toOwnedSlice(allocator);
+}
+
+fn freeTranslation(allocator: std.mem.Allocator, t: Translation) void {
+    allocator.free(t.lang);
+    allocator.free(t.text);
+}
+
+fn freeTranslations(allocator: std.mem.Allocator, list: []const Translation) void {
+    if (list.len == 0) return;
+    for (list) |t| freeTranslation(allocator, t);
+    allocator.free(list);
+}
+
+/// Language from a file name suffix: "seneca.it.txt" -> "it", "x.pt_BR.json" -> "pt-BR".
+/// Only ISO 639-1 languages with an optional 2-letter region are accepted,
+/// so names like "quotes.v2.txt" or "best.of.txt" never become languages.
+pub fn fileLanguage(path: []const u8, out: *[i18n.max_tag_len]u8) ?[]const u8 {
+    const name = std.fs.path.basename(path);
+    const last_dot = std.mem.lastIndexOfScalar(u8, name, '.') orelse return null;
+    const stem = name[0..last_dot];
+    const dot = std.mem.lastIndexOfScalar(u8, stem, '.') orelse return null;
+    const suffix = stem[dot + 1 ..];
+    if (!(suffix.len == 2 or (suffix.len == 5 and (suffix[2] == '-' or suffix[2] == '_')))) return null;
+    for (suffix, 0..) |c, i| {
+        if (i == 2 and suffix.len == 5) continue;
+        if (!std.ascii.isAlphabetic(c)) return null;
+    }
+    if (!i18n.isIso639_1(suffix[0..2])) return null;
+    return i18n.canonicalize(suffix, out);
 }
 
 fn freeTags(allocator: std.mem.Allocator, tags: []const []const u8) void {
@@ -316,6 +459,9 @@ pub const QuoteStore = struct {
         var tag_buf: std.ArrayList([]const u8) = .empty;
         defer tag_buf.deinit(self.allocator);
 
+        var lang_buf: [i18n.max_tag_len]u8 = undefined;
+        const file_lang = fileLanguage(rel_path, &lang_buf);
+
         // Add quotes to store
         for (parse_result.quotes.items, 0..) |quote_content, i| {
             const meta = parse_result.meta(i);
@@ -323,8 +469,11 @@ pub const QuoteStore = struct {
             try tag_buf.appendSlice(self.allocator, dir_tags.items);
             try tag_buf.appendSlice(self.allocator, meta.tags);
 
+            // Language: explicit in the source, else from the file name (x.it.txt)
+            const lang = meta.lang orelse file_lang;
+
             // Create quote with hash
-            const quote = Quote.initWithMeta(self.allocator, quote_content, path, meta.author, tag_buf.items) catch |err| {
+            const quote = Quote.initFull(self.allocator, quote_content, path, meta.author, tag_buf.items, lang, meta.translations) catch |err| {
                 if (err != error.EmptyQuote) {
                     self.log.warn("quote_init_failed", .{ .path = path, .err = @errorName(err) });
                 }
@@ -346,6 +495,14 @@ pub const QuoteStore = struct {
             try seen.put(quote.hash, self.quotes.items.len);
             try self.quotes.append(self.allocator, quote);
         }
+    }
+
+    /// Index of the quote with this content hash, if any
+    pub fn indexOfHash(self: *const QuoteStore, hash: [32]u8) ?usize {
+        for (self.quotes.items, 0..) |q, i| {
+            if (std.mem.eql(u8, &q.hash, &hash)) return i;
+        }
+        return null;
     }
 
     /// Check if store is empty
@@ -620,4 +777,72 @@ test "quote store tags quotes from sub-directories and JSON metadata" {
         }
     }
     try std.testing.expect(found[0] and found[1] and found[2]);
+}
+
+test "quote resolve: exact, plain language, never another language" {
+    const allocator = std.testing.allocator;
+    const T = Translation;
+    const q = try Quote.initFull(allocator, "Carpe diem", null, null, &.{}, "LA", &[_]T{
+        .{ .lang = "it", .text = "Cogli l'attimo" },
+        .{ .lang = "it_IT", .text = "Cogli l'attimo (IT)" },
+        .{ .lang = "la", .text = "dropped: same as the original" },
+        .{ .lang = "en", .text = "  " },
+        .{ .lang = "not a tag", .text = "dropped" },
+    });
+    defer q.deinit(allocator);
+
+    try std.testing.expectEqualStrings("la", q.lang.?);
+    try std.testing.expectEqual(@as(usize, 2), q.translations.len);
+    try std.testing.expectEqualStrings("Cogli l'attimo (IT)", q.resolve("it-IT", "en").?.text);
+    try std.testing.expectEqualStrings("Cogli l'attimo", q.resolve("it", "en").?.text);
+    try std.testing.expectEqualStrings("Cogli l'attimo", q.resolve("it-CH", "en").?.text);
+    try std.testing.expect(!q.resolve("la", "en").?.translated);
+    try std.testing.expect(q.resolve("en", "en") == null);
+    try std.testing.expect(q.resolve("fr", "en") == null);
+
+    // Undeclared language: the default is assumed
+    const plain = try Quote.init(allocator, "Well begun is half done.", null);
+    defer plain.deinit(allocator);
+    try std.testing.expectEqualStrings("en", plain.resolve("en-US", "en").?.lang);
+    try std.testing.expect(plain.resolve("it", "en") == null);
+}
+
+test "fileLanguage" {
+    var buf: [i18n.max_tag_len]u8 = undefined;
+    try std.testing.expectEqualStrings("it", fileLanguage("phil/seneca.it.txt", &buf).?);
+    try std.testing.expectEqualStrings("pt-BR", fileLanguage("x.pt_br.json", &buf).?);
+    try std.testing.expect(fileLanguage("seneca.txt", &buf) == null);
+    try std.testing.expect(fileLanguage("quotes.v2.txt", &buf) == null);
+    try std.testing.expect(fileLanguage("best.of.txt", &buf) == null);
+}
+
+test "quote store reads languages from file names and merges translations" {
+    const allocator = std.testing.allocator;
+    const io = std.testing.io;
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    try tmp.dir.createDirPath(io, "poetry");
+    try tmp.dir.writeFile(io, .{ .sub_path = "poetry/dante.it.txt", .data = "Fatti non foste a viver come bruti\n" });
+    try tmp.dir.writeFile(io, .{
+        .sub_path = "api.json",
+        .data =
+        \\[{"text": "Fatti non foste a viver come bruti", "translations": {"en": "You were not made to live as brutes"}}]
+        ,
+    });
+
+    var path_buf: [4096]u8 = undefined;
+    const tmp_path_len = try tmp.dir.realPath(io, &path_buf);
+    const dirs = [_][]const u8{path_buf[0..tmp_path_len]};
+
+    var store = QuoteStore.init(allocator);
+    defer store.deinit();
+    try store.build(&dirs);
+
+    try std.testing.expectEqual(@as(usize, 1), store.count());
+    const q = store.getQuote(0).?;
+    try std.testing.expectEqualStrings("it", q.lang.?);
+    try std.testing.expect(q.hasTag("poetry"));
+    try std.testing.expectEqualStrings("You were not made to live as brutes", q.translation("en").?);
 }

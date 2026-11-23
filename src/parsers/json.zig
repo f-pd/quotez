@@ -3,7 +3,9 @@ const parser = @import("parser.zig");
 
 /// Parse JSON format: array of strings, object with "quotes" array, or array of objects with "quote"/"text" field
 /// Objects may also carry metadata: "author" (string), "category" (string)
-/// and "tags" (array of strings or comma-separated string).
+/// and "tags" (array of strings or comma-separated string), "lang" (original
+/// language, BCP 47 such as "it" or "it-IT") and "translations": either an
+/// object {"en": "text", "fr": "texte"} or an array [{"lang": "en", "text": "..."}].
 pub fn parse(allocator: std.mem.Allocator, content: []const u8) !parser.ParseResult {
     var quotes: std.ArrayList([]const u8) = .empty;
     var metas: std.ArrayList(parser.QuoteMeta) = .empty;
@@ -123,7 +125,49 @@ fn extractMeta(allocator: std.mem.Allocator, obj: std.json.ObjectMap) !parser.Qu
     }
     errdefer if (author) |a| allocator.free(a);
 
+    var lang: ?[]const u8 = null;
+    if (obj.get("lang") orelse obj.get("language")) |l| {
+        if (l == .string) {
+            const trimmed = std.mem.trim(u8, l.string, " \t\r\n");
+            if (trimmed.len > 0) lang = try allocator.dupe(u8, trimmed);
+        }
+    }
+    errdefer if (lang) |l| allocator.free(l);
+
+    var translations: std.ArrayList(parser.Translation) = .empty;
+    errdefer {
+        for (translations.items) |t| {
+            allocator.free(t.lang);
+            allocator.free(t.text);
+        }
+        translations.deinit(allocator);
+    }
+    if (obj.get("translations")) |tr| {
+        switch (tr) {
+            .object => |map| {
+                var it = map.iterator();
+                while (it.next()) |entry| {
+                    if (entry.value_ptr.* != .string) continue;
+                    try appendTranslation(allocator, &translations, entry.key_ptr.*, entry.value_ptr.string);
+                }
+            },
+            .array => |arr| for (arr.items) |item| {
+                if (item != .object) continue;
+                const l = item.object.get("lang") orelse item.object.get("language") orelse continue;
+                const t = item.object.get("text") orelse item.object.get("quote") orelse continue;
+                if (l != .string or t != .string) continue;
+                try appendTranslation(allocator, &translations, l.string, t.string);
+            },
+            else => {},
+        }
+    }
+
     return .{
+        .lang = lang,
+        .translations = if (translations.items.len == 0) blk: {
+            translations.deinit(allocator);
+            break :blk &.{};
+        } else try translations.toOwnedSlice(allocator),
         .author = author,
         .tags = if (tags.items.len == 0) blk: {
             tags.deinit(allocator);
@@ -132,11 +176,40 @@ fn extractMeta(allocator: std.mem.Allocator, obj: std.json.ObjectMap) !parser.Qu
     };
 }
 
+fn appendTranslation(allocator: std.mem.Allocator, list: *std.ArrayList(parser.Translation), lang: []const u8, text: []const u8) !void {
+    const normalized = (try parser.normalizeQuote(allocator, text)) orelse return;
+    errdefer allocator.free(normalized);
+    const owned_lang = try allocator.dupe(u8, lang);
+    errdefer allocator.free(owned_lang);
+    try list.append(allocator, .{ .lang = owned_lang, .text = normalized });
+}
+
 pub const jsonParser = parser.Parser{
     .parseFn = parse,
 };
 
 // Tests
+test "json - language and translations" {
+    const allocator = std.testing.allocator;
+    const content =
+        \\[
+        \\  {"quote": "Nel mezzo del cammin di nostra vita", "author": "Dante", "lang": "it",
+        \\   "translations": {"en": "Midway upon the journey of our life", "fr": "Au milieu du chemin de notre vie"}},
+        \\  {"text": "Carpe diem", "language": "la", "translations": [{"lang": "it-IT", "text": "Cogli l'attimo"}]}
+        \\]
+    ;
+    var result = try parse(allocator, content);
+    defer result.deinit(allocator);
+
+    const m0 = result.meta(0);
+    try std.testing.expectEqualStrings("it", m0.lang.?);
+    try std.testing.expectEqual(@as(usize, 2), m0.translations.len);
+    const m1 = result.meta(1);
+    try std.testing.expectEqualStrings("la", m1.lang.?);
+    try std.testing.expectEqualStrings("it-IT", m1.translations[0].lang);
+    try std.testing.expectEqualStrings("Cogli l'attimo", m1.translations[0].text);
+}
+
 test "json - metadata: author, category and tags" {
     const allocator = std.testing.allocator;
     const content =

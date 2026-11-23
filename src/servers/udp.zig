@@ -5,6 +5,7 @@ const selector_mod = @import("../selector.zig");
 const posix_net = @import("../compat/posix_net.zig");
 const net = @import("../net.zig");
 const runtime = @import("../runtime.zig");
+const i18n = @import("../i18n.zig");
 
 /// UDP QOTD server implementing RFC 865
 pub const UdpServer = struct {
@@ -119,33 +120,48 @@ pub const UdpServer = struct {
 
         self.log.debug("udp_datagram_received", .{ .bytes = recv_len });
 
+        // Optional extension: the datagram may ask for a language ("it-IT")
+        // and/or several quotes ("n 3"); anything else is a plain RFC 865 request
+        const request = i18n.parseQotdRequest(recv_buf[0..recv_len]);
+
         // Decide what to send (maintenance message, quote, debug trailer)
+        var msg_buf: [128]u8 = undefined;
         var trailer_buf: [256]u8 = undefined;
-        const reply = runtime.nextReply(self.store, self.selector, .udp, &trailer_buf) orelse {
+        const reply = runtime.nextReply(self.store, self.selector, .udp, &request, &msg_buf, &trailer_buf) orelse {
             // Silent drop (no response per UDP semantics and contract)
             self.log.debug("udp_request_empty_store", .{});
             return;
         };
-        const quote = reply.body;
+        const quote = reply.body();
 
-        // Prepare response buffer: body + trailer, truncated to one datagram
+        // Prepare response buffer: as many whole quotes as fit in one datagram
+        // (each one is at most 511 bytes, so the first always fits)
         var send_buf: [MAX_DATAGRAM_SIZE]u8 = undefined;
         const response = blk: {
-            const total = quote.len + reply.trailer.len;
-            if (total > MAX_DATAGRAM_SIZE) {
-                self.log.warn("udp_quote_truncated", .{
-                    .original_length = total,
-                    .max_size = MAX_DATAGRAM_SIZE,
-                });
-                // Copy what fits, leaving room for the newline
-                const body_len = @min(quote.len, MAX_DATAGRAM_SIZE - 1);
-                @memcpy(send_buf[0..body_len], quote[0..body_len]);
-                send_buf[body_len] = '\n';
-                break :blk send_buf[0 .. body_len + 1];
+            var len: usize = 0;
+            for (reply.bodies[0..reply.count], 0..) |text, i| {
+                const is_last = i + 1 == reply.count;
+                const tail: []const u8 = if (is_last) reply.trailer else "\n";
+                if (len + text.len + tail.len > MAX_DATAGRAM_SIZE) {
+                    if (i == 0) {
+                        // Only a maintenance message can be this long: cut on a UTF-8 boundary
+                        var cut = @min(text.len, MAX_DATAGRAM_SIZE - 1);
+                        while (cut > 0 and cut < text.len and (text[cut] & 0xC0) == 0x80) cut -= 1;
+                        @memcpy(send_buf[0..cut], text[0..cut]);
+                        send_buf[cut] = '\n';
+                        len = cut + 1;
+                    } else if (len > 0 and send_buf[len - 1] != '\n') {
+                        send_buf[len] = '\n';
+                        len += 1;
+                    }
+                    break;
+                }
+                @memcpy(send_buf[len..][0..text.len], text);
+                len += text.len;
+                @memcpy(send_buf[len..][0..tail.len], tail);
+                len += tail.len;
             }
-            @memcpy(send_buf[0..quote.len], quote);
-            @memcpy(send_buf[quote.len..total], reply.trailer);
-            break :blk send_buf[0..total];
+            break :blk send_buf[0..len];
         };
 
         // Send response to client

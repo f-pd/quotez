@@ -9,6 +9,7 @@ const config_mod = @import("../config.zig");
 const app_io = @import("../compat/io.zig");
 const runtime = @import("../runtime.zig");
 const public_routes = @import("public_routes.zig");
+const i18n = @import("../i18n.zig");
 
 /// HTTP health endpoint server
 pub const HttpServer = struct {
@@ -304,6 +305,36 @@ pub const HttpServer = struct {
         }
     }
 
+    /// Append the admin JSON view of quote `id`
+    fn appendAdminQuote(self: *HttpServer, buf: *std.ArrayList(u8), id: usize) !void {
+        const a = self.allocator;
+        const q = &self.store.quotes.items[id];
+        try buf.print(a, "{{\"id\":{d},\"text\":\"", .{id});
+        try appendJsonEscaped(buf, a, q.content);
+        try buf.print(a, "\",\"served\":{d},\"source\":", .{runtime.state.servedCount(q.content)});
+        try appendNullableString(buf, a, q.source_path);
+        try buf.appendSlice(a, ",\"author\":");
+        try appendNullableString(buf, a, q.author);
+        try buf.appendSlice(a, ",\"tags\":[");
+        for (q.tags, 0..) |tag, t| {
+            if (t > 0) try buf.append(a, ',');
+            try appendNullableString(buf, a, tag);
+        }
+        // "lang" is what the source declares (null = default_locale is assumed)
+        try buf.appendSlice(a, "],\"lang\":");
+        try appendNullableString(buf, a, q.lang);
+        try buf.appendSlice(a, ",\"original_lang\":");
+        try appendNullableString(buf, a, q.lang orelse runtime.state.default_locale);
+        try buf.appendSlice(a, ",\"translations\":{");
+        for (q.translations, 0..) |tr, t| {
+            if (t > 0) try buf.append(a, ',');
+            try appendNullableString(buf, a, tr.lang);
+            try buf.append(a, ':');
+            try appendNullableString(buf, a, tr.text);
+        }
+        try buf.appendSlice(a, "}}");
+    }
+
     /// Handle /api/quotes endpoint — GET list, POST create
     fn handleQuotes(self: *HttpServer, client_fd: std.posix.socket_t, method: []const u8, body: []const u8) !void {
         if (std.mem.eql(u8, method, "GET")) {
@@ -312,75 +343,41 @@ pub const HttpServer = struct {
 
             try json_buf.appendSlice(self.allocator, "{\"quotes\":[");
             const count = self.store.count();
-            var i: usize = 0;
-            while (i < count) : (i += 1) {
+            for (0..count) |i| {
                 if (i > 0) try json_buf.append(self.allocator, ',');
-                const text = self.store.get(i) orelse continue;
-
-                try json_buf.appendSlice(self.allocator, "{\"id\":");
-                var id_buf: [32]u8 = undefined;
-                const id_str = try std.fmt.bufPrint(&id_buf, "{d}", .{i});
-                try json_buf.appendSlice(self.allocator, id_str);
-                try json_buf.appendSlice(self.allocator, ",\"text\":\"");
-                try appendJsonEscaped(&json_buf, self.allocator, text);
-                var served_buf: [48]u8 = undefined;
-                try json_buf.appendSlice(self.allocator, try std.fmt.bufPrint(&served_buf, "\",\"served\":{d},\"source\":", .{runtime.state.servedCount(text)}));
-                if (self.store.quotes.items[i].source_path) |src| {
-                    try json_buf.append(self.allocator, '"');
-                    try appendJsonEscaped(&json_buf, self.allocator, src);
-                    try json_buf.append(self.allocator, '"');
-                } else {
-                    try json_buf.appendSlice(self.allocator, "null");
-                }
-                const q = &self.store.quotes.items[i];
-                try json_buf.appendSlice(self.allocator, ",\"author\":");
-                if (q.author) |author| {
-                    try json_buf.append(self.allocator, '"');
-                    try appendJsonEscaped(&json_buf, self.allocator, author);
-                    try json_buf.append(self.allocator, '"');
-                } else {
-                    try json_buf.appendSlice(self.allocator, "null");
-                }
-                try json_buf.appendSlice(self.allocator, ",\"tags\":[");
-                for (q.tags, 0..) |tag, t| {
-                    if (t > 0) try json_buf.append(self.allocator, ',');
-                    try json_buf.append(self.allocator, '"');
-                    try appendJsonEscaped(&json_buf, self.allocator, tag);
-                    try json_buf.append(self.allocator, '"');
-                }
-                try json_buf.appendSlice(self.allocator, "]}");
+                try self.appendAdminQuote(&json_buf, i);
             }
-            var count_buf: [32]u8 = undefined;
-            const count_str = try std.fmt.bufPrint(&count_buf, "],\"count\":{d}}}", .{count});
-            try json_buf.appendSlice(self.allocator, count_str);
+            try json_buf.print(self.allocator, "],\"count\":{d},\"qotd_max_bytes\":{d}}}", .{ count, i18n.qotd_max_bytes });
 
             try self.sendJsonResponse(client_fd, 200, "OK", json_buf.items);
         } else if (std.mem.eql(u8, method, "POST")) {
-            const raw_text = extractTextField(body) catch {
-                try self.sendErrorResponse(client_fd, 400, "Bad Request", "Invalid JSON body");
+            var input = QuoteInput.parse(self.allocator, body) catch |err| {
+                try self.sendErrorResponse(client_fd, 400, "Bad Request", QuoteInput.message(err));
                 return;
             };
-            const decoded = try decodeJsonString(self.allocator, raw_text);
-            defer self.allocator.free(decoded);
-            const text = std.mem.trim(u8, decoded, " \t\n\r");
+            defer input.deinit();
+            const text = input.text orelse "";
             if (text.len == 0) {
                 try self.sendErrorResponse(client_fd, 400, "Bad Request", "Quote text cannot be empty");
                 return;
             }
 
-            const count = self.store.count();
-            var i: usize = 0;
-            while (i < count) : (i += 1) {
-                if (std.mem.eql(u8, self.store.get(i) orelse "", text)) {
-                    try self.sendErrorResponse(client_fd, 409, "Conflict", "Duplicate quote");
-                    return;
-                }
+            const quote = quote_store.Quote.initFull(self.allocator, text, null, input.author, input.tags orelse &.{}, input.lang, input.translations orelse &.{}) catch {
+                try self.sendErrorResponse(client_fd, 400, "Bad Request", "Invalid quote");
+                return;
+            };
+            if (self.store.indexOfHash(quote.hash) != null) {
+                quote.deinit(self.allocator);
+                try self.sendErrorResponse(client_fd, 409, "Conflict", "Duplicate quote");
+                return;
             }
-
-            self.store.add(text) catch {
+            self.store.quotes.append(self.allocator, quote) catch {
+                quote.deinit(self.allocator);
                 try self.sendErrorResponse(client_fd, 500, "Internal Server Error", "Failed to add quote");
                 return;
             };
+            self.store.metadata.unique_quotes += 1;
+            self.store.metadata.total_quotes_loaded += 1;
 
             self.writeApiQuotesFile() catch {
                 // Best effort rollback to keep API response consistent with persistence contract.
@@ -389,14 +386,9 @@ pub const HttpServer = struct {
                 return;
             };
 
-            const new_id = self.store.count() - 1;
             var json_buf: std.ArrayList(u8) = .empty;
             defer json_buf.deinit(self.allocator);
-            var id_buf: [32]u8 = undefined;
-            const id_prefix = try std.fmt.bufPrint(&id_buf, "{{\"id\":{d},\"text\":\"", .{new_id});
-            try json_buf.appendSlice(self.allocator, id_prefix);
-            try appendJsonEscaped(&json_buf, self.allocator, text);
-            try json_buf.appendSlice(self.allocator, "\"}");
+            try self.appendAdminQuote(&json_buf, self.store.count() - 1);
             try self.sendJsonResponse(client_fd, 201, "Created", json_buf.items);
         } else {
             try self.sendErrorResponse(client_fd, 405, "Method Not Allowed", "Method Not Allowed");
@@ -405,67 +397,67 @@ pub const HttpServer = struct {
 
     /// Handle /api/quotes/:id endpoint — GET by id, PUT update, DELETE remove
     fn handleQuoteById(self: *HttpServer, client_fd: std.posix.socket_t, method: []const u8, id: usize, body: []const u8) !void {
-        if (std.mem.eql(u8, method, "GET")) {
-            const text = self.store.get(id) orelse {
+        if (id >= self.store.count()) {
+            if (std.mem.eql(u8, method, "GET") or std.mem.eql(u8, method, "PUT") or std.mem.eql(u8, method, "DELETE")) {
                 try self.sendErrorResponse(client_fd, 404, "Not Found", "Quote not found");
-                return;
-            };
-
+            } else {
+                try self.sendErrorResponse(client_fd, 405, "Method Not Allowed", "Method Not Allowed");
+            }
+            return;
+        }
+        if (std.mem.eql(u8, method, "GET")) {
             var json_buf: std.ArrayList(u8) = .empty;
             defer json_buf.deinit(self.allocator);
-            var id_buf: [32]u8 = undefined;
-            const id_prefix = try std.fmt.bufPrint(&id_buf, "{{\"id\":{d},\"text\":\"", .{id});
-            try json_buf.appendSlice(self.allocator, id_prefix);
-            try appendJsonEscaped(&json_buf, self.allocator, text);
-            try json_buf.appendSlice(self.allocator, "\"}");
+            try self.appendAdminQuote(&json_buf, id);
             try self.sendJsonResponse(client_fd, 200, "OK", json_buf.items);
         } else if (std.mem.eql(u8, method, "PUT")) {
-            if (self.store.get(id) == null) {
-                try self.sendErrorResponse(client_fd, 404, "Not Found", "Quote not found");
-                return;
-            }
-
-            const raw_text = extractTextField(body) catch {
-                try self.sendErrorResponse(client_fd, 400, "Bad Request", "Invalid JSON body");
+            // Every field is optional: what is missing keeps its current value
+            var input = QuoteInput.parse(self.allocator, body) catch |err| {
+                try self.sendErrorResponse(client_fd, 400, "Bad Request", QuoteInput.message(err));
                 return;
             };
-            const decoded = try decodeJsonString(self.allocator, raw_text);
-            defer self.allocator.free(decoded);
-            const text = std.mem.trim(u8, decoded, " \t\n\r");
+            defer input.deinit();
+            const old = &self.store.quotes.items[id];
+            const text = input.text orelse old.content;
             if (text.len == 0) {
                 try self.sendErrorResponse(client_fd, 400, "Bad Request", "Quote text cannot be empty");
                 return;
             }
+            const lang: ?[]const u8 = if (input.lang_set) input.lang else old.lang;
+            const author: ?[]const u8 = if (input.author_set) input.author else old.author;
 
-            self.store.removeQuote(id) catch {
-                try self.sendErrorResponse(client_fd, 500, "Internal Server Error", "Failed to update quote");
+            const quote = quote_store.Quote.initFull(
+                self.allocator,
+                text,
+                old.source_path,
+                author,
+                input.tags orelse old.tags,
+                lang,
+                input.translations orelse old.translations,
+            ) catch {
+                try self.sendErrorResponse(client_fd, 400, "Bad Request", "Invalid quote");
                 return;
             };
-            self.store.add(text) catch {
-                try self.sendErrorResponse(client_fd, 500, "Internal Server Error", "Failed to add updated quote");
-                return;
-            };
+            if (self.store.indexOfHash(quote.hash)) |other| {
+                if (other != id) {
+                    quote.deinit(self.allocator);
+                    try self.sendErrorResponse(client_fd, 409, "Conflict", "Duplicate quote");
+                    return;
+                }
+            }
+            old.deinit(self.allocator);
+            self.store.quotes.items[id] = quote;
 
             self.writeApiQuotesFile() catch {
                 try self.sendErrorResponse(client_fd, 500, "Internal Server Error", "Failed to persist API quotes");
                 return;
             };
 
-            const new_id = self.store.count() - 1;
             var json_buf: std.ArrayList(u8) = .empty;
             defer json_buf.deinit(self.allocator);
-            var id_buf: [32]u8 = undefined;
-            const id_prefix = try std.fmt.bufPrint(&id_buf, "{{\"id\":{d},\"text\":\"", .{new_id});
-            try json_buf.appendSlice(self.allocator, id_prefix);
-            try appendJsonEscaped(&json_buf, self.allocator, text);
-            try json_buf.appendSlice(self.allocator, "\"}");
+            try self.appendAdminQuote(&json_buf, id);
             try self.sendJsonResponse(client_fd, 200, "OK", json_buf.items);
         } else if (std.mem.eql(u8, method, "DELETE")) {
-            if (self.store.get(id) == null) {
-                try self.sendErrorResponse(client_fd, 404, "Not Found", "Quote not found");
-                return;
-            }
-
             self.store.removeQuote(id) catch {
                 try self.sendErrorResponse(client_fd, 500, "Internal Server Error", "Failed to delete quote");
                 return;
@@ -514,6 +506,20 @@ pub const HttpServer = struct {
                         try json_buf.append(self.allocator, '"');
                     }
                     try json_buf.append(self.allocator, ']');
+                }
+                if (q.lang) |lang| {
+                    try json_buf.appendSlice(self.allocator, ",\"lang\":");
+                    try appendNullableString(&json_buf, self.allocator, lang);
+                }
+                if (q.translations.len > 0) {
+                    try json_buf.appendSlice(self.allocator, ",\"translations\":{");
+                    for (q.translations, 0..) |tr, t| {
+                        if (t > 0) try json_buf.append(self.allocator, ',');
+                        try appendNullableString(&json_buf, self.allocator, tr.lang);
+                        try json_buf.append(self.allocator, ':');
+                        try appendNullableString(&json_buf, self.allocator, tr.text);
+                    }
+                    try json_buf.append(self.allocator, '}');
                 }
             }
             try json_buf.append(self.allocator, '}');
@@ -1157,6 +1163,106 @@ fn extractTextField(body: []const u8) ![]const u8 {
     const text = body[value_start..i];
     return std.mem.trim(u8, text, " \t\n\r");
 }
+
+/// Append `"s"` (JSON-escaped) or `null`
+fn appendNullableString(buf: *std.ArrayList(u8), allocator: std.mem.Allocator, s: ?[]const u8) !void {
+    const v = s orelse return buf.appendSlice(allocator, "null");
+    try buf.append(allocator, '"');
+    try appendJsonEscaped(buf, allocator, v);
+    try buf.append(allocator, '"');
+}
+
+/// Body of POST/PUT /api/quotes: {"text", "author", "tags", "lang", "translations"}.
+/// "translations" is an object {"en": "text"}; an empty string drops a language.
+/// All slices point into the parsed JSON (valid until `deinit`).
+const QuoteInput = struct {
+    parsed: std.json.Parsed(std.json.Value),
+    arena: std.heap.ArenaAllocator,
+    text: ?[]const u8 = null,
+    author: ?[]const u8 = null,
+    author_set: bool = false,
+    lang: ?[]const u8 = null,
+    lang_set: bool = false,
+    tags: ?[]const []const u8 = null,
+    translations: ?[]const quote_store.Translation = null,
+
+    fn parse(allocator: std.mem.Allocator, body: []const u8) !QuoteInput {
+        const parsed = std.json.parseFromSlice(std.json.Value, allocator, body, .{}) catch return error.InvalidJson;
+        var self: QuoteInput = .{ .parsed = parsed, .arena = std.heap.ArenaAllocator.init(allocator) };
+        errdefer self.deinit();
+        if (parsed.value != .object) return error.InvalidJson;
+        const obj = parsed.value.object;
+        const a = self.arena.allocator();
+
+        if (obj.get("text")) |v| {
+            if (v != .string) return error.InvalidJson;
+            self.text = std.mem.trim(u8, v.string, " \t\n\r");
+        }
+        if (obj.get("author")) |v| {
+            self.author_set = true;
+            switch (v) {
+                .null => {},
+                .string => |str| self.author = if (std.mem.trim(u8, str, " ").len == 0) null else str,
+                else => return error.InvalidJson,
+            }
+        }
+        if (obj.get("lang")) |v| {
+            self.lang_set = true;
+            switch (v) {
+                .null => {},
+                .string => |str| if (std.mem.trim(u8, str, " ").len > 0) {
+                    var buf: [i18n.max_tag_len]u8 = undefined;
+                    if (i18n.canonicalize(str, &buf) == null) return error.InvalidLocale;
+                    self.lang = str;
+                },
+                else => return error.InvalidJson,
+            }
+        }
+        if (obj.get("tags")) |v| {
+            if (v != .array) return error.InvalidJson;
+            var list: std.ArrayList([]const u8) = .empty;
+            for (v.array.items) |t| {
+                if (t != .string) return error.InvalidJson;
+                try list.append(a, t.string);
+            }
+            self.tags = list.items;
+        }
+        if (obj.get("translations")) |v| {
+            var list: std.ArrayList(quote_store.Translation) = .empty;
+            switch (v) {
+                .null => {},
+                .object => |map| {
+                    var it = map.iterator();
+                    while (it.next()) |entry| {
+                        var buf: [i18n.max_tag_len]u8 = undefined;
+                        if (i18n.canonicalize(entry.key_ptr.*, &buf) == null) return error.InvalidLocale;
+                        const t = switch (entry.value_ptr.*) {
+                            .string => |str| str,
+                            .null => continue,
+                            else => return error.InvalidJson,
+                        };
+                        try list.append(a, .{ .lang = entry.key_ptr.*, .text = t });
+                    }
+                },
+                else => return error.InvalidJson,
+            }
+            self.translations = list.items;
+        }
+        return self;
+    }
+
+    fn deinit(self: *QuoteInput) void {
+        self.arena.deinit();
+        self.parsed.deinit();
+    }
+
+    fn message(err: anyerror) []const u8 {
+        return switch (err) {
+            error.InvalidLocale => "Invalid language tag (use BCP 47 such as it or it-IT)",
+            else => "Invalid JSON body",
+        };
+    }
+};
 
 /// Append a string to an ArrayList with JSON escaping
 fn appendJsonEscaped(buf: *std.ArrayList(u8), allocator: std.mem.Allocator, s: []const u8) !void {

@@ -5,6 +5,7 @@ const selector_mod = @import("../selector.zig");
 const posix_net = @import("../compat/posix_net.zig");
 const net = @import("../net.zig");
 const runtime = @import("../runtime.zig");
+const i18n = @import("../i18n.zig");
 
 /// TCP QOTD server implementing RFC 865
 pub const TcpServer = struct {
@@ -114,30 +115,59 @@ pub const TcpServer = struct {
         };
         defer posix_net.close(client_fd);
 
+        // Optional extension: a client may send "[locale] [n count]" right
+        // after connecting (e.g. `echo it | nc host 17`). RFC 865 clients send
+        // nothing, so wait only briefly and fall back to the standard reply.
+        const request = readRequest(client_fd);
+
         // Decide what to send (maintenance message, quote, debug trailer)
+        var msg_buf: [128]u8 = undefined;
         var trailer_buf: [256]u8 = undefined;
-        const reply = runtime.nextReply(self.store, self.selector, .tcp, &trailer_buf) orelse {
+        const reply = runtime.nextReply(self.store, self.selector, .tcp, &request, &msg_buf, &trailer_buf) orelse {
             // Empty store: close immediately without sending (per contract)
             self.log.debug("tcp_request_empty_store", .{});
             return;
         };
 
-        for ([_][]const u8{ reply.body, reply.trailer }) |chunk| {
-            sendAll(client_fd, chunk) catch |err| {
-                switch (err) {
-                    error.BrokenPipe, error.ConnectionResetByPeer => {
-                        // Client disconnected, ignore
-                        self.log.debug("tcp_client_disconnected", .{});
-                    },
-                    else => self.log.warn("tcp_serve_error", .{ .err = @errorName(err) }),
-                }
+        for (reply.bodies[0..reply.count], 0..) |text, i| {
+            const tail: []const u8 = if (i + 1 == reply.count) reply.trailer else "\n";
+            sendAll(client_fd, text) catch |err| {
+                logSendError(&self.log, err);
+                return;
+            };
+            sendAll(client_fd, tail) catch |err| {
+                logSendError(&self.log, err);
                 return;
             };
         }
-        const quote = reply.body;
+        const quote = reply.body();
 
         // Connection closes automatically when client_fd is deferred
-        self.log.debug("tcp_request_served", .{ .quote_length = quote.len });
+        self.log.debug("tcp_request_served", .{ .quote_length = quote.len, .quotes = reply.count });
+    }
+
+    /// How long to wait for an optional request line after accept (milliseconds).
+    /// A client that sends a request does so right after its handshake ACK, so
+    /// the data travels with it; a short wait keeps plain RFC 865 replies fast
+    /// (the perf contract is < 10 ms) while still catching `echo it | nc`.
+    pub const request_wait_ms: i32 = 5;
+
+    /// Read the optional request line, waiting at most `request_wait_ms`.
+    /// Returns a plain request when the client sends nothing.
+    fn readRequest(client_fd: std.posix.socket_t) i18n.QotdRequest {
+        var fds = [_]std.posix.pollfd{.{ .fd = client_fd, .events = std.posix.POLL.IN, .revents = 0 }};
+        const ready = std.posix.poll(&fds, request_wait_ms) catch return .{};
+        if (ready == 0 or fds[0].revents & std.posix.POLL.IN == 0) return .{};
+        var buf: [128]u8 = undefined;
+        const n = posix_net.recv(client_fd, &buf, 0) catch return .{};
+        return i18n.parseQotdRequest(buf[0..n]);
+    }
+
+    fn logSendError(log: *logger.Logger, err: anyerror) void {
+        switch (err) {
+            error.BrokenPipe, error.ConnectionResetByPeer => log.debug("tcp_client_disconnected", .{}),
+            else => log.warn("tcp_serve_error", .{ .err = @errorName(err) }),
+        }
     }
 
     fn sendAll(fd: std.posix.socket_t, data: []const u8) !void {

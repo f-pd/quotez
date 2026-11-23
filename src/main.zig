@@ -55,6 +55,10 @@ pub fn main(init: std.process.Init) !void {
     };
     defer cfg.deinit();
 
+    // Quote languages are shared by the QOTD servers and the HTTP routes
+    runtime.state.locales = cfg.locales;
+    runtime.state.default_locale = cfg.default_locale;
+
     // Initialize quote store
     var store = quote_store.QuoteStore.init(allocator);
     defer store.deinit();
@@ -351,4 +355,5 @@ test {
     _ = quote_store;
     _ = @import("parsers/json.zig");
     _ = @import("servers/public_routes.zig");
+    _ = @import("i18n.zig");
 }

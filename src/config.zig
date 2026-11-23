@@ -1,6 +1,7 @@
 const std = @import("std");
 const app_io = @import("compat/io.zig");
 const logger = @import("logger.zig");
+const i18n = @import("i18n.zig");
 
 /// Selection mode for quote serving
 pub const SelectionMode = enum {
@@ -51,6 +52,13 @@ pub const Configuration = struct {
     api_password: []const u8,
     api_quotes_path: []const u8,
 
+    // Locales section: supported quote languages (canonical BCP 47) and the
+    // language assumed for quotes that do not declare one
+    locales: []const []const u8 = &Defaults.locales,
+    default_locale: []const u8 = Defaults.default_locale,
+    /// True when `locales`/`default_locale` were allocated by the parser
+    owns_locales: bool = false,
+
     // Allocator for owned strings
     allocator: std.mem.Allocator,
 
@@ -67,6 +75,8 @@ pub const Configuration = struct {
         pub const api_username: []const u8 = "";
         pub const api_password: []const u8 = "";
         pub const api_quotes_path: []const u8 = "/data/quotes/api-managed.json";
+        pub const locales = [_][]const u8{ "en", "it", "fr" };
+        pub const default_locale: []const u8 = "en";
     };
     /// Environment variables that override `[api]` credentials from the TOML file.
     /// The `_FILE` variants point to a file holding the value (Docker/Compose secrets);
@@ -126,6 +136,11 @@ pub const Configuration = struct {
         self.allocator.free(self.api_username);
         self.allocator.free(self.api_password);
         self.allocator.free(self.api_quotes_path);
+        if (self.owns_locales) {
+            for (self.locales) |l| self.allocator.free(l);
+            self.allocator.free(self.locales);
+            self.allocator.free(self.default_locale);
+        }
     }
 };
 
@@ -150,6 +165,8 @@ const TomlParser = struct {
     api_username: ?[]const u8 = null,
     api_password: ?[]const u8 = null,
     api_quotes_path: ?[]const u8 = null,
+    locales: ?std.ArrayList([]const u8) = null,
+    default_locale: ?[]const u8 = null,
 
     /// Optional environment used to override API credentials (see Configuration.EnvVars)
     env: ?*const std.process.Environ.Map = null,
@@ -179,6 +196,11 @@ const TomlParser = struct {
         if (self.api_username) |u| self.allocator.free(u);
         if (self.api_password) |p| self.allocator.free(p);
         if (self.api_quotes_path) |path| self.allocator.free(path);
+        if (self.locales) |*list| {
+            for (list.items) |l| self.allocator.free(l);
+            list.deinit(self.allocator);
+        }
+        if (self.default_locale) |l| self.allocator.free(l);
         // Note: host is transferred to Configuration, so Configuration.deinit() frees it
     }
 
@@ -237,8 +259,18 @@ const TomlParser = struct {
             }
         };
 
+        const locales = try self.buildLocales();
+        errdefer {
+            for (locales.list) |l| self.allocator.free(l);
+            self.allocator.free(locales.list);
+            self.allocator.free(locales.default);
+        }
+
         const config = Configuration{
             .allocator = self.allocator,
+            .locales = locales.list,
+            .default_locale = locales.default,
+            .owns_locales = true,
             .host = host,
             .tcp_port = self.tcp_port orelse Configuration.Defaults.tcp_port,
             .udp_port = self.udp_port orelse Configuration.Defaults.udp_port,
@@ -365,6 +397,8 @@ const TomlParser = struct {
                 try self.parsePollingValue(key);
             } else if (std.mem.eql(u8, sec, "api")) {
                 try self.parseApiValue(key);
+            } else if (std.mem.eql(u8, sec, "locales")) {
+                try self.parseLocalesValue(key);
             }
         }
     }
@@ -385,6 +419,51 @@ const TomlParser = struct {
         } else if (std.mem.eql(u8, key, "mode")) {
             self.mode = try self.parseString();
         }
+    }
+
+    fn parseLocalesValue(self: *TomlParser, key: []const u8) !void {
+        if (std.mem.eql(u8, key, "supported")) {
+            if (self.locales) |*old| {
+                for (old.items) |l| self.allocator.free(l);
+                old.deinit(self.allocator);
+            }
+            self.locales = try self.parseStringArray();
+        } else if (std.mem.eql(u8, key, "default")) {
+            if (self.default_locale) |old| self.allocator.free(old);
+            self.default_locale = try self.parseString();
+        }
+    }
+
+    /// Canonicalize the [locales] section. Returns the owned list and default.
+    fn buildLocales(self: *TomlParser) !struct { list: []const []const u8, default: []const u8 } {
+        var out: std.ArrayList([]const u8) = .empty;
+        errdefer {
+            for (out.items) |l| self.allocator.free(l);
+            out.deinit(self.allocator);
+        }
+        const raw_list: []const []const u8 = if (self.locales) |l| l.items else &Configuration.Defaults.locales;
+        for (raw_list) |raw| {
+            const tag = (try i18n.dupeCanonical(self.allocator, raw)) orelse {
+                self.log.err("config_error", .{ .reason = "invalid locale in locales.supported", .value = raw });
+                return error.InvalidLocale;
+            };
+            var dup = false;
+            for (out.items) |existing| {
+                if (std.mem.eql(u8, existing, tag)) dup = true;
+            }
+            if (dup) self.allocator.free(tag) else try out.append(self.allocator, tag);
+        }
+        const raw_default = self.default_locale orelse if (out.items.len > 0) out.items[0] else Configuration.Defaults.default_locale;
+        const default = (try i18n.dupeCanonical(self.allocator, raw_default)) orelse {
+            self.log.err("config_error", .{ .reason = "invalid locales.default", .value = raw_default });
+            return error.InvalidLocale;
+        };
+        errdefer self.allocator.free(default);
+        if (!i18n.isSupported(out.items, default)) {
+            self.log.err("config_error", .{ .reason = "locales.default is not in locales.supported", .value = default });
+            return error.InvalidLocale;
+        }
+        return .{ .list = try out.toOwnedSlice(self.allocator), .default = default };
     }
 
     fn parsePollingValue(self: *TomlParser, key: []const u8) !void {
@@ -540,6 +619,40 @@ test "minimal valid configuration" {
     try std.testing.expectEqualStrings("/data/quotes", config.directories[0]);
     try std.testing.expectEqual(SelectionMode.random, config.selection_mode);
     try std.testing.expectEqual(@as(u32, 60), config.polling_interval);
+}
+
+test "locales default to en, it, fr" {
+    const allocator = std.testing.allocator;
+    var parser = TomlParser.init(allocator, "[quotes]\ndirectories = [\"/q\"]\n");
+    defer parser.deinit();
+    var config = try parser.parse();
+    defer config.deinit();
+    try std.testing.expectEqual(@as(usize, 3), config.locales.len);
+    try std.testing.expectEqualStrings("it", config.locales[1]);
+    try std.testing.expectEqualStrings("en", config.default_locale);
+}
+
+test "locales section is canonicalized and validated" {
+    const allocator = std.testing.allocator;
+    const content =
+        \\[quotes]
+        \\directories = ["/q"]
+        \\[locales]
+        \\supported = ["IT_it", "en", "pt-br", "en"]
+        \\default = "it"
+    ;
+    var parser = TomlParser.init(allocator, content);
+    defer parser.deinit();
+    var config = try parser.parse();
+    defer config.deinit();
+    try std.testing.expectEqual(@as(usize, 3), config.locales.len);
+    try std.testing.expectEqualStrings("it-IT", config.locales[0]);
+    try std.testing.expectEqualStrings("pt-BR", config.locales[2]);
+    try std.testing.expectEqualStrings("it", config.default_locale);
+
+    var bad = TomlParser.init(allocator, "[quotes]\ndirectories = [\"/q\"]\n[locales]\nsupported = [\"en\"]\ndefault = \"de\"\n");
+    defer bad.deinit();
+    try std.testing.expectError(error.InvalidLocale, bad.parse());
 }
 
 test "full configuration with all fields" {

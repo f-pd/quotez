@@ -17,17 +17,33 @@ pub const Format = enum {
     plaintext,
 };
 
+/// A quote text in one language (BCP 47 tag such as "it" or "it-IT")
+pub const Translation = struct {
+    lang: []const u8,
+    text: []const u8,
+};
+
 /// Optional per-quote metadata extracted by structured parsers (JSON).
 /// All slices are owned by the ParseResult allocator.
 pub const QuoteMeta = struct {
     author: ?[]const u8 = null,
     /// Raw tags as found in the source file (not yet normalized)
     tags: []const []const u8 = &.{},
+    /// Original language as written in the source (not yet canonicalized)
+    lang: ?[]const u8 = null,
+    /// Raw translations as found in the source
+    translations: []const Translation = &.{},
 
     pub fn deinit(self: QuoteMeta, allocator: std.mem.Allocator) void {
         if (self.author) |a| allocator.free(a);
         for (self.tags) |t| allocator.free(t);
         if (self.tags.len > 0) allocator.free(self.tags);
+        if (self.lang) |l| allocator.free(l);
+        for (self.translations) |t| {
+            allocator.free(t.lang);
+            allocator.free(t.text);
+        }
+        if (self.translations.len > 0) allocator.free(self.translations);
     }
 };
 

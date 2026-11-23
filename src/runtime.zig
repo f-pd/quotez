@@ -10,6 +10,8 @@ const app_io = @import("compat/io.zig");
 const logger = @import("logger.zig");
 const quote_store = @import("quote_store.zig");
 const selector_mod = @import("selector.zig");
+const config = @import("config.zig");
+const i18n = @import("i18n.zig");
 
 pub const TIMELINE_MINUTES = 60;
 pub const MAX_MAINTENANCE_MESSAGE = 512;
@@ -23,6 +25,10 @@ pub const Runtime = struct {
     maintenance_msg_buf: [MAX_MAINTENANCE_MESSAGE]u8 = undefined,
     maintenance_msg_len: usize = 0,
     debug: bool = false,
+
+    // Quote languages from the [locales] config section (borrowed, set at startup)
+    locales: []const []const u8 = &config.Configuration.Defaults.locales,
+    default_locale: []const u8 = config.Configuration.Defaults.default_locale,
 
     // Counters since start (or last reset)
     tcp_served: u64 = 0,
@@ -136,24 +142,50 @@ pub var state: Runtime = .{};
 
 /// What a QOTD server should send for one request.
 pub const Reply = struct {
-    /// Main payload (quote text or maintenance message), not newline-terminated.
-    body: []const u8,
-    /// Trailer to send after body: "\n", or debug info followed by "\n".
-    trailer: []const u8,
+    /// Payloads (quote texts or one maintenance/info message), not newline-terminated.
+    /// Each one is sent followed by "\n"; the trailer goes after the last one.
+    bodies: [i18n.qotd_max_count][]const u8 = undefined,
+    count: usize = 0,
+    /// Trailer to send after the last body: "\n", or debug info followed by "\n".
+    trailer: []const u8 = "\n",
+
+    /// First payload (the only one for a standard RFC 865 reply)
+    pub fn body(self: *const Reply) []const u8 {
+        return self.bodies[0];
+    }
+
+    fn push(self: *Reply, text: []const u8) void {
+        self.bodies[self.count] = text;
+        self.count += 1;
+    }
 };
 
+var qotd_prng: ?std.Random.DefaultPrng = null;
+
+fn qotdRandom() std.Random {
+    if (qotd_prng == null) qotd_prng = std.Random.DefaultPrng.init(@truncate(@as(u128, @bitCast(app_io.nowNs()))));
+    return qotd_prng.?.random();
+}
+
 /// Decide the QOTD reply for one request and update statistics.
+/// `request` is the optional extension parsed from what the client sent
+/// (null or a plain request gives the standard RFC 865 reply).
 /// Returns null when nothing must be sent (empty store, per contract).
-/// `trailer_buf` backs the returned trailer.
+/// Texts longer than `i18n.qotd_max_bytes` are web only and never selected.
+/// `msg_buf` backs informational messages, `trailer_buf` the trailer.
 pub fn nextReply(
     store: *const quote_store.QuoteStore,
     sel: *selector_mod.Selector,
     proto: Protocol,
+    request: ?*const i18n.QotdRequest,
+    msg_buf: []u8,
     trailer_buf: []u8,
 ) ?Reply {
+    var reply: Reply = .{};
     if (state.maintenance) {
         state.recordMaintenance();
-        return .{ .body = state.maintenanceMessage(), .trailer = "\n" };
+        reply.push(state.maintenanceMessage());
+        return reply;
     }
 
     if (store.isEmpty()) {
@@ -161,26 +193,127 @@ pub fn nextReply(
         return null;
     }
 
-    const idx = sel.next() orelse {
-        state.empty_responses += 1;
-        return null;
-    };
-    const quote = store.get(idx) orelse {
-        state.empty_responses += 1;
-        return null;
-    };
+    const locale: ?[]const u8 = if (request) |r| r.locale() else null;
+    const wanted: usize = if (request) |r| r.count else 1;
 
-    state.recordServed(proto, quote);
+    var first_idx: usize = 0;
+    if (locale == null and wanted == 1) {
+        // Standard reply: honour the selection mode, skipping web-only quotes
+        var attempts: usize = 0;
+        while (attempts < store.count()) : (attempts += 1) {
+            const idx = sel.next() orelse break;
+            const q = store.getQuote(idx) orelse continue;
+            if (!i18n.fitsQotd(q.content)) continue;
+            first_idx = idx;
+            reply.push(q.content);
+            break;
+        }
+        if (reply.count == 0) {
+            state.empty_responses += 1;
+            return null;
+        }
+    } else {
+        if (locale) |loc| {
+            if (!i18n.isSupported(state.locales, loc)) {
+                state.empty_responses += 1;
+                reply.push(std.fmt.bufPrint(msg_buf, "Unsupported locale: {s}", .{loc}) catch "Unsupported locale");
+                return reply;
+            }
+        }
+        // Random distinct sample among the quotes that have a text in the
+        // requested language (never another language) that fits RFC 865.
+        const Pick = struct { idx: usize, text: []const u8 };
+        var picks: [i18n.qotd_max_count]Pick = undefined;
+        var seen: usize = 0; // eligible quotes seen so far (reservoir sampling)
+        const random = qotdRandom();
+        for (store.quotes.items, 0..) |*q, idx| {
+            const text = if (locale) |loc| blk: {
+                const r = q.resolve(loc, state.default_locale) orelse continue;
+                break :blk r.text;
+            } else q.content;
+            if (!i18n.fitsQotd(text)) continue;
+            if (seen < wanted) {
+                picks[seen] = .{ .idx = idx, .text = text };
+            } else {
+                const j = random.uintLessThan(usize, seen + 1);
+                if (j < wanted) picks[j] = .{ .idx = idx, .text = text };
+            }
+            seen += 1;
+        }
+        const n = @min(seen, wanted);
+        if (n == 0) {
+            state.empty_responses += 1;
+            reply.push(std.fmt.bufPrint(msg_buf, "No quotes available in {s}", .{locale orelse "this language"}) catch "No quotes available");
+            return reply;
+        }
+        // Shuffle so the reservoir order is not biased towards early quotes
+        random.shuffle(Pick, picks[0..n]);
+        for (picks[0..n]) |p| reply.push(p.text);
+        first_idx = picks[0].idx;
+    }
+
+    for (reply.bodies[0..reply.count]) |t| state.recordServed(proto, t);
 
     if (state.debug) {
-        const trailer = std.fmt.bufPrint(
+        reply.trailer = std.fmt.bufPrint(
             trailer_buf,
-            "\n[debug id={d} mode={s} served={d} quotes={d} proto={s}]\n",
-            .{ idx, sel.mode.asString(), state.servedCount(quote), store.count(), @tagName(proto) },
+            "\n[debug id={d} mode={s} served={d} quotes={d} proto={s} lang={s}]\n",
+            .{ first_idx, sel.mode.asString(), state.servedCount(reply.body()), store.count(), @tagName(proto), locale orelse "original" },
         ) catch "\n";
-        return .{ .body = quote, .trailer = trailer };
     }
-    return .{ .body = quote, .trailer = "\n" };
+    return reply;
+}
+
+fn testLocaleStore(allocator: std.mem.Allocator) !quote_store.QuoteStore {
+    var store = quote_store.QuoteStore.init(allocator);
+    errdefer store.deinit();
+    const T = quote_store.Translation;
+    try store.quotes.append(allocator, try quote_store.Quote.initFull(allocator, "Fatti non foste a viver come bruti", null, "Dante", &.{}, "it", &[_]T{
+        .{ .lang = "en", .text = "You were not made to live as brutes" },
+    }));
+    try store.quotes.append(allocator, try quote_store.Quote.init(allocator, "Well begun is half done.", null));
+    // Web only: longer than the RFC 865 limit
+    const long: [i18n.qotd_max_bytes + 1]u8 = @splat('x');
+    try store.quotes.append(allocator, try quote_store.Quote.initFull(allocator, &long, null, null, &.{}, "fr", &.{}));
+    return store;
+}
+
+test "nextReply honours locale, count and the RFC 865 size limit" {
+    const allocator = std.testing.allocator;
+    var store = try testLocaleStore(allocator);
+    defer store.deinit();
+    var sel = try selector_mod.Selector.init(allocator, .sequential, store.count());
+    defer sel.deinit();
+    defer {
+        state.quote_counts.deinit(std.heap.c_allocator);
+        state.quote_counts = .empty;
+    }
+    var msg: [128]u8 = undefined;
+    var trailer: [256]u8 = undefined;
+
+    // Plain requests never pick the web-only quote
+    for (0..6) |_| {
+        const r = nextReply(&store, &sel, .tcp, null, &msg, &trailer).?;
+        try std.testing.expectEqual(@as(usize, 1), r.count);
+        try std.testing.expect(r.body().len <= i18n.qotd_max_bytes);
+    }
+
+    var req = i18n.parseQotdRequest("it-IT");
+    var r = nextReply(&store, &sel, .tcp, &req, &msg, &trailer).?;
+    try std.testing.expectEqualStrings("Fatti non foste a viver come bruti", r.body());
+
+    req = i18n.parseQotdRequest("en n 5");
+    r = nextReply(&store, &sel, .udp, &req, &msg, &trailer).?;
+    try std.testing.expectEqual(@as(usize, 2), r.count);
+
+    // fr exists only as a web-only quote: an info line, never another language
+    req = i18n.parseQotdRequest("fr");
+    r = nextReply(&store, &sel, .tcp, &req, &msg, &trailer).?;
+    try std.testing.expectEqualStrings("No quotes available in fr", r.body());
+
+    req = i18n.parseQotdRequest("de");
+    r = nextReply(&store, &sel, .tcp, &req, &msg, &trailer).?;
+    try std.testing.expectEqualStrings("Unsupported locale: de", r.body());
 }
 
 test "maintenance message defaults and truncation" {
