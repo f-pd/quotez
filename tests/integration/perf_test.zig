@@ -291,15 +291,18 @@ test "PERF: TCP 100 concurrent connections without refused connections" {
     var successful_connections: std.atomic.Value(usize) = std.atomic.Value(usize).init(0);
     var failed_connections: std.atomic.Value(usize) = std.atomic.Value(usize).init(0);
 
+    // Clients run in threads; the server stays single-threaded and is driven
+    // here exactly like the event loop in main.zig drives it.
+    var done: std.atomic.Value(usize) = std.atomic.Value(usize).init(0);
+
     const TestContext = struct {
         port: u16,
-        allocator: std.mem.Allocator,
         successful: *std.atomic.Value(usize),
         failed: *std.atomic.Value(usize),
-        server: *TcpServer,
+        done: *std.atomic.Value(usize),
 
         fn run(ctx: @This()) void {
-            // Connect and receive
+            defer _ = ctx.done.fetchAdd(1, .monotonic);
             const server_addr = std.posix.sockaddr.in{
                 .family = std.posix.AF.INET,
                 .port = std.mem.nativeToBig(u16, ctx.port),
@@ -316,23 +319,18 @@ test "PERF: TCP 100 concurrent connections without refused connections" {
             };
             defer net.close(client_socket);
 
-            // Set socket timeout
             const timeout = posix.timeval{ .sec = 5, .usec = 0 };
             net.setsockopt(client_socket, posix.SOL.SOCKET, posix.SO.RCVTIMEO, std.mem.asBytes(&timeout)) catch {
                 _ = ctx.failed.fetchAdd(1, .monotonic);
                 return;
             };
 
-            // Connect
             net.connect(client_socket, @ptrCast(&server_addr), @sizeOf(std.posix.sockaddr.in)) catch {
                 _ = ctx.failed.fetchAdd(1, .monotonic);
                 return;
             };
 
-            // Let server handle the request
-            ctx.server.acceptAndServe() catch {};
-
-            // Receive response
+            // Silent RFC 865 client: just wait for the quote
             var buf: [4096]u8 = undefined;
             const bytes_received = net.recv(client_socket, &buf, 0) catch {
                 _ = ctx.failed.fetchAdd(1, .monotonic);
@@ -349,18 +347,28 @@ test "PERF: TCP 100 concurrent connections without refused connections" {
 
     const ctx = TestContext{
         .port = port,
-        .allocator = thread_allocator,
         .successful = &successful_connections,
         .failed = &failed_connections,
-        .server = &server,
+        .done = &done,
     };
 
-    // Spawn threads
     for (threads) |*thread_ptr| {
         thread_ptr.* = try std.Thread.spawn(.{}, TestContext.run, .{ctx});
     }
 
-    // Wait for all threads to complete
+    // Event loop: accept, park, answer; never more than max_pending open
+    var fds: [1 + TcpServer.max_pending]std.posix.pollfd = undefined;
+    const deadline = nowNs() + 10 * std.time.ns_per_s;
+    while (done.load(.monotonic) < num_connections and nowNs() < deadline) {
+        fds[0] = .{ .fd = server.socket, .events = posix.POLL.IN, .revents = 0 };
+        const parked = server.pendingPollFds(fds[1..]);
+        const wait: i32 = @min(20, server.pendingTimeoutMs() orelse 20);
+        _ = posix.poll(fds[0 .. 1 + parked], wait) catch {};
+        if (fds[0].revents & posix.POLL.IN != 0) try server.acceptPending();
+        try std.testing.expect(server.pending_len <= TcpServer.max_pending);
+        server.servePending();
+    }
+
     for (threads) |thread| {
         thread.join();
     }
