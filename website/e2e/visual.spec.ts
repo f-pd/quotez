@@ -4,6 +4,7 @@
  * branch against them on the same runner, so fonts and rendering match.
  * Motion is reduced and animations are stopped so every shot is stable.
  */
+import path from 'node:path';
 import { test, expect, openQuote, settled, type Mode } from './fixtures';
 import type { Page, PageAssertionsToHaveScreenshotOptions } from '@playwright/test';
 import { FANON } from './catalog';
@@ -19,8 +20,7 @@ const shot = (page: Page, name: string, opts: PageAssertionsToHaveScreenshotOpti
     animations: 'disabled',
     caret: 'hide',
     maxDiffPixelRatio: 0.002,
-    // Live numbers are masked; fixed widths keep them from moving the layout
-    style: '.page-head .muted { width: 30em; } td.num { width: 7em; }',
+    stylePath: path.join(import.meta.dirname, 'visual.css'),
     ...opts,
   });
 
@@ -43,6 +43,15 @@ for (const screen of SCREENS) {
           await settled(page, mode);
           await expect(page.getByTestId('original-toggle')).toHaveText(/traduzione/);
           await shot(page, `${screen.name}-${mode}-original`);
+        });
+
+        test(`${mode} image preview`, async ({ page }) => {
+          await openQuote(page, 'en', FANON.id, mode);
+          await page.getByTestId('share-btn').click();
+          await page.getByTestId('share-image-4x3').click();
+          const img = page.getByTestId('image-preview').locator('img');
+          await expect.poll(() => img.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth)).toBe(1600);
+          await shot(page, `${screen.name}-${mode}-image-preview`);
         });
 
         test(`${mode} share menu`, async ({ page }) => {
