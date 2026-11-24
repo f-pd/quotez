@@ -35,6 +35,16 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
     {
+      name: 'firefox',
+      testIgnore: /visual\.spec\.ts/,
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      testIgnore: /visual\.spec\.ts/,
+      use: { ...devices['Desktop Safari'] },
+    },
+    {
       name: 'visual',
       testMatch: /visual\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], reducedMotion: 'reduce' },
