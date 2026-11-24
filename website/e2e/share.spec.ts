@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import type { Page } from '@playwright/test';
+import type { BrowserContext, Page } from '@playwright/test';
 import { test, expect, openQuote, settled, MODES } from './fixtures';
 import { FANON } from './catalog';
 
@@ -75,16 +75,37 @@ test('a new quote closes the menu', async ({ page }) => {
   await expect(page.getByTestId('share-menu')).toHaveCount(0);
 });
 
-test.describe('link', () => {
-  test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
+/**
+ * Clipboard: Chromium lets the test read it back; Firefox and WebKit have no
+ * such permission, so every browser also records what the page wrote.
+ */
+async function watchClipboard(page: Page, context: BrowserContext, browserName: string) {
+  if (browserName === 'chromium') await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.addInitScript(() => {
+    const w = window as any;
+    w.__clip = [];
+    const cb = navigator.clipboard;
+    if (!cb) return;
+    const writeText = cb.writeText?.bind(cb);
+    const write = cb.write?.bind(cb);
+    if (writeText) cb.writeText = (t: string) => writeText(t).then(() => void w.__clip.push(t));
+    if (write)
+      cb.write = (items: ClipboardItem[]) =>
+        write(items).then(() => void w.__clip.push(items.flatMap((i) => [...i.types])));
+  });
+}
 
-  test('is copied on desktop, with a confirmation', async ({ page, baseURL }) => {
+test.describe('link', () => {
+  test('is copied on desktop, with a confirmation', async ({ page, context, browserName, baseURL }) => {
+    await watchClipboard(page, context, browserName);
     await openQuote(page, 'it', FANON.id);
     await page.getByTestId('share-btn').click();
     await page.getByTestId('share-link').click();
     await expect(page.getByTestId('share-btn')).toHaveText('Link copiato');
     await expect(page.getByTestId('share-btn')).toHaveClass(/is-confirmed/);
-    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(`${baseURL}/it/q/${FANON.id}`);
+    const url = `${baseURL}/it/q/${FANON.id}`;
+    expect(await page.evaluate(() => (window as any).__clip)).toEqual([url]);
+    if (browserName === 'chromium') expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(url);
     await expect(page.getByTestId('share-btn')).toHaveText('Condividi', { timeout: 5_000 });
   });
 });
@@ -201,15 +222,18 @@ test.describe('image', () => {
   });
 
   test.describe('copy', () => {
-    test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
-    test('puts the PNG on the clipboard', async ({ page }) => {
+    test('puts the PNG on the clipboard', async ({ page, context, browserName }) => {
+      await watchClipboard(page, context, browserName);
       await openQuote(page, 'it', FANON.id);
       await openPreview(page, '1:1');
       await page.getByTestId('preview-copy').click();
       await expect(page.getByTestId('preview-note')).toHaveText('Immagine copiata: incollala dove vuoi');
       await expect(page.getByTestId('preview-note')).toHaveClass(/ok/);
-      const types = await page.evaluate(async () => (await navigator.clipboard.read()).flatMap((i) => [...i.types]));
-      expect(types).toContain('image/png');
+      expect(await page.evaluate(() => (window as any).__clip)).toEqual([['image/png']]);
+      if (browserName === 'chromium') {
+        const types = await page.evaluate(async () => (await navigator.clipboard.read()).flatMap((i) => [...i.types]));
+        expect(types).toContain('image/png');
+      }
     });
   });
 

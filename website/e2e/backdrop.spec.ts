@@ -35,8 +35,12 @@ for (const mode of ['zen', 'rich'] as const) {
       // As tall as the screen; Zen is four screens wide and drifts sideways
       expect(info.clientHeight).toBe(vp.height);
       expect(info.clientWidth).toBe(mode === 'zen' ? vp.width * 4 : vp.width);
-      expect(info.width).toBe(Math.round(info.clientWidth * Math.min(info.dpr, 2)));
-      expect(info.height).toBe(Math.round(info.clientHeight * Math.min(info.dpr, 2)));
+      // Device pixels (at most 2x), capped at 12 Mpx (Zen at 2x is over it)
+      let scale = Math.min(info.dpr, 2);
+      const want = info.clientWidth * info.clientHeight * scale * scale;
+      if (want > 12_000_000) scale *= Math.sqrt(12_000_000 / want);
+      expect(info.width).toBe(Math.round(info.clientWidth * scale));
+      expect(info.height).toBe(Math.round(info.clientHeight * scale));
 
       // Grain: neighbouring pixels differ, but by a level or two at most
       let changes = 0;

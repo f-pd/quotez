@@ -87,10 +87,7 @@ export async function shareLink(data: { url: string; title: string; text: string
  */
 export function countImage(id: string, locale: string, format: string): void {
   const body = JSON.stringify({ id, locale, format });
-  try {
-    if (navigator.sendBeacon?.('/stats/image', new Blob([body], { type: 'text/plain' }))) return;
-  } catch {
-    // fall through
-  }
+  // fetch with keepalive survives leaving the page like a beacon, and sends
+  // the same body in every browser
   void fetch('/stats/image', { method: 'POST', body, keepalive: true, credentials: 'omit' }).catch(() => {});
 }
