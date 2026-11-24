@@ -2,27 +2,7 @@
 
 > **Note**: These are potential future enhancements, not part of the current scope.
 
-## Web Interface & Administration
-
-### Backoffice Control Panel
-A lightweight web interface on port 80 with basic authentication for system management:
-- Toggle features and selection modes on the fly.
-- Update, add, or delete quotes through web forms.
-- Configure system settings without manual TOML edits.
-- View real-time service metrics and logs.
-
-### Special Operational Modes
-Enable specific system behaviors via the backoffice:
-- **Maintenance Mode**: Serve a fixed "system down" message or specific quote.
-- **Debug Mode**: Increase log verbosity or expose internal state via the QOTD response.
-
 ## Content Management
-
-### Quote Categorization & Tagging
-Extend the quote data model to support metadata like category, theme, author, and era:
-- Filter served quotes based on active tags.
-- Support for complex selection logic (e.g., "only science fiction quotes from the 1950s").
-- All tags and categories manageable via the backoffice interface.
 
 ### Holiday & Event Awareness
 Schedule-based quote selection to match specific dates or cultural events:

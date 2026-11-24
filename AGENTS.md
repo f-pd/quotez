@@ -1,39 +1,24 @@
-# quotez Development Guidelines
+# quotez development guidelines
 
-Auto-generated from all feature plans. Last updated: 2025-12-01
+## Stack
 
-## Active Technologies
-
-- Zig 0.17.0 (MANDATORY) (001-qotd-nanoservice)
-
-## Project Structure
-
-```text
-src/
-tests/
-```
+- Zig 0.17.0 (mandatory) for the QOTD service in `src/`, tests in `tests/`
+- Bun + React + Vite for the website in `website/`
+- Config: `quotez.toml` for local runs, `quotez.docker.toml` baked into the image;
+  production differences go in environment variables, never in a third file
 
 ## Commands
 
-# Build and test commands for Zig 0.17.0
-zig build            # Build the project
-zig build run        # Build and run
-zig build test       # Run all tests
+```text
+zig build            # build
+zig build run        # build and run with ./quotez.toml
+zig build test       # unit tests
+zig build test-all   # unit + integration + e2e + perf + reload + backoffice + selector
+```
 
-## Code Style
+## Git rules (hard)
 
-Zig 0.17.0: Follow standard conventions
-
-## Recent Changes
-
-- 001-qotd-nanoservice: Updated to Zig 0.17.0 (MANDATORY)
-
-<!-- MANUAL ADDITIONS START -->
-## Git Commit Constraints (HARD RULES)
-
-- **Preserve user identity**: NEVER change git config (user.name, user.email). NEVER use --author overrides.
-- **No AI attribution**: NEVER add Co-authored-by trailers, "Ultraworked" footers, or any third-party contributor references to commits.
-- **No agent branding in commits**: NEVER use agent names (Sisyphus, Atlas, etc.) in commit scopes, subjects, or bodies.
-- **Commit messages must be clean**: No references to `.sisyphus/`, evidence files, plan files, or orchestration artifacts in commit messages.
-- **No root directory pollution**: NEVER create scratch files, test binaries, or temporary files in the project root directory.
-<!-- MANUAL ADDITIONS END -->
+- Commit as the repository owner; never change git config or add `--author` overrides.
+- No AI attribution anywhere: no Co-authored-by trailers, no tool or agent names, no
+  links to agent sessions in commits, PRs, issues or code.
+- No scratch files, test binaries or temporary files in the repository root.

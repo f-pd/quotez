@@ -8,7 +8,7 @@
 #     -e QOTD_API_HOST=qotd-service \
 #     -e QOTD_API_PORT=8080 \
 #     -e QOTD_TCP_HOST=qotd-service \
-#     -e QOTD_TCP_PORT=17 \
+#     -e QOTD_TCP_PORT=8017 \
 #     -v quotez-web-data:/data \
 #     quotez-web:latest
 

@@ -1,13 +1,3 @@
--- Quotes table for backoffice CRUD
-CREATE TABLE IF NOT EXISTS quotes (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  text TEXT NOT NULL,
-  author TEXT DEFAULT '',
-  source TEXT DEFAULT '',
-  created_at TEXT DEFAULT (datetime('now')),
-  updated_at TEXT DEFAULT (datetime('now'))
-);
-
 -- Settings table (key-value store) for backoffice configuration
 CREATE TABLE IF NOT EXISTS settings (
   key TEXT PRIMARY KEY,

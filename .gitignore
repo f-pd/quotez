@@ -41,6 +41,3 @@ quotez.toml.local
 /dump_*.zig
 /run_*.zig
 /perf-*.txt
-
-# Agent orchestration artifacts
-.sisyphus/

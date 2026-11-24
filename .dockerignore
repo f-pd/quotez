@@ -11,9 +11,6 @@ zig-cache/
 website/
 helm/
 
-# Orchestration artifacts
-.sisyphus/
-
 # Documentation
 *.md
 README.md
