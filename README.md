@@ -168,6 +168,18 @@ QOTD_API_HOST=localhost QOTD_TCP_HOST=localhost PORT=3000 bun run server.ts
 - `/`: Public showcase with multiple display modes.
 - `/admin`: Admin panel for service management.
 
+## Quotes and blocked authors
+
+The bundled quotes live in `quotes/` (one JSON file per theme: marxism,
+anarchism, antifascism, anticolonialism, feminism, philosophy, literature,
+politics). Each has its original text and language, en/it/fr translations and
+a precise source; see [QUOTES_SOURCES.md](QUOTES_SOURCES.md) for sources,
+licenses and translation credits.
+
+Fascists, Nazis and far-right authors are blocked by a list compiled into the
+service (`src/blocklist.zig`): matching quotes are skipped on load and the
+backoffice API rejects them with `422`.
+
 ## Docker
 
 ```bash

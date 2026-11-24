@@ -9,6 +9,7 @@ const csv_parser = @import("parsers/csv.zig");
 const toml_parser = @import("parsers/toml.zig");
 const yaml_parser = @import("parsers/yaml.zig");
 const i18n = @import("i18n.zig");
+const blocklist = @import("blocklist.zig");
 
 /// A translation of a quote into another language
 pub const Translation = parser_mod.Translation;
@@ -530,6 +531,12 @@ pub const QuoteStore = struct {
             };
 
             self.metadata.total_quotes_loaded += 1;
+
+            if (blocklist.blockedQuote(quote.author, quote.content, quote.translations)) |name| {
+                self.log.warn("blocked_author_skipped", .{ .path = path, .name = name });
+                quote.deinit(self.allocator);
+                continue;
+            }
 
             if (isRetiredSeed(quote.content)) {
                 self.log.info("retired_seed_skipped", .{ .path = path });

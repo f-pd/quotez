@@ -1,0 +1,81 @@
+[
+  {
+    "text": "I do not wish them to have power over men; but over themselves. - Mary Wollstonecraft",
+    "lang": "en",
+    "work": "A Vindication of the Rights of Woman (1792), ch. IV",
+    "tags": [
+      "feminism",
+      "freedom"
+    ],
+    "translations": {
+      "it": "Non desidero che abbiano potere sugli uomini, ma su se stesse. - Mary Wollstonecraft",
+      "fr": "Je ne souhaite pas qu'elles aient du pouvoir sur les hommes, mais sur elles-mêmes. - Mary Wollstonecraft"
+    }
+  },
+  {
+    "text": "La femme a le droit de monter sur l'échafaud ; elle doit avoir également celui de monter à la Tribune. - Olympe de Gouges",
+    "lang": "fr",
+    "work": "Déclaration des droits de la femme et de la citoyenne (1791), article X",
+    "tags": [
+      "feminism",
+      "equality"
+    ],
+    "translations": {
+      "en": "Woman has the right to mount the scaffold; she must equally have the right to mount the rostrum. - Olympe de Gouges",
+      "it": "La donna ha il diritto di salire sul patibolo; deve avere ugualmente quello di salire alla tribuna. - Olympe de Gouges"
+    }
+  },
+  {
+    "text": "On ne naît pas femme : on le devient. - Simone de Beauvoir",
+    "lang": "fr",
+    "work": "Le Deuxième Sexe, vol. II (1949), part I, ch. 1",
+    "tags": [
+      "feminism",
+      "philosophy"
+    ],
+    "translations": {
+      "en": "One is not born, but rather becomes, a woman. - Simone de Beauvoir",
+      "it": "Donna non si nasce, lo si diventa. - Simone de Beauvoir"
+    }
+  },
+  {
+    "text": "a woman must have money and a room of her own if she is to write fiction. - Virginia Woolf",
+    "lang": "en",
+    "work": "A Room of One's Own (1929), ch. 1",
+    "tags": [
+      "feminism",
+      "literature"
+    ],
+    "translations": {
+      "it": "una donna deve avere denaro e una stanza tutta per sé se vuole scrivere romanzi. - Virginia Woolf",
+      "fr": "une femme doit avoir de l'argent et une chambre à soi si elle veut écrire de la fiction. - Virginia Woolf"
+    }
+  },
+  {
+    "text": "For the master's tools will never dismantle the master's house. - Audre Lorde",
+    "lang": "en",
+    "work": "\"The Master's Tools Will Never Dismantle the Master's House\" (1979), in Sister Outsider (1984)",
+    "tags": [
+      "feminism",
+      "civil-rights"
+    ],
+    "translations": {
+      "it": "Perché gli attrezzi del padrone non smonteranno mai la casa del padrone. - Audre Lorde",
+      "fr": "Car les outils du maître ne démantèleront jamais la maison du maître. - Audre Lorde"
+    }
+  },
+  {
+    "text": "Pies, ¿para qué los quiero si tengo alas pa' volar? - Frida Kahlo",
+    "lang": "es",
+    "work": "Diary of Frida Kahlo (1953)",
+    "tags": [
+      "feminism",
+      "art"
+    ],
+    "translations": {
+      "en": "Feet, what do I need you for when I have wings to fly? - Frida Kahlo",
+      "it": "Piedi, a che mi servite se ho ali per volare? - Frida Kahlo",
+      "fr": "Pieds, pourquoi vous voudrais-je si j'ai des ailes pour voler ? - Frida Kahlo"
+    }
+  }
+]

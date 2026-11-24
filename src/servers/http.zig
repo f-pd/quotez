@@ -10,6 +10,7 @@ const app_io = @import("../compat/io.zig");
 const runtime = @import("../runtime.zig");
 const public_routes = @import("public_routes.zig");
 const i18n = @import("../i18n.zig");
+const blocklist = @import("../blocklist.zig");
 
 /// HTTP health endpoint server
 pub const HttpServer = struct {
@@ -373,6 +374,13 @@ pub const HttpServer = struct {
                 try self.sendErrorResponse(client_fd, 500, "Internal Server Error", "Failed to add quote");
                 return;
             };
+            if (blocklist.blockedQuote(quote.author, quote.content, quote.translations)) |name| {
+                quote.deinit(self.allocator);
+                var msg_buf: [160]u8 = undefined;
+                const msg = std.fmt.bufPrint(&msg_buf, "Blocked author ({s}): fascists and the far right are not allowed", .{name}) catch "Blocked author";
+                try self.sendErrorResponse(client_fd, 422, "Unprocessable Entity", msg);
+                return;
+            }
             if (self.store.indexOfHash(quote.hash) != null) {
                 quote.deinit(self.allocator);
                 try self.sendErrorResponse(client_fd, 409, "Conflict", "Duplicate quote");
@@ -450,6 +458,13 @@ pub const HttpServer = struct {
                 try self.sendErrorResponse(client_fd, 500, "Internal Server Error", "Failed to update quote");
                 return;
             };
+            if (blocklist.blockedQuote(quote.author, quote.content, quote.translations)) |name| {
+                quote.deinit(self.allocator);
+                var msg_buf: [160]u8 = undefined;
+                const msg = std.fmt.bufPrint(&msg_buf, "Blocked author ({s}): fascists and the far right are not allowed", .{name}) catch "Blocked author";
+                try self.sendErrorResponse(client_fd, 422, "Unprocessable Entity", msg);
+                return;
+            }
             if (self.store.indexOfHash(quote.hash)) |other| {
                 if (other != id) {
                     quote.deinit(self.allocator);
@@ -1576,6 +1591,18 @@ test "api quotes CRUD endpoint behavior" {
         "{\"text\":\"Initial quote\"}";
     const post_dup_resp = try testSendHttpRequestOnce(&server, 18081, post_dup_req, &response_storage);
     try std.testing.expect(std.mem.indexOf(u8, post_dup_resp, "409 Conflict") != null);
+
+    // POST with a blocked author -> 422
+    const post_blocked_req =
+        "POST /api/quotes HTTP/1.1\r\n" ++
+        "Host: localhost\r\n" ++
+        auth_header ++
+        "Content-Type: application/json\r\n" ++
+        "Content-Length: 43\r\n" ++
+        "\r\n" ++
+        "{\"text\":\"Anything\",\"author\":\"Adolf Hitler\"}";
+    const post_blocked_resp = try testSendHttpRequestOnce(&server, 18081, post_blocked_req, &response_storage);
+    try std.testing.expect(std.mem.indexOf(u8, post_blocked_resp, "422 Unprocessable Entity") != null);
 
     // POST create -> 201
     const post_create_req =

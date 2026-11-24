@@ -79,14 +79,16 @@ export function RichMode({ quote, loading, error, onNewQuote, labels = DEFAULT_L
     let text = quote;
     let author = '';
 
-    if (quote.includes(' — ')) {
-      const parts = quote.split(' — ');
-      author = parts.pop() || '';
-      text = parts.join(' — ');
-    } else if (quote.includes(' - ')) {
+    // The attribution follows the last " - " (seed convention); " — " only
+    // when there is none, since quotes may contain em dashes themselves
+    if (quote.includes(' - ')) {
       const parts = quote.split(' - ');
       author = parts.pop() || '';
       text = parts.join(' - ');
+    } else if (quote.includes(' — ')) {
+      const parts = quote.split(' — ');
+      author = parts.pop() || '';
+      text = parts.join(' — ');
     }
 
     return (

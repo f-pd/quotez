@@ -348,4 +348,5 @@ test {
     _ = @import("parsers/json.zig");
     _ = @import("servers/public_routes.zig");
     _ = @import("i18n.zig");
+    _ = @import("blocklist.zig");
 }
