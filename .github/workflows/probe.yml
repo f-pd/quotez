@@ -1,0 +1,16 @@
+name: Firefox probe
+on:
+  push:
+    branches: [fix/firefox]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: cd website && bun install && npx playwright install --with-deps firefox webkit chromium
+      - run: cd website && node e2e/probe.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probe
+          path: website/probe-*.png
