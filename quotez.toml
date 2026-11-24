@@ -1,5 +1,6 @@
-# quotez Configuration File
-# This file is loaded once at startup (no hot reload in MVP)
+# quotez configuration for local runs (`zig build run`).
+# The container image uses quotez.docker.toml instead, tuned via environment
+# variables (see README). Loaded once at startup.
 
 [server]
 # IP address or hostname to bind to
@@ -19,7 +20,7 @@ udp_port = 17
 # Supports: .txt, .json, .csv, .toml, .yaml formats
 # Directories are scanned recursively
 directories = [
-    "tests/fixtures/quotes"
+    "quotes"
 ]
 
 # Quote selection mode (optional)

@@ -1,15 +1,17 @@
-1. Get the QOTD service status:
-  kubectl get pods -l app.kubernetes.io/name=qotd-service -l app.kubernetes.io/instance={{ .Release.Name }}
+1. Check the pods:
+  kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }}
 
-2. Get the website status:
-  kubectl get pods -l app.kubernetes.io/name=qotd-web -l app.kubernetes.io/instance={{ .Release.Name }}
-  (Note: Website is disabled by default. Enable with --set qotd-web.enabled=true)
+2. Try the QOTD service (RFC 865, container port 8017):
+  kubectl port-forward svc/{{ .Release.Name }}-qotd-service 8017:{{ index .Values "qotd-service" "service" "tcpPort" }} &
+  nc localhost 8017
 
-3. Forward port to test QOTD service (TCP RFC 865):
-  kubectl port-forward svc/quotez-qotd-service 17:17 &
-  nc localhost 17  # Should return a quote
+{{- if index .Values "qotd-web" "enabled" }}
 
-4. To enable the website, install/upgrade with:
-  helm install quotez ./helm/quotez --set qotd-web.enabled=true
+3. Open the website:
+  kubectl port-forward svc/{{ .Release.Name }}-qotd-web 3000:3000
+{{- end }}
 
-For more information, see: https://github.com/fulgidus/quotez
+The service runs the configuration baked into the image; API credentials
+come from the Secret {{ .Release.Name }}-quotez-api (global.api.*).
+
+More: https://github.com/f-pd/quotez

@@ -35,21 +35,10 @@ zig build test
 
 ### Configuration
 
-Create a `quotez.toml` file:
+There are two config files, one per way of running it:
 
-```toml
-[server]
-host = "0.0.0.0"
-tcp_port = 17
-udp_port = 17
-
-[quotes]
-directories = ["/data/quotes"]
-mode = "random"  # random | sequential | random-no-repeat | shuffle-cycle
-
-[polling]
-interval_seconds = 60
-```
+- `quotez.toml`: local runs (`./zig-out/bin/quotez` from the repo root). Serves the bundled `quotes/` on port 17 (needs root or `CAP_NET_BIND_SERVICE`; change the ports to run unprivileged). Every field is commented.
+- `quotez.docker.toml`: baked into the container image as `/quotez.toml`. QOTD on 8017 TCP/UDP (map host port 17 onto it), health on 8080, quotes from `/data/seed-quotes` plus the `/data/quotes` volume, API off. Production does not mount another file: it only sets environment variables (below).
 
 ### Run
 
@@ -74,10 +63,11 @@ All `/api/*` endpoints require **Basic HTTP Authentication**. Credentials can be
 |----------|---------|
 | `QOTD_API_USERNAME` / `QOTD_API_PASSWORD` | Credential values |
 | `QOTD_API_USERNAME_FILE` / `QOTD_API_PASSWORD_FILE` | Path to a file holding the value (Docker/Compose secrets); a trailing newline is ignored |
+| `QOTD_API_ENABLED` | `true`/`1` or `false`/`0`: turns the API on or off over `[api] enabled` (the image ships with it off) |
 
 The plain variable wins over `_FILE`, which wins over the TOML value. Empty variables are ignored. The service refuses to start with the API enabled if a credential still starts with `CHANGE_ME`.
 
-For the Dokploy Compose deployment, set `QOTD_API_USERNAME` and `QOTD_API_PASSWORD` in the service's **Environment** tab; `docker-compose.yml` passes them through and fails the deploy if they are missing. The website uses the same variable names, so one pair serves both.
+For the Dokploy Compose deployment `docker-compose.yml` sets `QOTD_API_ENABLED=true`; set `QOTD_API_USERNAME` and `QOTD_API_PASSWORD` in the service's **Environment** tab; `docker-compose.yml` passes them through and fails the deploy if they are missing. The website uses the same variable names, so one pair serves both.
 
 ### Key Endpoints
 
@@ -184,8 +174,9 @@ backoffice API rejects them with `422`.
 
 ```bash
 # Build and run the Zig service
-docker build -t quotez-service:latest .
-docker run -d -p 17:17/tcp -p 17:17/udp -p 8080:8080 quotez-service:latest
+docker build -t quotez:latest .     # or pull ghcr.io/f-pd/quotez:latest
+docker run -d -p 17:8017/tcp -p 17:8017/udp -p 8080:8080 quotez:latest
+# with the API: -e QOTD_API_ENABLED=true -e QOTD_API_USERNAME=... -e QOTD_API_PASSWORD=...
 
 # Build and run the Website
 cd website
@@ -198,8 +189,11 @@ docker run -d -p 3000:3000 -e QOTD_API_HOST=host.docker.internal quotez-web:late
 The project includes a Helm chart for Kubernetes deployment, managing both the Zig nanoservice and the web interface.
 
 ```bash
-helm install my-quotez ./helm/quotez
+helm install my-quotez ./helm/quotez \
+  --set global.api.username=admin --set global.api.password='<secret>'
 ```
+
+The chart runs the image's built-in config too; API credentials go into a Secret shared by the service and the website (`--set global.api.enabled=false` to skip the API).
 
 ## Project Structure
 

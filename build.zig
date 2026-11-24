@@ -157,6 +157,24 @@ pub fn build(b: *std.Build) void {
     const backoffice_step = b.step("test-backoffice", "Run backoffice API integration tests");
     backoffice_step.dependOn(&run_backoffice_tests.step);
 
+    // Selection mode integration tests
+    const selector_module = b.createModule(.{
+        .root_source_file = b.path("tests/integration/selector_test.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    selector_module.addImport("src", src_module);
+
+    const selector_tests = b.addTest(.{
+        .root_module = selector_module,
+    });
+
+    const run_selector_tests = b.addRunArtifact(selector_tests);
+
+    const selector_step = b.step("test-selector", "Run selection mode integration tests");
+    selector_step.dependOn(&run_selector_tests.step);
+
     // All tests step
     const all_tests_step = b.step("test-all", "Run all tests");
     // The integration suites use fixed localhost ports. Chain them so the
@@ -167,4 +185,5 @@ pub fn build(b: *std.Build) void {
     run_reload_tests.step.dependOn(&run_perf_tests.step);
     run_backoffice_tests.step.dependOn(&run_reload_tests.step);
     all_tests_step.dependOn(&run_backoffice_tests.step);
+    all_tests_step.dependOn(&run_selector_tests.step);
 }

@@ -3,10 +3,11 @@ enabled: true
 replicaCount: 1
 
 image:
-  repository: quotez
+  repository: ghcr.io/f-pd/quotez
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
+# Service ports; the container always listens on 8017 (QOTD) and 8080 (HTTP).
 service:
   type: ClusterIP
   tcpPort: 8017
@@ -25,9 +26,8 @@ persistence:
   size: 1Gi
   storageClass: ""
 
-config:
-  mode: random
-  pollingInterval: 60
-  apiEnabled: true
-  apiUsername: admin
-  apiPassword: quotez
+global:
+  api:
+    enabled: false
+    username: ""
+    password: ""

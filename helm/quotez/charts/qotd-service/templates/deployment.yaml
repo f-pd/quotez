@@ -18,42 +18,51 @@ spec:
         - name: qotd-service
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
-          args:
-            - "/quotez.toml"
+          # Uses the config baked into the image (quotez.docker.toml): QOTD on
+          # 8017 TCP/UDP, health and API on 8080. Differences go in env.
           ports:
             - name: tcp-qotd
-              containerPort: {{ .Values.service.tcpPort }}
+              containerPort: 8017
               protocol: TCP
             - name: udp-qotd
-              containerPort: {{ .Values.service.udpPort }}
+              containerPort: 8017
               protocol: UDP
             - name: http
-              containerPort: {{ .Values.service.httpPort }}
+              containerPort: 8080
               protocol: TCP
+          env:
+            - name: QOTD_API_ENABLED
+              value: {{ .Values.global.api.enabled | quote }}
+            {{- if .Values.global.api.enabled }}
+            - name: QOTD_API_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-quotez-api
+                  key: username
+            - name: QOTD_API_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-quotez-api
+                  key: password
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /health
-              port: {{ .Values.service.httpPort }}
+              port: http
             initialDelaySeconds: 10
             periodSeconds: 30
           readinessProbe:
             httpGet:
               path: /ready
-              port: {{ .Values.service.httpPort }}
+              port: http
             initialDelaySeconds: 5
             periodSeconds: 10
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: config
-              mountPath: /quotez.toml
-              subPath: quotez.toml
             - name: data
               mountPath: /data/quotes
       volumes:
-        - name: config
-          configMap:
-            name: {{ include "qotd-service.fullname" . }}-config
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "qotd-service.fullname" . }}-data

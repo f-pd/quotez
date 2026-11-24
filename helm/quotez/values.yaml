@@ -1,52 +1,27 @@
 global:
-  image:
-    registry: docker.io
-    pullPolicy: IfNotPresent
+  # REST API / backoffice of the QOTD service, shared by the website.
+  # Credentials go into a Secret; pass them at install time, e.g.
+  #   --set global.api.username=... --set global.api.password=...
+  api:
+    enabled: true
+    username: ""
+    password: ""
 
 qotd-service:
   enabled: true
   image:
-    repository: quotez
+    repository: ghcr.io/f-pd/quotez
     tag: latest
   service:
     tcpPort: 8017
     udpPort: 8017
     httpPort: 8080
-  resources:
-    requests:
-      cpu: 50m
-      memory: 32Mi
-    limits:
-      cpu: 200m
-      memory: 64Mi
   persistence:
     size: 1Gi
     storageClass: ""
-  config:
-    mode: random
-    pollingInterval: 60
-    apiEnabled: true
-    apiUsername: quotez-admin
-    apiPassword: change-me-in-production
 
 qotd-web:
   enabled: true
   image:
-    repository: quotez-web
+    repository: ghcr.io/f-pd/quotez-web
     tag: latest
-  service:
-    port: 3000
-  resources:
-    requests:
-      cpu: 50m
-      memory: 64Mi
-    limits:
-      cpu: 200m
-      memory: 128Mi
-  env:
-    QOTD_API_HOST: qotd-service
-    QOTD_API_PORT: "8080"
-    QOTD_TCP_HOST: qotd-service
-    QOTD_TCP_PORT: "8017"
-    QOTD_API_USERNAME: quotez-admin
-    QOTD_API_PASSWORD: change-me-in-production

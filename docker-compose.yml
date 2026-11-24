@@ -13,13 +13,15 @@ services:
       # keeps listening on unprivileged 8017 as the nonroot user.
       - "17:8017/tcp"
       - "17:8017/udp"
+    # Config is the one baked into the image (quotez.docker.toml); production
+    # differences come from these variables.
     environment:
+      QOTD_API_ENABLED: "true"
       # Provided by Dokploy's Environment tab (written to .env next to this file).
       # Deploy fails fast if they are missing instead of starting with no auth.
       QOTD_API_USERNAME: ${QOTD_API_USERNAME:?set QOTD_API_USERNAME in Dokploy Environment}
       QOTD_API_PASSWORD: ${QOTD_API_PASSWORD:?set QOTD_API_PASSWORD in Dokploy Environment}
     volumes:
-      - ./quotez.prod.toml:/quotez.toml:ro
       - quotes:/data/quotes
 
   # Backoffice (/admin) and public site; also proxies the public read-only

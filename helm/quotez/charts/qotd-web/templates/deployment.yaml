@@ -23,9 +23,25 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           env:
-            {{- range $key, $val := .Values.env }}
-            - name: {{ $key }}
-              value: {{ $val | quote }}
+            - name: QOTD_API_HOST
+              value: {{ .Release.Name }}-qotd-service
+            - name: QOTD_TCP_HOST
+              value: {{ .Release.Name }}-qotd-service
+            - name: QOTD_API_PORT
+              value: "8080"
+            - name: QOTD_TCP_PORT
+              value: "8017"
+            {{- if .Values.global.api.enabled }}
+            - name: QOTD_API_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-quotez-api
+                  key: username
+            - name: QOTD_API_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-quotez-api
+                  key: password
             {{- end }}
           livenessProbe:
             httpGet:

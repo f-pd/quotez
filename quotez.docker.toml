@@ -1,9 +1,19 @@
+# Configuration baked into the container image as /quotez.toml.
+# Production (docker-compose.yml, Helm) uses it as is: the differences come
+# from the environment, never from a second file:
+#   QOTD_API_ENABLED=true                 turn on the REST API / backoffice
+#   QOTD_API_USERNAME, QOTD_API_PASSWORD  its credentials (or the *_FILE variants)
+# For local runs outside Docker use quotez.toml.
+
 [server]
 host = "0.0.0.0"
+# Unprivileged port for the nonroot user; map host port 17 onto it.
 tcp_port = 8017
 udp_port = 8017
 
 [quotes]
+# seed-quotes ships inside the image so the service never starts empty;
+# /data/quotes is the persistent volume for API-managed quotes.
 directories = ["/data/seed-quotes", "/data/quotes"]
 mode = "random"
 
@@ -11,13 +21,13 @@ mode = "random"
 interval_seconds = 60
 
 [health]
-enabled = false
+enabled = true
 port = 8080
 
 [api]
+# Off unless QOTD_API_ENABLED=true; credentials only from the environment.
 enabled = false
-username = "quotez-admin"
-password = "change-me-in-production"
+quotes_path = "/data/quotes/api-managed.json"
 
 [locales]
 # Quote languages (BCP 47). Pages and QOTD requests in other languages get 404 / an info line.

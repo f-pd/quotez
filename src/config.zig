@@ -86,6 +86,9 @@ pub const Configuration = struct {
         pub const api_username_file = "QOTD_API_USERNAME_FILE";
         pub const api_password = "QOTD_API_PASSWORD";
         pub const api_password_file = "QOTD_API_PASSWORD_FILE";
+        /// "true"/"1" or "false"/"0": turns the REST API on or off regardless of the TOML file,
+        /// so one image config serves both a bare `docker run` and production.
+        pub const api_enabled = "QOTD_API_ENABLED";
     };
 
     /// Prefix of the placeholder credentials shipped in example configs.
@@ -230,6 +233,7 @@ const TomlParser = struct {
         // Environment overrides for secrets (env > *_FILE > TOML)
         try self.applyEnvOverride(&self.api_username, Configuration.EnvVars.api_username, Configuration.EnvVars.api_username_file);
         try self.applyEnvOverride(&self.api_password, Configuration.EnvVars.api_password, Configuration.EnvVars.api_password_file);
+        try self.applyEnvBool(&self.api_enabled, Configuration.EnvVars.api_enabled);
 
         // Apply defaults and build configuration
         // Allocate owned strings first so we can errdefer them if validation fails
@@ -507,6 +511,24 @@ const TomlParser = struct {
 
         if (slot.*) |old| self.allocator.free(old);
         slot.* = new_value;
+        self.log.info("env_override_applied", .{ .env = name });
+    }
+
+    /// Replace `slot` with the boolean in env var `name` ("true"/"1"/"false"/"0", any case).
+    /// Unset or empty leaves `slot` untouched; any other value is a configuration error.
+    fn applyEnvBool(self: *TomlParser, slot: *?bool, name: []const u8) !void {
+        const env = self.env orelse return;
+        const raw = env.get(name) orelse return;
+        const value = std.mem.trim(u8, raw, " \t\r\n");
+        if (value.len == 0) return;
+        if (std.ascii.eqlIgnoreCase(value, "true") or std.mem.eql(u8, value, "1")) {
+            slot.* = true;
+        } else if (std.ascii.eqlIgnoreCase(value, "false") or std.mem.eql(u8, value, "0")) {
+            slot.* = false;
+        } else {
+            self.log.err("config_error", .{ .reason = "expected true/false/1/0", .env = name, .value = value });
+            return error.InvalidEnvValue;
+        }
         self.log.info("env_override_applied", .{ .env = name });
     }
 
@@ -957,4 +979,59 @@ test "env vars replace placeholder api credentials" {
 
     try std.testing.expectEqualStrings("real-user", config.api_username);
     try std.testing.expectEqualStrings("real-pass", config.api_password);
+}
+
+test "QOTD_API_ENABLED turns the API on over a disabled TOML" {
+    const allocator = std.testing.allocator;
+    var env = std.process.Environ.Map.init(allocator);
+    defer env.deinit();
+    try env.put("QOTD_API_ENABLED", "true");
+    try env.put("QOTD_API_USERNAME", "env-user");
+    try env.put("QOTD_API_PASSWORD", "env-pass");
+
+    var parser = TomlParser.init(allocator,
+        \\[quotes]
+        \\directories = ["/data/quotes"]
+        \\[api]
+        \\enabled = false
+    );
+    parser.env = &env;
+    defer parser.deinit();
+
+    var config = try parser.parse();
+    defer config.deinit();
+    try std.testing.expect(config.api_enabled);
+    try std.testing.expectEqualStrings("env-user", config.api_username);
+}
+
+test "QOTD_API_ENABLED=0 turns the API off and junk is rejected" {
+    const allocator = std.testing.allocator;
+    const toml =
+        \\[quotes]
+        \\directories = ["/data/quotes"]
+        \\[api]
+        \\enabled = true
+        \\username = "u"
+        \\password = "p"
+    ;
+    {
+        var env = std.process.Environ.Map.init(allocator);
+        defer env.deinit();
+        try env.put("QOTD_API_ENABLED", "0");
+        var parser = TomlParser.init(allocator, toml);
+        parser.env = &env;
+        defer parser.deinit();
+        var config = try parser.parse();
+        defer config.deinit();
+        try std.testing.expect(!config.api_enabled);
+    }
+    {
+        var env = std.process.Environ.Map.init(allocator);
+        defer env.deinit();
+        try env.put("QOTD_API_ENABLED", "yes please");
+        var parser = TomlParser.init(allocator, toml);
+        parser.env = &env;
+        defer parser.deinit();
+        try std.testing.expectError(error.InvalidEnvValue, parser.parse());
+    }
 }

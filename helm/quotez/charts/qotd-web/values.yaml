@@ -3,9 +3,9 @@ enabled: true
 replicaCount: 1
 
 image:
-  repository: quotez-web
+  repository: ghcr.io/f-pd/quotez-web
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
   type: ClusterIP
@@ -19,10 +19,6 @@ resources:
     cpu: 200m
     memory: 128Mi
 
-env:
-  QOTD_API_HOST: qotd-service
-  QOTD_API_PORT: "8080"
-  QOTD_TCP_HOST: qotd-service
-  QOTD_TCP_PORT: "8017"
-  QOTD_API_USERNAME: admin
-  QOTD_API_PASSWORD: quotez
+global:
+  api:
+    enabled: false
