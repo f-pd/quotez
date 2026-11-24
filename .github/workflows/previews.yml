@@ -1,0 +1,67 @@
+name: Link previews
+
+# Fetches /:locale/q/:id for every catalog quote in every language the way
+# Telegram does (no JS) and checks the Open Graph tags and images
+# (website/scripts/check-previews.ts).
+#  - local: against a server built from this commit, on every push
+#  - production: after CI has deployed main, or by hand
+on:
+  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Site to check
+        default: https://q.v.fulgid.us
+
+permissions:
+  contents: read
+
+jobs:
+  local:
+    name: Previews on this commit
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.17.0
+      - uses: oven-sh/setup-bun@v2
+      - name: Build
+        run: |
+          zig build
+          cd website && bun install && bun run build
+      - name: Start service and website
+        run: |
+          sed 's/= 17$/= 8017/' quotez.toml > /tmp/quotez.toml
+          ./zig-out/bin/quotez /tmp/quotez.toml > /tmp/zig.log 2>&1 &
+          cd website
+          QOTD_API_USERNAME=admin QOTD_API_PASSWORD=quotez DB_PATH=/tmp/settings.db bun run server.ts > /tmp/web.log 2>&1 &
+          for i in $(seq 1 30); do curl -fs localhost:3000/locales >/dev/null && break; sleep 1; done
+      - name: Check every quote in every language
+        run: cd website && bun run scripts/check-previews.ts http://localhost:3000
+      - name: Server logs
+        if: failure()
+        run: tail -n 100 /tmp/zig.log /tmp/web.log
+
+  production:
+    name: Previews in production
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: cd website && bun install
+      - name: Wait for the redeploy
+        if: github.event_name == 'workflow_run'
+        run: sleep 120
+      - name: Check every quote in every language
+        run: cd website && bun run scripts/check-previews.ts "${{ inputs.base_url || 'https://q.v.fulgid.us' }}"
