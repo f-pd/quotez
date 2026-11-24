@@ -1,0 +1,3 @@
+/* Live numbers in the backoffice are masked; fixed widths keep them from moving the layout */
+.page-head .muted { width: 30em; }
+td.num { width: 7em; }

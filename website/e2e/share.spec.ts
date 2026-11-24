@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import type { Page } from '@playwright/test';
 import { test, expect, openQuote, settled, MODES } from './fixtures';
 import { FANON } from './catalog';
 
@@ -88,10 +89,19 @@ test.describe('link', () => {
   });
 });
 
+/** Picks an image format in the share menu and waits for the preview */
+async function openPreview(page: Page, format: string) {
+  await page.getByTestId('share-btn').click();
+  await page.getByTestId(`share-image-${format.replace(':', 'x')}`).click();
+  const preview = page.getByTestId('image-preview');
+  await expect(preview).toBeVisible();
+  return preview;
+}
+
 test.describe('link on a phone', () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
 
-  test('opens the share sheet', async ({ page, baseURL }) => {
+  test('opens the share sheet, for the link and for the image', async ({ page, baseURL }) => {
     await page.addInitScript(() => {
       (window as any).__shared = [];
       Object.defineProperty(navigator, 'share', {
@@ -109,9 +119,13 @@ test.describe('link on a phone', () => {
     const data = await page.evaluate(() => (window as any).__shared[0]);
     expect(data.url).toBe(`${baseURL}/en/q/${FANON.id}`);
     expect(data.text).toContain('Each generation');
-    // The image goes to the share sheet as a PNG file
+    // The image: preview first, then the share sheet from the Share tap
     await page.getByTestId('share-btn').tap();
     await page.getByTestId('share-image-9x16').tap();
+    await expect(page.getByTestId('image-preview')).toBeVisible();
+    await expect(page.getByTestId('preview-share')).toHaveClass(/primary/);
+    expect(await page.evaluate(() => (window as any).__shared.length)).toBe(1);
+    await page.getByTestId('preview-share').tap();
     await expect.poll(() => page.evaluate(() => (window as any).__shared.length)).toBe(2);
     const file = await page.evaluate(() => {
       const f = (window as any).__shared[1].files[0] as File;
@@ -120,37 +134,94 @@ test.describe('link on a phone', () => {
     expect(file).toMatchObject({ name: `quotez-${FANON.id}-9x16.png`, type: 'image/png' });
     expect(file.size).toBeGreaterThan(10_000);
   });
+
+  test('says so when sharing fails', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'share', {
+        configurable: true,
+        value: async () => {
+          throw new DOMException('denied', 'NotAllowedError');
+        },
+      });
+      Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true });
+    });
+    await openQuote(page, 'it', FANON.id);
+    await page.getByTestId('share-btn').tap();
+    await page.getByTestId('share-image-1x1').tap();
+    await page.getByTestId('preview-share').tap();
+    await expect(page.getByTestId('preview-note')).toHaveText(/condivisione non ha funzionato/);
+    await expect(page.getByTestId('preview-note')).toHaveClass(/err/);
+  });
 });
 
 test.describe('image', () => {
   for (const mode of MODES) {
-    test(`${mode}: every format is downloaded at its size and counted`, async ({ page }) => {
+    test(`${mode}: every format is previewed, downloaded at its size and counted`, async ({ page }) => {
       await page.addInitScript((m) => localStorage.setItem('display_mode', m), mode);
       await openQuote(page, 'en', FANON.id, mode);
       for (const [format, [w, h]] of Object.entries(SIZES)) {
         const slug = format.replace(':', 'x');
         const beacon = page.waitForRequest((r) => r.url().endsWith('/stats/image') && r.method() === 'POST');
+        const preview = await openPreview(page, format);
+        await expect(page.getByTestId('share-menu')).toHaveCount(0);
+        // Counted when generated
+        expect(JSON.parse((await beacon).postData() ?? '{}')).toEqual({ id: FANON.id, locale: 'en', format });
+        await expect(preview).toHaveClass(new RegExp(`image-preview-${mode}`));
+        await expect(preview.getByRole('dialog')).toHaveAttribute('aria-label', `Image ${format}`);
+        const img = preview.locator('img');
+        await expect.poll(() => img.evaluate((i: HTMLImageElement) => [i.naturalWidth, i.naturalHeight])).toEqual([w, h]);
+
         const download = page.waitForEvent('download');
-        await page.getByTestId('share-btn').click();
-        await page.getByTestId(`share-image-${slug}`).click();
+        await page.getByTestId('preview-download').click();
         const d = await download;
         expect(d.suggestedFilename()).toBe(`quotez-${FANON.id}-${slug}.png`);
-        const buf = fs.readFileSync((await d.path())!);
-        expect(pngSize(buf)).toEqual([w, h]);
-        expect(JSON.parse((await beacon).postData() ?? '{}')).toEqual({ id: FANON.id, locale: 'en', format });
-        await expect(page.getByTestId('share-btn')).toHaveText('Image saved');
-        await expect(page.getByTestId('share-menu')).toHaveCount(0);
+        expect(pngSize(fs.readFileSync((await d.path())!))).toEqual([w, h]);
+        await expect(page.getByTestId('preview-note')).toHaveText(
+          `Saved as quotez-${FANON.id}-${slug}.png in your Downloads folder`,
+        );
+        await page.keyboard.press('Escape');
+        await expect(preview).toHaveCount(0);
+        await expect(page.getByTestId('share-btn')).toBeFocused();
       }
     });
   }
 
+  test('the preview closes with its button or a tap outside, and locks the page scroll', async ({ page }) => {
+    await openQuote(page, 'fr', FANON.id);
+    const preview = await openPreview(page, '4:3');
+    await expect(page.locator('.image-preview-close')).toBeFocused();
+    await expect(page.locator('.image-preview-close')).toHaveAttribute('aria-label', 'Fermer');
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden');
+    await page.locator('.image-preview-close').click();
+    await expect(preview).toHaveCount(0);
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe('');
+    await openPreview(page, '4:3');
+    await page.getByTestId('image-preview').click({ position: { x: 3, y: 3 } });
+    await expect(page.getByTestId('image-preview')).toHaveCount(0);
+  });
+
+  test.describe('copy', () => {
+    test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
+    test('puts the PNG on the clipboard', async ({ page }) => {
+      await openQuote(page, 'it', FANON.id);
+      await openPreview(page, '1:1');
+      await page.getByTestId('preview-copy').click();
+      await expect(page.getByTestId('preview-note')).toHaveText('Immagine copiata: incollala dove vuoi');
+      await expect(page.getByTestId('preview-note')).toHaveClass(/ok/);
+      const types = await page.evaluate(async () => (await navigator.clipboard.read()).flatMap((i) => [...i.types]));
+      expect(types).toContain('image/png');
+    });
+  });
+
   test('shows what is on screen: the original when it is shown', async ({ page }) => {
     await openQuote(page, 'en', FANON.id);
     const draw = async () => {
+      await openPreview(page, '1:1');
       const download = page.waitForEvent('download');
-      await page.getByTestId('share-btn').click();
-      await page.getByTestId('share-image-1x1').click();
-      return fs.readFileSync((await (await download).path())!);
+      await page.getByTestId('preview-download').click();
+      const buf = fs.readFileSync((await (await download).path())!);
+      await page.keyboard.press('Escape');
+      return buf;
     };
     const translated = await draw();
     await page.getByTestId('original-toggle').click();
