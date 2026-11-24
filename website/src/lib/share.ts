@@ -79,3 +79,18 @@ export async function shareLink(data: { url: string; title: string; text: string
   }
   return (await copyText(data.url)) ? 'copied' : 'failed';
 }
+
+/**
+ * Anonymous counter for the backoffice: one quote image generated, in this
+ * language and format. Only these three values are sent, nothing about the
+ * visitor; a failed beacon is ignored.
+ */
+export function countImage(id: string, locale: string, format: string): void {
+  const body = JSON.stringify({ id, locale, format });
+  try {
+    if (navigator.sendBeacon?.('/stats/image', new Blob([body], { type: 'text/plain' }))) return;
+  } catch {
+    // fall through
+  }
+  void fetch('/stats/image', { method: 'POST', body, keepalive: true, credentials: 'omit' }).catch(() => {});
+}

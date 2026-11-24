@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ShareLabels } from '../lib/i18n';
-import { shareLink, shareUrl } from '../lib/share';
+import { countImage, shareLink, shareUrl } from '../lib/share';
 import {
   IMAGE_FORMATS,
   canvasToFile,
@@ -146,6 +146,7 @@ export function ShareButton({ locale, quoteId, text, image, style, labels, class
     try {
       const canvas = renderQuoteImage({ ...image, host: window.location.host }, format, style);
       const file = canvasToFile(canvas, `quotez-${quoteId}-${format.replace(':', 'x')}.png`);
+      countImage(quoteId, locale, format);
       void shareOrDownload(file, 'Quotez').then((r) => {
         if (r === 'downloaded') confirm('saved');
       });

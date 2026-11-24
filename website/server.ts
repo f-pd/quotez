@@ -223,8 +223,10 @@ async function pageMeta(req: Request, url: URL): Promise<PageMeta | null> {
   if (parts.length === 3 && parts[1] === "q" && LOCALE_SEGMENT.test(parts[0]!) && QUOTE_ID.test(parts[2]!)) {
     const locale = canonicalTag(parts[0]!);
     const id = parts[2]!.toLowerCase();
-    const q = matchLocale(locale, info.supported) ? await fetchQuoteById(locale, id) : null;
+    const supported = matchLocale(locale, info.supported);
+    const q = supported ? await fetchQuoteById(locale, id) : null;
     if (q) {
+      countVisit(req, id, supported!);
       const { text, author } = splitAuthor(q.text, q.author);
       const quoted = `“${text}”`;
       const title = author ? `${clip(quoted, 90)} — ${author}` : clip(quoted, 110);
@@ -275,6 +277,74 @@ async function pageMeta(req: Request, url: URL): Promise<PageMeta | null> {
       ["x-default", `${origin}${suffix || "/"}`],
     ],
   };
+}
+
+// ---------------------------------------------------------------------------
+// Counters for the backoffice, aggregated and anonymous (no IP, no cookie,
+// no user agent stored): one row per quote id, language, kind and format.
+//   visit: someone opened a shared link /:locale/q/:id (counted here, on the
+//          server; link-preview crawlers and bots are left out)
+//   image: the page generated a quote image (format 16:9, 4:3...), reported
+//          by a beacon from the browser
+// ---------------------------------------------------------------------------
+
+const IMAGE_FORMATS = new Set(["16:9", "4:3", "1:1", "3:4", "9:16"]);
+
+const bumpCounter = db.query(
+  `INSERT INTO share_counts (quote_id, locale, kind, format, count, last_at)
+   VALUES (?1, ?2, ?3, ?4, 1, datetime('now'))
+   ON CONFLICT (quote_id, locale, kind, format)
+   DO UPDATE SET count = count + 1, last_at = datetime('now')`,
+);
+
+/** Link-preview crawlers, search engines and other non-browser clients */
+const BOT_UA =
+  /bot|crawl|spider|slurp|preview|facebookexternalhit|meta-externalagent|embedly|whatsapp|telegram|discord|slack|skype|vkshare|pinterest|linkedin|quora|redditbot|bingpreview|headless|lighthouse|curl|wget|python|go-http|java\/|okhttp|axios|node-fetch|undici|bun\//i;
+
+function isHumanVisit(req: Request): boolean {
+  const ua = req.headers.get("user-agent") ?? "";
+  if (!ua || BOT_UA.test(ua)) return false;
+  // Browser prefetch / prerender is not a visit
+  const purpose = `${req.headers.get("purpose") ?? ""} ${req.headers.get("sec-purpose") ?? ""}`;
+  if (/prefetch|prerender/i.test(purpose)) return false;
+  return true;
+}
+
+function countVisit(req: Request, id: string, locale: string): void {
+  if (!isHumanVisit(req)) return;
+  try {
+    bumpCounter.run(id, locale, "visit", "");
+  } catch (err) {
+    console.error("[server] visit counter error:", err);
+  }
+}
+
+/** Beacon from the page: { id, locale, format } for each generated image */
+async function recordImage(req: Request): Promise<Response> {
+  try {
+    const raw = await req.text();
+    if (raw.length > 512) return new Response(null, { status: 413 });
+    const ev = JSON.parse(raw) as { id?: unknown; locale?: unknown; format?: unknown };
+    const id = typeof ev.id === "string" ? ev.id.toLowerCase() : "";
+    const format = typeof ev.format === "string" ? ev.format : "";
+    const rawLocale = typeof ev.locale === "string" ? ev.locale : "";
+    if (!QUOTE_ID.test(id) || !IMAGE_FORMATS.has(format) || !LOCALE_SEGMENT.test(rawLocale)) {
+      return new Response(null, { status: 400 });
+    }
+    const locale = matchLocale(canonicalTag(rawLocale), (await supportedLocales()).supported);
+    if (!locale) return new Response(null, { status: 400 });
+    bumpCounter.run(id, locale, "image", format);
+    return new Response(null, { status: 204 });
+  } catch {
+    return new Response(null, { status: 400 });
+  }
+}
+
+function shareStats(): Response {
+  const rows = db
+    .query(`SELECT quote_id AS id, locale, kind, format, count, last_at FROM share_counts ORDER BY count DESC`)
+    .all();
+  return Response.json({ rows });
 }
 
 let indexHtml: { text: string; mtime: number } | null = null;
@@ -452,6 +522,16 @@ const server = Bun.serve({
       return new Response("Method Not Allowed", { status: 405 });
     }
 
+    // Share counters, kept by this server (not the Zig service)
+    if (pathname === "/api/shares") {
+      if (req.method === "GET") return shareStats();
+      if (req.method === "DELETE") {
+        db.run("DELETE FROM share_counts");
+        return new Response(null, { status: 204 });
+      }
+      return new Response("Method Not Allowed", { status: 405 });
+    }
+
     if (pathname.startsWith("/api/")) {
       return proxyToZig(req, pathname, search);
     }
@@ -460,6 +540,10 @@ const server = Bun.serve({
     // with a BCP 47 locale prefix: /it/quote, /it-IT/n/5
     if (req.method === "GET" && PUBLIC_ROUTE.test(pathname)) {
       return proxyToZig(req, pathname, search);
+    }
+
+    if (pathname === "/stats/image" && req.method === "POST") {
+      return recordImage(req);
     }
 
     if (req.method === "GET" && pathname.startsWith("/og/")) {

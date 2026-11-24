@@ -310,7 +310,8 @@ pub const HttpServer = struct {
     fn appendAdminQuote(self: *HttpServer, buf: *std.ArrayList(u8), id: usize) !void {
         const a = self.allocator;
         const q = &self.store.quotes.items[id];
-        try buf.print(a, "{{\"id\":{d},\"text\":\"", .{id});
+        // "public_id" is the stable id of shared links (/:locale/q/:id)
+        try buf.print(a, "{{\"id\":{d},\"public_id\":\"{s}\",\"text\":\"", .{ id, &public_routes.quoteId(q) });
         try appendJsonEscaped(buf, a, q.content);
         try buf.print(a, "\",\"served\":{d},\"source\":", .{runtime.state.servedCount(q.content)});
         try appendNullableString(buf, a, q.source_path);

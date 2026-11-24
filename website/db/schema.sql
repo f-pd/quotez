@@ -15,3 +15,16 @@ INSERT OR IGNORE INTO settings (key, value, description) VALUES
   ('unsplash_api_key', '', 'Unsplash API key for backdrop images'),
   ('site_title', 'Quote of the Day', 'Website title'),
   ('refresh_interval', '0', 'Auto-refresh interval in seconds (0=disabled)');
+
+-- Anonymous aggregated counters (no IP, no cookie, nothing about the visitor):
+-- one row per quote id, language, kind ('visit' of a shared link /:locale/q/:id,
+-- 'image' generated in the page) and image format ('' for visits)
+CREATE TABLE IF NOT EXISTS share_counts (
+  quote_id TEXT NOT NULL,
+  locale TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  format TEXT NOT NULL DEFAULT '',
+  count INTEGER NOT NULL DEFAULT 0,
+  last_at TEXT,
+  PRIMARY KEY (quote_id, locale, kind, format)
+)

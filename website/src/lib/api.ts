@@ -25,6 +25,8 @@ async function apiFetch(path: string, options?: RequestInit): Promise<Response> 
 
 export type Quote = {
   id: number;
+  /** Stable id of shared links (/:locale/q/:id) */
+  public_id?: string;
   text: string;
   /** Times served over TCP/UDP since start or last stats reset */
   served?: number;
@@ -89,6 +91,24 @@ export type LogLine = { seq: number; ts: number; level: 'DEBUG' | 'INFO' | 'WARN
 export type LogsResponse = { next_seq: number; debug: boolean; lines: LogLine[] };
 
 export type Maintenance = { maintenance: boolean; message: string };
+
+/** Anonymous counters kept by the website: visits of shared links, generated images */
+export type ShareCount = {
+  /** Public quote id */
+  id: string;
+  locale: string;
+  kind: 'visit' | 'image';
+  /** Image format ('16:9'...), '' for visits */
+  format: string;
+  count: number;
+  last_at: string | null;
+};
+
+export async function fetchShareCounts(): Promise<ShareCount[]> {
+  const res = await apiFetch('/api/shares');
+  const data = await res.json();
+  return data.rows;
+}
 
 export async function fetchQuotes(): Promise<Quote[]> {
   const res = await apiFetch('/api/quotes');

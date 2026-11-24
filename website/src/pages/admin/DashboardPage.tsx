@@ -9,6 +9,7 @@ import {
   type Stats,
 } from '../../lib/api';
 import { notifyModesChanged } from '../../components/AdminLayout';
+import { ShareStats } from './ShareStats';
 
 const REFRESH_MS = 5000;
 
@@ -141,7 +142,6 @@ export function AdminPage() {
   }
 
   const lastHour = stats.timeline_per_minute.reduce((a, b) => a + b, 0);
-  const topMax = Math.max(1, ...stats.top.map((t) => t.served));
   const coverage = stats.quotes > 0 ? Math.round(((stats.quotes - stats.never_served) / stats.quotes) * 100) : 0;
 
   return (
@@ -193,28 +193,7 @@ export function AdminPage() {
           <Timeline data={stats.timeline_per_minute} />
         </div>
 
-        <div className="card">
-          <h2>Most served quotes</h2>
-          {stats.top.length === 0 ? (
-            <div className="muted small">No quotes served yet.</div>
-          ) : (
-            <ol className="top-list">
-              {stats.top.map((t) => (
-                <li key={t.id}>
-                  <div className="row">
-                    <span className="text" title={t.text}>
-                      {t.text}
-                    </span>
-                    <span className="count">{nf.format(t.served)}</span>
-                  </div>
-                  <div className="track">
-                    <div className="bar" style={{ width: `${(t.served / topMax) * 100}%` }} />
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
+        <ShareStats />
       </div>
 
       <div className="grid two">
