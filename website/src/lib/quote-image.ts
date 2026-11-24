@@ -466,18 +466,53 @@ export function canvasToFile(canvas: HTMLCanvasElement, name: string): File {
   return new File([bytes], name, { type: 'image/png' });
 }
 
-/** Share sheet with the file where supported, else a download */
-export async function shareOrDownload(file: File, title: string): Promise<'shared' | 'downloaded' | 'cancelled'> {
+/** The PNG of the canvas as a file (async: no user gesture is needed) */
+export function canvasToPngFile(canvas: HTMLCanvasElement, name: string): Promise<File> {
+  return new Promise((resolve) => {
+    if (typeof canvas.toBlob !== 'function') return resolve(canvasToFile(canvas, name));
+    canvas.toBlob((blob) => {
+      resolve(blob ? new File([blob], name, { type: 'image/png' }) : canvasToFile(canvas, name));
+    }, 'image/png');
+  });
+}
+
+/** True if the browser can put this file in the system share sheet */
+export function canShareFile(file: File): boolean {
   const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
-  const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
-  if (coarse && typeof nav.share === 'function' && nav.canShare?.({ files: [file] })) {
-    try {
-      await nav.share({ files: [file], title });
-      return 'shared';
-    } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') return 'cancelled';
-    }
+  try {
+    return typeof nav.share === 'function' && !!nav.canShare?.({ files: [file] });
+  } catch {
+    return false;
   }
+}
+
+/** Opens the share sheet; call it from a tap (it needs a user gesture) */
+export async function shareFile(file: File, title: string): Promise<'shared' | 'cancelled' | 'failed'> {
+  try {
+    await navigator.share({ files: [file], title });
+    return 'shared';
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') return 'cancelled';
+    console.error('Image share failed:', err);
+    return 'failed';
+  }
+}
+
+export function canCopyImage(): boolean {
+  return typeof navigator.clipboard?.write === 'function' && typeof window.ClipboardItem === 'function';
+}
+
+export async function copyImage(file: File): Promise<boolean> {
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': file })]);
+    return true;
+  } catch (err) {
+    console.error('Image copy failed:', err);
+    return false;
+  }
+}
+
+export function downloadFile(file: File): void {
   const url = URL.createObjectURL(file);
   const a = document.createElement('a');
   a.href = url;
@@ -485,6 +520,5 @@ export async function shareOrDownload(file: File, title: string): Promise<'share
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10_000);
-  return 'downloaded';
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }

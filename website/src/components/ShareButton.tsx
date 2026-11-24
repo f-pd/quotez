@@ -2,12 +2,12 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { createPortal } from 'react-dom';
 import type { ShareLabels } from '../lib/i18n';
 import { countImage, shareLink, shareUrl } from '../lib/share';
+import { ImagePreview } from './ImagePreview';
 import {
   IMAGE_FORMATS,
-  canvasToFile,
+  canvasToPngFile,
   fontsReady,
   renderQuoteImage,
-  shareOrDownload,
   type ImageFormat,
   type ImageQuote,
   type ImageStyle,
@@ -65,7 +65,7 @@ function FormatIcon({ format }: { format: ImageFormat }) {
   );
 }
 
-type Status = 'idle' | 'copied' | 'failed' | 'saved';
+type Status = 'idle' | 'copied' | 'failed';
 
 /**
  * Share menu: the link (share sheet on phones, copied elsewhere) or the
@@ -74,6 +74,7 @@ type Status = 'idle' | 'copied' | 'failed' | 'saved';
 export function ShareButton({ locale, quoteId, text, image, style, labels, className, disabled }: ShareButtonProps) {
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<Status>('idle');
+  const [preview, setPreview] = useState<{ file: File; format: ImageFormat } | null>(null);
   const [pos, setPos] = useState<{ left: number; bottom: number } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -140,30 +141,29 @@ export function ShareButton({ locale, quoteId, text, image, style, labels, class
     if (result === 'copied' || result === 'failed') confirm(result);
   };
 
-  // Drawn and encoded synchronously, so the share sheet still opens on Safari
-  const onImage = (format: ImageFormat) => {
+  const closePreview = useCallback(() => {
+    setPreview(null);
+    buttonRef.current?.focus();
+  }, []);
+
+  // Drawn in the browser, then shown with explicit Share / Download / Copy
+  // buttons: the share sheet opens from that tap, never from a stale one
+  const onImage = async (format: ImageFormat) => {
     setOpen(false);
     try {
+      await fontsReady();
       const canvas = renderQuoteImage({ ...image, host: window.location.host }, format, style);
-      const file = canvasToFile(canvas, `quotez-${quoteId}-${format.replace(':', 'x')}.png`);
+      const file = await canvasToPngFile(canvas, `quotez-${quoteId}-${format.replace(':', 'x')}.png`);
       countImage(quoteId, locale, format);
-      void shareOrDownload(file, 'Quotez').then((r) => {
-        if (r === 'downloaded') confirm('saved');
-      });
+      setPreview({ file, format });
     } catch (err) {
-      console.error('Image share failed:', err);
+      console.error('Image generation failed:', err);
       confirm('failed');
     }
   };
 
   const label =
-    status === 'copied'
-      ? labels.linkCopied
-      : status === 'saved'
-        ? labels.imageSaved
-        : status === 'failed'
-          ? labels.copyFailed
-          : labels.share;
+    status === 'copied' ? labels.linkCopied : status === 'failed' ? labels.copyFailed : labels.share;
 
   return (
     <>
@@ -203,7 +203,7 @@ export function ShareButton({ locale, quoteId, text, image, style, labels, class
                   className="share-format"
                   data-testid={`share-image-${f.replace(':', 'x')}`}
                   aria-label={`${labels.shareImage} ${f}`}
-                  onClick={() => onImage(f)}
+                  onClick={() => void onImage(f)}
                 >
                   <FormatIcon format={f} />
                   <span>{f}</span>
@@ -213,6 +213,15 @@ export function ShareButton({ locale, quoteId, text, image, style, labels, class
           </div>,
           document.body,
         )}
+      {preview && (
+        <ImagePreview
+          file={preview.file}
+          format={preview.format}
+          labels={labels}
+          style={style}
+          onClose={closePreview}
+        />
+      )}
     </>
   );
 }

@@ -98,6 +98,13 @@ type Labels = {
   shareLink: string;
   shareImage: string;
   imageSaved: string;
+  /** Image preview: actions and outcomes; {name} = file name */
+  downloadImage: string;
+  copyImage: string;
+  imageCopied: string;
+  savedAs: string;
+  shareFailed: string;
+  close: string;
 };
 
 const LABELS: Record<string, Labels> = {
@@ -116,6 +123,12 @@ const LABELS: Record<string, Labels> = {
     shareLink: 'Link',
     shareImage: 'Image',
     imageSaved: 'Image saved',
+    downloadImage: 'Download',
+    copyImage: 'Copy image',
+    imageCopied: 'Image copied: paste it wherever you like',
+    savedAs: 'Saved as {name} in your Downloads folder',
+    shareFailed: 'Sharing did not work here: download or copy the image instead',
+    close: 'Close',
   },
   it: {
     newQuote: 'Nuova citazione',
@@ -132,6 +145,12 @@ const LABELS: Record<string, Labels> = {
     shareLink: 'Link',
     shareImage: 'Immagine',
     imageSaved: 'Immagine salvata',
+    downloadImage: 'Scarica',
+    copyImage: 'Copia immagine',
+    imageCopied: 'Immagine copiata: incollala dove vuoi',
+    savedAs: 'Salvata come {name} nella cartella Download',
+    shareFailed: 'Qui la condivisione non ha funzionato: scarica o copia l’immagine',
+    close: 'Chiudi',
   },
   fr: {
     newQuote: 'Nouvelle citation',
@@ -148,6 +167,12 @@ const LABELS: Record<string, Labels> = {
     shareLink: 'Lien',
     shareImage: 'Image',
     imageSaved: 'Image enregistrée',
+    downloadImage: 'Télécharger',
+    copyImage: 'Copier l’image',
+    imageCopied: 'Image copiée : collez-la où vous voulez',
+    savedAs: 'Enregistrée sous {name} dans le dossier Téléchargements',
+    shareFailed: 'Le partage n’a pas fonctionné ici : téléchargez ou copiez l’image',
+    close: 'Fermer',
   },
 };
 
@@ -157,7 +182,7 @@ export function labelsFor(locale: string): Labels {
 }
 
 export type ModeLabels = Pick<Labels, 'newQuote' | 'loading' | 'couldNotLoad' | 'retry'>;
-export type ShareLabels = Pick<Labels, 'share' | 'linkCopied' | 'copyFailed' | 'shareLink' | 'shareImage' | 'imageSaved'>;
+export type ShareLabels = Pick<Labels, 'share' | 'linkCopied' | 'copyFailed' | 'shareLink' | 'shareImage' | 'imageSaved' | 'downloadImage' | 'copyImage' | 'imageCopied' | 'savedAs' | 'shareFailed' | 'close'>;
 
 const STORAGE_KEY = 'quote_locale';
 
