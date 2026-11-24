@@ -95,6 +95,9 @@ type Labels = {
   share: string;
   linkCopied: string;
   copyFailed: string;
+  shareLink: string;
+  shareImage: string;
+  imageSaved: string;
 };
 
 const LABELS: Record<string, Labels> = {
@@ -110,6 +113,9 @@ const LABELS: Record<string, Labels> = {
     share: 'Share',
     linkCopied: 'Link copied',
     copyFailed: 'Copy failed',
+    shareLink: 'Link',
+    shareImage: 'Image',
+    imageSaved: 'Image saved',
   },
   it: {
     newQuote: 'Nuova citazione',
@@ -123,6 +129,9 @@ const LABELS: Record<string, Labels> = {
     share: 'Condividi',
     linkCopied: 'Link copiato',
     copyFailed: 'Copia non riuscita',
+    shareLink: 'Link',
+    shareImage: 'Immagine',
+    imageSaved: 'Immagine salvata',
   },
   fr: {
     newQuote: 'Nouvelle citation',
@@ -136,6 +145,9 @@ const LABELS: Record<string, Labels> = {
     share: 'Partager',
     linkCopied: 'Lien copié',
     copyFailed: 'Échec de la copie',
+    shareLink: 'Lien',
+    shareImage: 'Image',
+    imageSaved: 'Image enregistrée',
   },
 };
 
@@ -145,7 +157,7 @@ export function labelsFor(locale: string): Labels {
 }
 
 export type ModeLabels = Pick<Labels, 'newQuote' | 'loading' | 'couldNotLoad' | 'retry'>;
-export type ShareLabels = Pick<Labels, 'share' | 'linkCopied' | 'copyFailed'>;
+export type ShareLabels = Pick<Labels, 'share' | 'linkCopied' | 'copyFailed' | 'shareLink' | 'shareImage' | 'imageSaved'>;
 
 const STORAGE_KEY = 'quote_locale';
 

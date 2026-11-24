@@ -22,15 +22,15 @@ interface DitheredBackdropProps {
   className: string;
 }
 
-type RGB = [number, number, number];
+export type RGB = [number, number, number];
 
 /**
  * 64x64 tile of interleaved gradient noise (Jimenez 2014), mapped to
  * [-1, 1): high frequency, no visible pattern, computed once.
  */
-const NOISE_SIZE = 64;
+export const NOISE_SIZE = 64;
 let noiseTile: Float32Array | null = null;
-function noise(): Float32Array {
+export function noise(): Float32Array {
   if (noiseTile) return noiseTile;
   noiseTile = new Float32Array(NOISE_SIZE * NOISE_SIZE);
   for (let y = 0; y < NOISE_SIZE; y++) {
@@ -43,7 +43,7 @@ function noise(): Float32Array {
   return noiseTile;
 }
 
-function parseHex(hex: string, fallback: RGB): RGB {
+export function parseHex(hex: string, fallback: RGB): RGB {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
   if (!m) return fallback;
   const n = parseInt(m[1]!, 16);
@@ -51,9 +51,9 @@ function parseHex(hex: string, fallback: RGB): RGB {
 }
 
 // Same colours as the former CSS gradients.
-const PAGE_BG: RGB = [0x0f, 0x0f, 0x0f];
-const RICH_OPACITY = 0.15;
-const ZEN_STOPS: [RGB, RGB, RGB] = [
+export const PAGE_BG: RGB = [0x0f, 0x0f, 0x0f];
+export const RICH_OPACITY = 0.15;
+export const ZEN_STOPS: [RGB, RGB, RGB] = [
   [0x1a, 0x0a, 0x2e],
   [0x0a, 0x1a, 0x2e],
   [0x0a, 0x2e, 0x1a],

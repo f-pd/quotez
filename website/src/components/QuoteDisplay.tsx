@@ -7,6 +7,7 @@ import { ModeSelector } from './ModeSelector';
 import { LocaleSelector } from './LocaleSelector';
 import { ShareButton } from './ShareButton';
 import { clearSharedQuote, sharedQuote } from '../lib/share';
+import { splitAuthor } from '../lib/meta';
 import {
   labelsFor,
   languageName,
@@ -145,12 +146,23 @@ export function QuoteDisplay({ urlLocale, onLocaleChange }: QuoteDisplayProps) {
     : null;
 
   const shareText = quote ? joinAuthor(quote.text, quote.author) : '';
+  // The image shows what is on screen: translation or original
+  const imageParts = quote
+    ? splitAuthor(showOriginal && quote.original ? quote.original : quote.text, quote.author)
+    : null;
   const share =
     quote?.id && locale && error === 'none' ? (
       <ShareButton
         locale={matchSupported(locale, locales?.supported ?? []) ?? locale}
         quoteId={quote.id}
         text={shareText}
+        image={{
+          text: imageParts?.text ?? '',
+          author: imageParts?.author ?? null,
+          work: quote.work ?? null,
+          lang: showOriginal ? quote.original_lang : quote.lang,
+        }}
+        style={mode}
         labels={labels}
         className={mode === 'zen' ? 'zen-button' : mode === 'rich' ? 'rich-button rich-button-secondary' : 'simple-button'}
         disabled={loading}

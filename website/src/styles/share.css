@@ -84,3 +84,129 @@
     height: 1.25em;
   }
 }
+
+/* Share menu: link or image in five formats. Fixed to the screen (portal),
+   so the scrolling quote area never clips it. */
+.share-menu {
+  position: fixed;
+  z-index: 50;
+  min-width: 16rem;
+  padding: var(--spacing-sm);
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: rgba(22, 20, 30, 0.96);
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  animation: share-menu-in 160ms ease-out;
+}
+
+.share-menu-simple {
+  border-radius: 0;
+  font-family: var(--font-mono);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .share-menu {
+    background: rgba(22, 20, 30, 0.94);
+    backdrop-filter: blur(14px);
+  }
+}
+
+.share-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  width: 100%;
+  padding: 0.6em 0.75em;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.share-menu-title {
+  padding: 0.75em 0.75em 0.35em;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.share-formats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.share-format {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.55em 0.25em;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.share-format-icon {
+  width: 1.6em;
+  height: 1.6em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+
+.share-menu-item:hover,
+.share-menu-item:focus-visible,
+.share-format:hover,
+.share-format:focus-visible {
+  background: rgba(124, 106, 247, 0.16);
+  color: var(--color-accent-hover);
+  outline: none;
+}
+
+.share-menu-simple .share-menu-item,
+.share-menu-simple .share-format {
+  border-radius: 0;
+}
+
+@keyframes share-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Phones: a sheet along the bottom edge */
+@media (max-width: 480px) {
+  .share-menu {
+    left: 12px !important;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    min-width: 0;
+    font-size: 1rem;
+  }
+  .share-format {
+    padding: 0.7em 0.25em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .share-menu {
+    animation: none;
+  }
+}
