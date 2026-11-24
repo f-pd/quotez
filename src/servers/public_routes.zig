@@ -382,8 +382,9 @@ fn appendQuoteJson(buf: *std.ArrayList(u8), allocator: std.mem.Allocator, q: *co
     try appendJsonString(buf, allocator, q.lang orelse runtime.state.default_locale);
     try buf.appendSlice(allocator, if (chosen.translated) ",\"translated\":true,\"original\":" else ",\"translated\":false");
     if (chosen.translated) try appendJsonString(buf, allocator, q.content);
+    // The source is described in the page language (titles stay original)
     try buf.appendSlice(allocator, ",\"work\":");
-    if (q.work) |w| try appendJsonString(buf, allocator, w) else try buf.appendSlice(allocator, "null");
+    if (q.workFor(locale orelse chosen.lang)) |w| try appendJsonString(buf, allocator, w) else try buf.appendSlice(allocator, "null");
     try buf.appendSlice(allocator, ",\"author\":");
     if (q.author) |a| try appendJsonString(buf, allocator, a) else try buf.appendSlice(allocator, "null");
     try buf.appendSlice(allocator, ",\"tags\":[");
@@ -740,6 +741,31 @@ test "public routes - locale prefix never serves another language" {
         "{\"text\":\"Vous n'avez pas été faits pour vivre comme des brutes\",\"lang\":\"fr\",\"original_lang\":\"it\",\"translated\":true,\"original\":\"Fatti non foste a viver come bruti\",\"work\":null,\"author\":\"Dante\",\"tags\":[]}",
         fr.body,
     );
+}
+
+test "public routes - the source is described in the page language" {
+    const allocator = std.testing.allocator;
+    var store = quote_store.QuoteStore.init(allocator);
+    defer store.deinit();
+    const T = quote_store.Translation;
+    var q = try quote_store.Quote.initFull(allocator, "Die Eule der Minerva", null, null, &.{}, "de", &[_]T{
+        .{ .lang = "it", .text = "La nottola di Minerva" },
+        .{ .lang = "en", .text = "The owl of Minerva" },
+    });
+    try q.setWork(allocator, "Grundlinien der Philosophie des Rechts (1820), Preface");
+    try q.setWorks(allocator, &[_]T{
+        .{ .lang = "en", .text = "Grundlinien der Philosophie des Rechts (1820), Preface" },
+        .{ .lang = "it", .text = "Grundlinien der Philosophie des Rechts (1820), Prefazione" },
+    });
+    try store.quotes.append(allocator, q);
+
+    const it = (try testHandle(&store, "GET", "/it-IT/quote?format=json", "")).?;
+    defer it.deinit(allocator);
+    try std.testing.expect(std.mem.indexOf(u8, it.body, "\"work\":\"Grundlinien der Philosophie des Rechts (1820), Prefazione\"") != null);
+    // A page language without its own description gets the plain one
+    const plain = (try testHandle(&store, "GET", "/quote?format=json", "")).?;
+    defer plain.deinit(allocator);
+    try std.testing.expect(std.mem.indexOf(u8, plain.body, "(1820), Preface\"") != null);
 }
 
 test "public routes - unsupported or empty locale is 404, bad locale 400" {

@@ -2,7 +2,11 @@
   {
     "text": "Se voi volete andare in pellegrinaggio nel luogo dove è nata la nostra costituzione, andate nelle montagne dove caddero i partigiani, nelle carceri dove furono imprigionati, nei campi dove furono impiccati. - Piero Calamandrei",
     "lang": "it",
-    "work": "Speech to students on the Constitution, Milan, 26 January 1955",
+    "work": {
+      "en": "Speech to students on the Constitution, Milan, 26 January 1955",
+      "it": "Discorso agli studenti sulla Costituzione, Milano, 26 gennaio 1955",
+      "fr": "Discours aux étudiants sur la Constitution, Milan, 26 janvier 1955"
+    },
     "tags": [
       "antifascism",
       "resistance"
@@ -15,7 +19,11 @@
   {
     "text": "Oggi in Spagna, domani in Italia. - Carlo Rosselli",
     "lang": "it",
-    "work": "Speech on Radio Barcelona, 13 November 1936",
+    "work": {
+      "en": "Speech on Radio Barcelona, 13 November 1936",
+      "it": "Discorso a Radio Barcellona, 13 novembre 1936",
+      "fr": "Discours à Radio Barcelone, 13 novembre 1936"
+    },
     "tags": [
       "antifascism",
       "resistance"
@@ -28,7 +36,11 @@
   {
     "text": "¡Los fascistas no pasarán! ¡No pasarán! - Dolores Ibárruri",
     "lang": "es",
-    "work": "Radio speech from the Ministry of the Interior, Madrid, 19 July 1936",
+    "work": {
+      "en": "Radio speech from the Ministry of the Interior, Madrid, 19 July 1936",
+      "it": "Discorso alla radio dal Ministero dell'Interno, Madrid, 19 luglio 1936",
+      "fr": "Discours radiodiffusé depuis le ministère de l'Intérieur, Madrid, 19 juillet 1936"
+    },
     "tags": [
       "antifascism",
       "resistance"
@@ -42,7 +54,11 @@
   {
     "text": "Unglücklich das Land, das Helden nötig hat. - Bertolt Brecht",
     "lang": "de",
-    "work": "Leben des Galilei (1938-39), scene 13",
+    "work": {
+      "en": "Leben des Galilei (1938-39), scene 13",
+      "it": "Leben des Galilei (1938-39), scena 13",
+      "fr": "Leben des Galilei (1938-39), scène 13"
+    },
     "tags": [
       "antifascism",
       "literature"
@@ -56,7 +72,11 @@
   {
     "text": "Der Schoß ist fruchtbar noch, aus dem das kroch. - Bertolt Brecht",
     "lang": "de",
-    "work": "Der aufhaltsame Aufstieg des Arturo Ui (1941), epilogue",
+    "work": {
+      "en": "Der aufhaltsame Aufstieg des Arturo Ui (1941), epilogue",
+      "it": "Der aufhaltsame Aufstieg des Arturo Ui (1941), epilogo",
+      "fr": "Der aufhaltsame Aufstieg des Arturo Ui (1941), épilogue"
+    },
     "tags": [
       "antifascism",
       "literature"
@@ -70,7 +90,11 @@
   {
     "text": "Wir schweigen nicht, wir sind Euer böses Gewissen; die Weiße Rose läßt Euch keine Ruhe! - Weiße Rose",
     "lang": "de",
-    "work": "Fourth leaflet of the White Rose (Flugblatt IV), Munich, July 1942",
+    "work": {
+      "en": "Fourth leaflet of the White Rose (Flugblatt IV), Munich, July 1942",
+      "it": "Quarto volantino della Rosa Bianca (Flugblatt IV), Monaco, luglio 1942",
+      "fr": "Quatrième tract de la Rose blanche (Flugblatt IV), Munich, juillet 1942"
+    },
     "tags": [
       "antifascism",
       "resistance"
@@ -84,7 +108,11 @@
   {
     "text": "Every line of serious work that I have written since 1936 has been written, directly or indirectly, against totalitarianism and for democratic Socialism, as I understand it. - George Orwell",
     "lang": "en",
-    "work": "\"Why I Write\", Gangrel no. 4, summer 1946",
+    "work": {
+      "en": "\"Why I Write\", Gangrel no. 4, summer 1946",
+      "it": "\"Why I Write\", Gangrel n. 4, estate 1946",
+      "fr": "« Why I Write », Gangrel nº 4, été 1946"
+    },
     "tags": [
       "antifascism",
       "socialism",
@@ -98,7 +126,11 @@
   {
     "text": "War is peace. Freedom is slavery. Ignorance is strength. - George Orwell",
     "lang": "en",
-    "work": "Nineteen Eighty-Four (1949), part I, ch. 1",
+    "work": {
+      "en": "Nineteen Eighty-Four (1949), part I, ch. 1",
+      "it": "Nineteen Eighty-Four (1949), parte I, cap. 1",
+      "fr": "Nineteen Eighty-Four (1949), partie I, chap. 1"
+    },
     "tags": [
       "antifascism",
       "literature",
@@ -112,7 +144,11 @@
   {
     "text": "All animals are equal but some animals are more equal than others. - George Orwell",
     "lang": "en",
-    "work": "Animal Farm (1945), ch. X",
+    "work": {
+      "en": "Animal Farm (1945), ch. X",
+      "it": "Animal Farm (1945), cap. X",
+      "fr": "Animal Farm (1945), chap. X"
+    },
     "tags": [
       "antifascism",
       "literature",
@@ -126,7 +162,11 @@
   {
     "text": "As a woman I have no country. As a woman I want no country. As a woman my country is the whole world. - Virginia Woolf",
     "lang": "en",
-    "work": "Three Guineas (1938), ch. 3",
+    "work": {
+      "en": "Three Guineas (1938), ch. 3",
+      "it": "Three Guineas (1938), cap. 3",
+      "fr": "Three Guineas (1938), chap. 3"
+    },
     "tags": [
       "antifascism",
       "feminism",
@@ -140,7 +180,11 @@
   {
     "text": "The hate of men will pass, and dictators die, and the power they took from the people will return to the people. - Charlie Chaplin",
     "lang": "en",
-    "work": "The Great Dictator (1940), final speech",
+    "work": {
+      "en": "The Great Dictator (1940), final speech",
+      "it": "The Great Dictator (1940), discorso finale",
+      "fr": "The Great Dictator (1940), discours final"
+    },
     "tags": [
       "antifascism",
       "cinema",
@@ -154,7 +198,11 @@
   {
     "text": "The fundamental cause of the trouble is that in the modern world the stupid are cocksure while the intelligent are full of doubt. - Bertrand Russell",
     "lang": "en",
-    "work": "\"The Triumph of Stupidity\" (10 May 1933), in Mortals and Others (1975)",
+    "work": {
+      "en": "\"The Triumph of Stupidity\" (10 May 1933), in Mortals and Others (1975)",
+      "it": "\"The Triumph of Stupidity\" (10 maggio 1933), in Mortals and Others (1975)",
+      "fr": "« The Triumph of Stupidity » (10 mai 1933), dans Mortals and Others (1975)"
+    },
     "tags": [
       "antifascism",
       "philosophy"
@@ -167,7 +215,11 @@
   {
     "text": "Ur-Fascism is still around us, sometimes in plainclothes. - Umberto Eco",
     "lang": "en",
-    "work": "\"Ur-Fascism\", The New York Review of Books, 22 June 1995 (lecture at Columbia University, 25 April 1995)",
+    "work": {
+      "en": "\"Ur-Fascism\", The New York Review of Books, 22 June 1995 (lecture at Columbia University, 25 April 1995)",
+      "it": "\"Ur-Fascism\", The New York Review of Books, 22 giugno 1995 (conferenza alla Columbia University, 25 aprile 1995)",
+      "fr": "« Ur-Fascism », The New York Review of Books, 22 juin 1995 (conférence à l'université Columbia, 25 avril 1995)"
+    },
     "tags": [
       "antifascism",
       "vigilance"
@@ -180,7 +232,11 @@
   {
     "text": "Es gibt kein richtiges Leben im falschen. - Theodor W. Adorno",
     "lang": "de",
-    "work": "Minima Moralia (1951), §18 \"Asyl für Obdachlose\"",
+    "work": {
+      "en": "Minima Moralia (1951), §18 \"Asyl für Obdachlose\"",
+      "it": "Minima Moralia (1951), §18 \"Asyl für Obdachlose\"",
+      "fr": "Minima Moralia (1951), §18 « Asyl für Obdachlose »"
+    },
     "tags": [
       "antifascism",
       "philosophy"
@@ -194,7 +250,11 @@
   {
     "text": "the lesson that this long course in human wickedness had taught us – the lesson of the fearsome, word-and-thought-defying banality of evil. - Hannah Arendt",
     "lang": "en",
-    "work": "Eichmann in Jerusalem: A Report on the Banality of Evil (1963), ch. 15, closing words",
+    "work": {
+      "en": "Eichmann in Jerusalem: A Report on the Banality of Evil (1963), ch. 15, closing words",
+      "it": "Eichmann in Jerusalem: A Report on the Banality of Evil (1963), cap. 15, parole finali",
+      "fr": "Eichmann in Jerusalem: A Report on the Banality of Evil (1963), chap. 15, derniers mots"
+    },
     "tags": [
       "antifascism",
       "philosophy"
@@ -207,7 +267,11 @@
   {
     "text": "L'obbedienza non è ormai più una virtù, ma la più subdola delle tentazioni. - Lorenzo Milani",
     "lang": "it",
-    "work": "L'obbedienza non è più una virtù, Letter to the judges (1965), p. 35",
+    "work": {
+      "en": "L'obbedienza non è più una virtù, Letter to the judges (1965), p. 35",
+      "it": "L'obbedienza non è più una virtù, Lettera ai giudici (1965), p. 35",
+      "fr": "L'obbedienza non è più una virtù, Lettre aux juges (1965), p. 35"
+    },
     "tags": [
       "antifascism",
       "disobedience",
@@ -221,7 +285,11 @@
   {
     "text": "Ho imparato che il problema degli altri è uguale al mio. Sortirne tutti insieme è politica. Sortirne da soli è avarizia. - Scuola di Barbiana",
     "lang": "it",
-    "work": "Lettera a una professoressa (Libreria Editrice Fiorentina, 1967), by the School of Barbiana with Lorenzo Milani",
+    "work": {
+      "en": "Lettera a una professoressa (Libreria Editrice Fiorentina, 1967), by the School of Barbiana with Lorenzo Milani",
+      "it": "Lettera a una professoressa (Libreria Editrice Fiorentina, 1967), Scuola di Barbiana con Lorenzo Milani",
+      "fr": "Lettera a una professoressa (Libreria Editrice Fiorentina, 1967), par l'école de Barbiana avec Lorenzo Milani"
+    },
     "tags": [
       "antifascism",
       "education",
@@ -235,7 +303,11 @@
   {
     "text": "Io so. Ma non ho le prove. Non ho nemmeno indizi. - Pier Paolo Pasolini",
     "lang": "it",
-    "work": "\"Cos'è questo golpe? Io so\", Corriere della Sera, 14 November 1974",
+    "work": {
+      "en": "\"Cos'è questo golpe? Io so\", Corriere della Sera, 14 November 1974",
+      "it": "\"Cos'è questo golpe? Io so\", Corriere della Sera, 14 novembre 1974",
+      "fr": "« Cos'è questo golpe? Io so », Corriere della Sera, 14 novembre 1974"
+    },
     "tags": [
       "antifascism",
       "truth"
@@ -248,7 +320,11 @@
   {
     "text": "Il secondo è rischioso ed esige attenzione e apprendimento continui: cercare e saper riconoscere chi e cosa, in mezzo all'inferno, non è inferno, e farlo durare, e dargli spazio. - Italo Calvino",
     "lang": "it",
-    "work": "Le città invisibili (1972), closing words",
+    "work": {
+      "en": "Le città invisibili (1972), closing words",
+      "it": "Le città invisibili (1972), parole finali",
+      "fr": "Le città invisibili (1972), derniers mots"
+    },
     "tags": [
       "antifascism",
       "literature",
@@ -262,7 +338,11 @@
   {
     "text": "Je me révolte, donc nous sommes. - Albert Camus",
     "lang": "fr",
-    "work": "L'Homme révolté (1951), part I \"L'homme révolté\"",
+    "work": {
+      "en": "L'Homme révolté (1951), part I \"L'homme révolté\"",
+      "it": "L'Homme révolté (1951), parte I \"L'homme révolté\"",
+      "fr": "L'Homme révolté (1951), partie I « L'homme révolté »"
+    },
     "tags": [
       "antifascism",
       "philosophy",
@@ -276,7 +356,11 @@
   {
     "text": "«Tutti gli usi della parola a tutti» mi sembra un buon motto, dal bel suono democratico. Non perché tutti siano artisti, ma perché nessuno sia schiavo. - Gianni Rodari",
     "lang": "it",
-    "work": "Grammatica della fantasia (Einaudi, 1973), ch. 1 \"Antefatto\"",
+    "work": {
+      "en": "Grammatica della fantasia (Einaudi, 1973), ch. 1 \"Antefatto\"",
+      "it": "Grammatica della fantasia (Einaudi, 1973), cap. 1 \"Antefatto\"",
+      "fr": "Grammatica della fantasia (Einaudi, 1973), chap. 1 « Antefatto »"
+    },
     "tags": [
       "antifascism",
       "education",

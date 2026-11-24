@@ -58,6 +58,7 @@ export function AdminQuotesPage() {
   const [formWork, setFormWork] = useState('');
   const [formLang, setFormLang] = useState('');
   const [formTranslations, setFormTranslations] = useState<Record<string, string>>({});
+  const [formWorks, setFormWorks] = useState<Record<string, string>>({});
   const [newTransLang, setNewTransLang] = useState('');
   const [locales, setLocales] = useState<{ supported: string[]; default: string }>({ supported: ['en', 'it', 'fr'], default: 'en' });
   const [langFilter, setLangFilter] = useState('all');
@@ -104,7 +105,7 @@ export function AdminQuotesPage() {
         (sourceFilter === 'all' || sourceLabel(q.source) === sourceFilter) &&
         (langFilter === 'all' ||
           (langFilter === 'web-only' && webOnlyLangs(q).length > 0) ||
-          (langFilter === 'no-work' && !q.work) ||
+          (langFilter === 'no-work' && !q.work && Object.keys(q.works ?? {}).length === 0) ||
           (langFilter.startsWith('has:') && hasLanguage(q, langFilter.slice(4))) ||
           (langFilter.startsWith('missing:') && !hasLanguage(q, langFilter.slice(8)))) &&
         (!needle || q.text.toLowerCase().includes(needle)),
@@ -135,6 +136,7 @@ export function AdminQuotesPage() {
     setFormText('');
     setFormAuthor('');
     setFormWork('');
+    setFormWorks({});
     setFormLang('');
     setFormTranslations({});
     setIsFormOpen(true);
@@ -145,6 +147,7 @@ export function AdminQuotesPage() {
     setFormText(quote.text);
     setFormAuthor(quote.author ?? '');
     setFormWork(quote.work ?? '');
+    setFormWorks({ ...(quote.works ?? {}) });
     setFormLang(quote.lang ?? '');
     setFormTranslations({ ...(quote.translations ?? {}) });
     setIsFormOpen(true);
@@ -198,10 +201,15 @@ export function AdminQuotesPage() {
       for (const [lang, text] of Object.entries(formTranslations)) {
         if (text.trim() && baseLanguage(lang) !== baseLanguage(effectiveLang)) translations[lang] = text.trim();
       }
+      const works: Record<string, string> = {};
+      for (const [lang, text] of Object.entries(formWorks)) {
+        if (text.trim()) works[lang] = text.trim();
+      }
       const input = {
         text: formText,
         author: formAuthor.trim() || null,
         work: formWork.trim() || null,
+        works,
         lang: formLang || null,
         translations,
       };
@@ -274,14 +282,38 @@ export function AdminQuotesPage() {
               style={{ minWidth: 200 }}
             />
           </div>
-          <input
-            data-testid="quote-work"
-            className="input"
-            placeholder="Source: book, speech or work with a reference (e.g. Epistulae morales ad Lucilium 1.3)"
-            value={formWork}
-            onChange={(e) => setFormWork(e.target.value)}
-            style={{ width: '100%', marginTop: 'var(--spacing-sm)' }}
-          />
+          <h3 style={{ marginTop: 'var(--spacing-lg)' }}>Source</h3>
+          <div className="muted small" style={{ marginBottom: 6 }}>
+            Book, speech or work with a precise reference. Keep titles in their original language and write the rest
+            (chapter, preface, closing words, dates) in each page language.
+          </div>
+          {locales.supported.map((lang) => (
+            <label key={lang} className="small" style={{ display: 'block', marginBottom: 'var(--spacing-sm)' }}>
+              <strong>
+                {languageName(lang, 'en')} <span className="mono muted">{lang}</span>
+              </strong>
+              <input
+                data-testid={`quote-work-${lang}`}
+                className="input"
+                lang={lang}
+                placeholder={lang === 'it' ? 'e.g. Grundlinien der Philosophie des Rechts (1820), Prefazione' : `Source described in ${languageName(lang, 'en')}`}
+                value={formWorks[lang] ?? ''}
+                onChange={(e) => setFormWorks({ ...formWorks, [lang]: e.target.value })}
+                style={{ width: '100%', marginTop: 4 }}
+              />
+            </label>
+          ))}
+          <label className="small" style={{ display: 'block' }}>
+            <strong>Fallback</strong> <span className="muted">for languages without their own description</span>
+            <input
+              data-testid="quote-work"
+              className="input"
+              placeholder="e.g. Epistulae morales ad Lucilium 1, 3"
+              value={formWork}
+              onChange={(e) => setFormWork(e.target.value)}
+              style={{ width: '100%', marginTop: 4 }}
+            />
+          </label>
 
           <h3 style={{ marginTop: 'var(--spacing-lg)' }}>Translations</h3>
           <div className="muted small" style={{ marginBottom: 6 }}>

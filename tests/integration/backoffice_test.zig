@@ -270,7 +270,7 @@ test "backoffice: languages, translations and the QOTD locale extension" {
         \\{"text":"Fatti non foste a viver come bruti","author":"Dante","work":"Inferno XXVI, 119","lang":"it","translations":{"en":"You were not made to live as brutes"}}
     ), &hbuf);
     try testing.expect(contains(resp, "201 Created"));
-    try testing.expect(contains(body(resp), "\"lang\":\"it\",\"original_lang\":\"it\",\"work\":\"Inferno XXVI, 119\",\"translations\":{\"en\":\"You were not made to live as brutes\"}"));
+    try testing.expect(contains(body(resp), "\"lang\":\"it\",\"original_lang\":\"it\",\"work\":\"Inferno XXVI, 119\",\"works\":{},\"translations\":{\"en\":\"You were not made to live as brutes\"}"));
 
     // Invalid language tags are rejected
     resp = try http2(&server, jsonRequest("POST", "/api/quotes",
@@ -292,6 +292,20 @@ test "backoffice: languages, translations and the QOTD locale extension" {
     const saved = try std.Io.Dir.cwd().readFileAlloc(std.testing.io, api_path, allocator, .limited(1 << 20));
     defer allocator.free(saved);
     try testing.expect(contains(saved, "\"work\":\"Inferno XXVI, 119\",\"lang\":\"it\",\"translations\":{\"en\":"));
+
+    // The source can be described per language; PUT without "works" keeps them
+    resp = try http2(&server, jsonRequest("PUT", "/api/quotes/1",
+        \\{"works":{"it":"Inferno, canto XXVI, 119","fr":"Enfer, chant XXVI, 119"}}
+    ), &hbuf);
+    try testing.expect(contains(resp, "200 OK"));
+    resp = try http2(&server, jsonRequest("PUT", "/api/quotes/1",
+        \\{"author":"Dante"}
+    ), &hbuf);
+    try testing.expect(contains(body(resp), "\"works\":{\"it\":\"Inferno, canto XXVI, 119\",\"fr\":\"Enfer, chant XXVI, 119\"}"));
+    resp = try http2(&server, "GET /fr/quote?format=json HTTP/1.1\r\n\r\n", &hbuf);
+    try testing.expect(contains(body(resp), "\"work\":\"Enfer, chant XXVI, 119\""));
+    resp = try http2(&server, "GET /en/n/10?format=json HTTP/1.1\r\n\r\n", &hbuf);
+    try testing.expect(contains(body(resp), "\"work\":\"Inferno XXVI, 119\""));
 
     // HTTP: locale prefix, translation with the original attached
     resp = try http2(&server, "GET /en-US/n/10?format=json HTTP/1.1\r\n\r\n", &hbuf);

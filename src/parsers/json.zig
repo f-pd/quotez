@@ -135,11 +135,38 @@ fn extractMeta(allocator: std.mem.Allocator, obj: std.json.ObjectMap) !parser.Qu
     }
     errdefer if (lang) |l| allocator.free(l);
 
+    // "work": a string, or an object with one description per language
+    // ({"en": "Preface", "it": "Prefazione"}); the English one, else the
+    // first, also serves languages that are missing
     var work: ?[]const u8 = null;
+    var works: std.ArrayList(parser.Translation) = .empty;
+    errdefer {
+        for (works.items) |t| {
+            allocator.free(t.lang);
+            allocator.free(t.text);
+        }
+        works.deinit(allocator);
+    }
     if (obj.get("work") orelse obj.get("reference") orelse obj.get("citation")) |w| {
-        if (w == .string) {
-            const trimmed = std.mem.trim(u8, w.string, " \t\r\n");
-            if (trimmed.len > 0) work = try allocator.dupe(u8, trimmed);
+        switch (w) {
+            .string => |str| {
+                const trimmed = std.mem.trim(u8, str, " \t\r\n");
+                if (trimmed.len > 0) work = try allocator.dupe(u8, trimmed);
+            },
+            .object => |map| {
+                var it = map.iterator();
+                while (it.next()) |entry| {
+                    if (entry.value_ptr.* != .string) continue;
+                    try appendTranslation(allocator, &works, entry.key_ptr.*, entry.value_ptr.string);
+                }
+                var fallback: ?[]const u8 = null;
+                for (works.items) |t| {
+                    if (std.ascii.eqlIgnoreCase(t.lang, "en")) fallback = t.text;
+                }
+                if (fallback == null and works.items.len > 0) fallback = works.items[0].text;
+                if (fallback) |f| work = try allocator.dupe(u8, f);
+            },
+            else => {},
         }
     }
     errdefer if (work) |w| allocator.free(w);
@@ -174,6 +201,10 @@ fn extractMeta(allocator: std.mem.Allocator, obj: std.json.ObjectMap) !parser.Qu
 
     return .{
         .work = work,
+        .works = if (works.items.len == 0) blk: {
+            works.deinit(allocator);
+            break :blk &.{};
+        } else try works.toOwnedSlice(allocator),
         .lang = lang,
         .translations = if (translations.items.len == 0) blk: {
             translations.deinit(allocator);
@@ -200,6 +231,18 @@ pub const jsonParser = parser.Parser{
 };
 
 // Tests
+test "json - work described per language" {
+    const allocator = std.testing.allocator;
+    const content =
+        \\[{"text": "x", "lang": "de", "work": {"it": "Opera, Prefazione", "en": "Opera, Preface"}}]
+    ;
+    var result = try parse(allocator, content);
+    defer result.deinit(allocator);
+    const m = result.meta(0);
+    try std.testing.expectEqualStrings("Opera, Preface", m.work.?);
+    try std.testing.expectEqual(@as(usize, 2), m.works.len);
+}
+
 test "json - language and translations" {
     const allocator = std.testing.allocator;
     const content =

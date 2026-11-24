@@ -35,6 +35,9 @@ pub const QuoteMeta = struct {
     translations: []const Translation = &.{},
     /// Source work (book, speech...) with a reference, as written in the source
     work: ?[]const u8 = null,
+    /// Source work described per language: JSON "work" as an object
+    /// {"en": "...", "it": "..."}
+    works: []const Translation = &.{},
 
     pub fn deinit(self: QuoteMeta, allocator: std.mem.Allocator) void {
         if (self.author) |a| allocator.free(a);
@@ -47,6 +50,11 @@ pub const QuoteMeta = struct {
         }
         if (self.translations.len > 0) allocator.free(self.translations);
         if (self.work) |w| allocator.free(w);
+        for (self.works) |t| {
+            allocator.free(t.lang);
+            allocator.free(t.text);
+        }
+        if (self.works.len > 0) allocator.free(self.works);
     }
 };
 

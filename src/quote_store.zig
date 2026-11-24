@@ -38,6 +38,10 @@ pub const Quote = struct {
     /// Where the quote comes from: work, book or speech with a precise
     /// reference when known, e.g. "Seneca, Epistulae ad Lucilium 1.3"
     work: ?[]const u8 = null,
+    /// The source described in each language ("Prefazione" / "Preface"):
+    /// titles stay in the original language, the descriptive parts are
+    /// localized. `work` is the fallback for a language missing here.
+    works: []const Translation = &.{},
 
     /// Create a new quote from content
     pub fn init(allocator: std.mem.Allocator, content: []const u8, source_path: ?[]const u8) !Quote {
@@ -124,6 +128,51 @@ pub const Quote = struct {
         self.work = new;
     }
 
+    /// Replace the localized source descriptions (raw input, canonicalized;
+    /// invalid tags, empty texts and duplicate languages are dropped)
+    pub fn setWorks(self: *Quote, allocator: std.mem.Allocator, raw: []const Translation) !void {
+        var list: std.ArrayList(Translation) = .empty;
+        errdefer {
+            for (list.items) |t| freeTranslation(allocator, t);
+            list.deinit(allocator);
+        }
+        outer: for (raw) |t| {
+            var buf: [i18n.max_tag_len]u8 = undefined;
+            const lang = i18n.canonicalize(t.lang, &buf) orelse continue;
+            const text = std.mem.trim(u8, t.text, " \t\n\r");
+            if (text.len == 0) continue;
+            for (list.items) |existing| {
+                if (std.mem.eql(u8, existing.lang, lang)) continue :outer;
+            }
+            const owned_lang = try allocator.dupe(u8, lang);
+            errdefer allocator.free(owned_lang);
+            const owned_text = try allocator.dupe(u8, text);
+            errdefer allocator.free(owned_text);
+            try list.append(allocator, .{ .lang = owned_lang, .text = owned_text });
+        }
+        const owned = try list.toOwnedSlice(allocator);
+        freeTranslations(allocator, self.works);
+        self.works = owned;
+    }
+
+    /// Source description for a page in `requested` (canonical): the
+    /// localized one that matches best, else the plain `work`
+    pub fn workFor(self: *const Quote, requested: ?[]const u8) ?[]const u8 {
+        if (requested) |req| {
+            var best: ?[]const u8 = null;
+            var best_score: u8 = 0;
+            for (self.works) |w| {
+                const score = i18n.matchScore(w.lang, req);
+                if (score > best_score) {
+                    best_score = score;
+                    best = w.text;
+                }
+            }
+            if (best) |b| return b;
+        }
+        return self.work;
+    }
+
     /// Replace all translations (raw input, canonicalized and deduplicated)
     pub fn setTranslations(self: *Quote, allocator: std.mem.Allocator, raw: []const Translation) !void {
         var list: std.ArrayList(Translation) = .empty;
@@ -195,6 +244,7 @@ pub const Quote = struct {
         if (self.lang) |l| allocator.free(l);
         freeTranslations(allocator, self.translations);
         if (self.work) |w| allocator.free(w);
+        freeTranslations(allocator, self.works);
     }
 
     /// Merge author/tags/language/translations of a duplicate into this quote
@@ -205,6 +255,14 @@ pub const Quote = struct {
         }
         if (self.work == null) {
             if (other.work) |w| self.work = try allocator.dupe(u8, w);
+        }
+        if (other.works.len > 0) {
+            // Existing languages win (setWorks keeps the first per language)
+            var list: std.ArrayList(Translation) = .empty;
+            defer list.deinit(allocator);
+            try list.appendSlice(allocator, self.works);
+            try list.appendSlice(allocator, other.works);
+            try self.setWorks(allocator, list.items);
         }
         if (self.lang == null) {
             if (other.lang) |l| {
@@ -526,6 +584,10 @@ pub const QuoteStore = struct {
                 continue;
             };
             quote.setWork(self.allocator, meta.work) catch |err| {
+                quote.deinit(self.allocator);
+                return err;
+            };
+            quote.setWorks(self.allocator, meta.works) catch |err| {
                 quote.deinit(self.allocator);
                 return err;
             };

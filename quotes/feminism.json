@@ -2,7 +2,11 @@
   {
     "text": "I do not wish them to have power over men; but over themselves. - Mary Wollstonecraft",
     "lang": "en",
-    "work": "A Vindication of the Rights of Woman (1792), ch. IV",
+    "work": {
+      "en": "A Vindication of the Rights of Woman (1792), ch. IV",
+      "it": "A Vindication of the Rights of Woman (1792), cap. IV",
+      "fr": "A Vindication of the Rights of Woman (1792), chap. IV"
+    },
     "tags": [
       "feminism",
       "freedom"
@@ -15,7 +19,11 @@
   {
     "text": "La femme a le droit de monter sur l'échafaud ; elle doit avoir également celui de monter à la Tribune. - Olympe de Gouges",
     "lang": "fr",
-    "work": "Déclaration des droits de la femme et de la citoyenne (1791), article X",
+    "work": {
+      "en": "Déclaration des droits de la femme et de la citoyenne (1791), article X",
+      "it": "Déclaration des droits de la femme et de la citoyenne (1791), articolo X",
+      "fr": "Déclaration des droits de la femme et de la citoyenne (1791), article X"
+    },
     "tags": [
       "feminism",
       "equality"
@@ -28,7 +36,11 @@
   {
     "text": "On ne naît pas femme : on le devient. - Simone de Beauvoir",
     "lang": "fr",
-    "work": "Le Deuxième Sexe, vol. II (1949), part I, ch. 1",
+    "work": {
+      "en": "Le Deuxième Sexe, vol. II (1949), part I, ch. 1",
+      "it": "Le Deuxième Sexe, vol. II (1949), parte I, cap. 1",
+      "fr": "Le Deuxième Sexe, t. II (1949), partie I, chap. 1"
+    },
     "tags": [
       "feminism",
       "philosophy"
@@ -41,7 +53,11 @@
   {
     "text": "a woman must have money and a room of her own if she is to write fiction. - Virginia Woolf",
     "lang": "en",
-    "work": "A Room of One's Own (1929), ch. 1",
+    "work": {
+      "en": "A Room of One's Own (1929), ch. 1",
+      "it": "A Room of One's Own (1929), cap. 1",
+      "fr": "A Room of One's Own (1929), chap. 1"
+    },
     "tags": [
       "feminism",
       "literature"
@@ -54,7 +70,11 @@
   {
     "text": "For the master's tools will never dismantle the master's house. - Audre Lorde",
     "lang": "en",
-    "work": "\"The Master's Tools Will Never Dismantle the Master's House\" (1979), in Sister Outsider (1984)",
+    "work": {
+      "en": "\"The Master's Tools Will Never Dismantle the Master's House\" (1979), in Sister Outsider (1984)",
+      "it": "\"The Master's Tools Will Never Dismantle the Master's House\" (1979), in Sister Outsider (1984)",
+      "fr": "« The Master's Tools Will Never Dismantle the Master's House » (1979), dans Sister Outsider (1984)"
+    },
     "tags": [
       "feminism",
       "civil-rights"
@@ -67,7 +87,11 @@
   {
     "text": "Pies, ¿para qué los quiero si tengo alas pa' volar? - Frida Kahlo",
     "lang": "es",
-    "work": "Diary of Frida Kahlo (1953)",
+    "work": {
+      "en": "Diary of Frida Kahlo (1953)",
+      "it": "Diario di Frida Kahlo (1953)",
+      "fr": "Journal de Frida Kahlo (1953)"
+    },
     "tags": [
       "feminism",
       "art"

@@ -2,7 +2,11 @@
   {
     "text": "La propriété, c'est le vol ! - Pierre-Joseph Proudhon",
     "lang": "fr",
-    "work": "Qu'est-ce que la propriété ? (1840), ch. I",
+    "work": {
+      "en": "Qu'est-ce que la propriété ? (1840), ch. I",
+      "it": "Qu'est-ce que la propriété ? (1840), cap. I",
+      "fr": "Qu'est-ce que la propriété ? (1840), chap. I"
+    },
     "tags": [
       "anarchism",
       "property"
@@ -15,7 +19,11 @@
   {
     "text": "Si Dieu est, l'homme est esclave ; or l'homme peut, doit être libre, donc Dieu n'existe pas. - Mikhaïl Bakounine",
     "lang": "fr",
-    "work": "Dieu et l'État (written 1871, publ. 1882)",
+    "work": {
+      "en": "Dieu et l'État (written 1871, publ. 1882)",
+      "it": "Dieu et l'État (scritto nel 1871, pubbl. 1882)",
+      "fr": "Dieu et l'État (écrit en 1871, publ. 1882)"
+    },
     "tags": [
       "anarchism",
       "freedom",
@@ -29,7 +37,11 @@
   {
     "text": "\"Don't compete! — competition is always injurious to the species, and you have plenty of resources to avoid it!\" That is the tendency of nature, not always realized in full, but always present. - Peter Kropotkin",
     "lang": "en",
-    "work": "Mutual Aid: A Factor of Evolution (1902), ch. II, conclusion",
+    "work": {
+      "en": "Mutual Aid: A Factor of Evolution (1902), ch. II, conclusion",
+      "it": "Mutual Aid: A Factor of Evolution (1902), cap. II, conclusione",
+      "fr": "Mutual Aid: A Factor of Evolution (1902), chap. II, conclusion"
+    },
     "tags": [
       "anarchism",
       "solidarity"
@@ -42,7 +54,11 @@
   {
     "text": "Anarchism, then, really stands for the liberation of the human mind from the dominion of religion; the liberation of the human body from the dominion of property; liberation from the shackles and restraint of government. - Emma Goldman",
     "lang": "en",
-    "work": "Anarchism and Other Essays (1910), \"Anarchism: What It Really Stands For\"",
+    "work": {
+      "en": "Anarchism and Other Essays (1910), \"Anarchism: What It Really Stands For\"",
+      "it": "Anarchism and Other Essays (1910), \"Anarchism: What It Really Stands For\"",
+      "fr": "Anarchism and Other Essays (1910), « Anarchism: What It Really Stands For »"
+    },
     "tags": [
       "anarchism",
       "freedom"
@@ -55,7 +71,11 @@
   {
     "text": "Under a government which imprisons any unjustly, the true place for a just man is also a prison. - Henry David Thoreau",
     "lang": "en",
-    "work": "\"Resistance to Civil Government\" (Civil Disobedience), Aesthetic Papers, 1849",
+    "work": {
+      "en": "\"Resistance to Civil Government\" (Civil Disobedience), Aesthetic Papers, 1849",
+      "it": "\"Resistance to Civil Government\" (Civil Disobedience), Aesthetic Papers, 1849",
+      "fr": "« Resistance to Civil Government » (Civil Disobedience), Aesthetic Papers, 1849"
+    },
     "tags": [
       "anarchism",
       "disobedience",
@@ -69,7 +89,11 @@
   {
     "text": "Soyez résolus de ne servir plus, et vous voilà libres. - Étienne de La Boétie",
     "lang": "fr",
-    "work": "Discours de la servitude volontaire (written c. 1548, publ. 1576)",
+    "work": {
+      "en": "Discours de la servitude volontaire (written c. 1548, publ. 1576)",
+      "it": "Discours de la servitude volontaire (scritto verso il 1548, pubbl. 1576)",
+      "fr": "Discours de la servitude volontaire (écrit vers 1548, publ. 1576)"
+    },
     "tags": [
       "anarchism",
       "freedom",
@@ -83,7 +107,11 @@
   {
     "text": "Puisqu'il semble que tout cœur qui bat pour la liberté n'a droit qu'à un peu de plomb, j'en réclame une part, moi ! - Louise Michel",
     "lang": "fr",
-    "work": "Statement before the 6th council of war, Versailles, 16 December 1871",
+    "work": {
+      "en": "Statement before the 6th council of war, Versailles, 16 December 1871",
+      "it": "Dichiarazione davanti al 6º consiglio di guerra, Versailles, 16 dicembre 1871",
+      "fr": "Déclaration devant le 6e conseil de guerre, Versailles, 16 décembre 1871"
+    },
     "tags": [
       "anarchism",
       "freedom",
@@ -97,7 +125,11 @@
   {
     "text": "Goodbye Bill. I die like a true blue rebel. Don't waste any time in mourning. Organize. - Joe Hill",
     "lang": "en",
-    "work": "Telegram to Bill Haywood, Salt Lake City, 18 November 1915, the eve of his execution",
+    "work": {
+      "en": "Telegram to Bill Haywood, Salt Lake City, 18 November 1915, the eve of his execution",
+      "it": "Telegramma a Bill Haywood, Salt Lake City, 18 novembre 1915, vigilia dell'esecuzione",
+      "fr": "Télégramme à Bill Haywood, Salt Lake City, 18 novembre 1915, veille de son exécution"
+    },
     "tags": [
       "anarchism",
       "work",
@@ -111,7 +143,11 @@
   {
     "text": "We live in capitalism, its power seems inescapable – but then, so did the divine right of kings. Any human power can be resisted and changed by human beings. - Ursula K. Le Guin",
     "lang": "en",
-    "work": "Speech accepting the National Book Foundation Medal, New York, 19 November 2014",
+    "work": {
+      "en": "Speech accepting the National Book Foundation Medal, New York, 19 November 2014",
+      "it": "Discorso per la National Book Foundation Medal, New York, 19 novembre 2014",
+      "fr": "Discours de remise de la National Book Foundation Medal, New York, 19 novembre 2014"
+    },
     "tags": [
       "anarchism",
       "literature",
@@ -125,7 +161,11 @@
   {
     "text": "Disobedience, in the eyes of any one who has read history, is man's original virtue. It is through disobedience that progress has been made, through disobedience and through rebellion. - Oscar Wilde",
     "lang": "en",
-    "work": "The Soul of Man under Socialism (1891)",
+    "work": {
+      "en": "The Soul of Man under Socialism (1891)",
+      "it": "The Soul of Man under Socialism (1891)",
+      "fr": "The Soul of Man under Socialism (1891)"
+    },
     "tags": [
       "anarchism",
       "disobedience",

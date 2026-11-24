@@ -328,7 +328,14 @@ pub const HttpServer = struct {
         try appendNullableString(buf, a, q.lang orelse runtime.state.default_locale);
         try buf.appendSlice(a, ",\"work\":");
         try appendNullableString(buf, a, q.work);
-        try buf.appendSlice(a, ",\"translations\":{");
+        try buf.appendSlice(a, ",\"works\":{");
+        for (q.works, 0..) |w, t| {
+            if (t > 0) try buf.append(a, ',');
+            try appendNullableString(buf, a, w.lang);
+            try buf.append(a, ':');
+            try appendNullableString(buf, a, w.text);
+        }
+        try buf.appendSlice(a, "},\"translations\":{");
         for (q.translations, 0..) |tr, t| {
             if (t > 0) try buf.append(a, ',');
             try appendNullableString(buf, a, tr.lang);
@@ -370,6 +377,11 @@ pub const HttpServer = struct {
                 return;
             };
             quote.setWork(self.allocator, input.work) catch {
+                quote.deinit(self.allocator);
+                try self.sendErrorResponse(client_fd, 500, "Internal Server Error", "Failed to add quote");
+                return;
+            };
+            quote.setWorks(self.allocator, input.works orelse &.{}) catch {
                 quote.deinit(self.allocator);
                 try self.sendErrorResponse(client_fd, 500, "Internal Server Error", "Failed to add quote");
                 return;
@@ -458,6 +470,11 @@ pub const HttpServer = struct {
                 try self.sendErrorResponse(client_fd, 500, "Internal Server Error", "Failed to update quote");
                 return;
             };
+            quote.setWorks(self.allocator, input.works orelse old.works) catch {
+                quote.deinit(self.allocator);
+                try self.sendErrorResponse(client_fd, 500, "Internal Server Error", "Failed to update quote");
+                return;
+            };
             if (blocklist.blockedQuote(quote.author, quote.content, quote.translations)) |name| {
                 quote.deinit(self.allocator);
                 var msg_buf: [160]u8 = undefined;
@@ -534,7 +551,18 @@ pub const HttpServer = struct {
                     }
                     try json_buf.append(self.allocator, ']');
                 }
-                if (q.work) |work| {
+                if (q.works.len > 0) {
+                    // One description per language; the parser takes the
+                    // English one back as the plain fallback
+                    try json_buf.appendSlice(self.allocator, ",\"work\":{");
+                    for (q.works, 0..) |w, t| {
+                        if (t > 0) try json_buf.append(self.allocator, ',');
+                        try appendNullableString(&json_buf, self.allocator, w.lang);
+                        try json_buf.append(self.allocator, ':');
+                        try appendNullableString(&json_buf, self.allocator, w.text);
+                    }
+                    try json_buf.append(self.allocator, '}');
+                } else if (q.work) |work| {
                     try json_buf.appendSlice(self.allocator, ",\"work\":");
                     try appendNullableString(&json_buf, self.allocator, work);
                 }
@@ -1203,7 +1231,8 @@ fn appendNullableString(buf: *std.ArrayList(u8), allocator: std.mem.Allocator, s
     try buf.append(allocator, '"');
 }
 
-/// Body of POST/PUT /api/quotes: {"text", "author", "work", "tags", "lang", "translations"}.
+/// Body of POST/PUT /api/quotes: {"text", "author", "work", "works", "tags", "lang", "translations"}.
+/// "works" is an object {"it": "Prefazione"}: the source described per language.
 /// "translations" is an object {"en": "text"}; an empty string drops a language.
 /// All slices point into the parsed JSON (valid until `deinit`).
 const QuoteInput = struct {
@@ -1218,6 +1247,8 @@ const QuoteInput = struct {
     work_set: bool = false,
     tags: ?[]const []const u8 = null,
     translations: ?[]const quote_store.Translation = null,
+    /// Source described per language {"it": "Prefazione"}; null keeps the old ones
+    works: ?[]const quote_store.Translation = null,
 
     fn parse(allocator: std.mem.Allocator, body: []const u8) !QuoteInput {
         const parsed = std.json.parseFromSlice(std.json.Value, allocator, body, .{}) catch return error.InvalidJson;
@@ -1246,6 +1277,27 @@ const QuoteInput = struct {
                 .string => |str| self.work = if (std.mem.trim(u8, str, " ").len == 0) null else str,
                 else => return error.InvalidJson,
             }
+        }
+        if (obj.get("works")) |v| {
+            var list: std.ArrayList(quote_store.Translation) = .empty;
+            switch (v) {
+                .null => {},
+                .object => |map| {
+                    var it = map.iterator();
+                    while (it.next()) |entry| {
+                        var buf: [i18n.max_tag_len]u8 = undefined;
+                        if (i18n.canonicalize(entry.key_ptr.*, &buf) == null) return error.InvalidLocale;
+                        const t = switch (entry.value_ptr.*) {
+                            .string => |str| str,
+                            .null => continue,
+                            else => return error.InvalidJson,
+                        };
+                        try list.append(a, .{ .lang = entry.key_ptr.*, .text = t });
+                    }
+                },
+                else => return error.InvalidJson,
+            }
+            self.works = list.items;
         }
         if (obj.get("lang")) |v| {
             self.lang_set = true;

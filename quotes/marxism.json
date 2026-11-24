@@ -2,7 +2,11 @@
   {
     "text": "Die Geschichte aller bisherigen Gesellschaft ist die Geschichte von Klassenkämpfen. - Karl Marx, Friedrich Engels",
     "lang": "de",
-    "work": "Manifest der Kommunistischen Partei (1848), ch. I \"Bourgeois und Proletarier\", first sentence; English: tr. Samuel Moore (1888)",
+    "work": {
+      "en": "Manifest der Kommunistischen Partei (1848), ch. I \"Bourgeois und Proletarier\", first sentence",
+      "it": "Manifest der Kommunistischen Partei (1848), cap. I \"Bourgeois und Proletarier\", prima frase",
+      "fr": "Manifest der Kommunistischen Partei (1848), chap. I « Bourgeois und Proletarier », première phrase"
+    },
     "tags": [
       "marxism",
       "class-struggle"
@@ -16,7 +20,11 @@
   {
     "text": "Die Proletarier haben nichts in ihr zu verlieren als ihre Ketten. Sie haben eine Welt zu gewinnen. Proletarier aller Länder, vereinigt euch! - Karl Marx, Friedrich Engels",
     "lang": "de",
-    "work": "Manifest der Kommunistischen Partei (1848), ch. IV, closing words; English: tr. Samuel Moore (1888)",
+    "work": {
+      "en": "Manifest der Kommunistischen Partei (1848), ch. IV, closing words",
+      "it": "Manifest der Kommunistischen Partei (1848), cap. IV, parole finali",
+      "fr": "Manifest der Kommunistischen Partei (1848), chap. IV, derniers mots"
+    },
     "tags": [
       "marxism",
       "class-struggle"
@@ -30,7 +38,11 @@
   {
     "text": "Die Philosophen haben die Welt nur verschieden interpretiert, es kommt aber darauf an, sie zu verändern. - Karl Marx",
     "lang": "de",
-    "work": "Thesen über Feuerbach (1845), thesis XI, text as published by Engels (1888)",
+    "work": {
+      "en": "Thesen über Feuerbach (1845), thesis XI, text as published by Engels (1888)",
+      "it": "Thesen über Feuerbach (1845), tesi XI, testo pubblicato da Engels (1888)",
+      "fr": "Thesen über Feuerbach (1845), thèse XI, texte publié par Engels (1888)"
+    },
     "tags": [
       "marxism",
       "philosophy"
@@ -44,7 +56,11 @@
   {
     "text": "Die Religion ist der Seufzer der bedrängten Kreatur, das Gemüt einer herzlosen Welt, wie sie der Geist geistloser Zustände ist. Sie ist das Opium des Volkes. - Karl Marx",
     "lang": "de",
-    "work": "Zur Kritik der Hegelschen Rechtsphilosophie. Einleitung, Deutsch-Französische Jahrbücher (1844)",
+    "work": {
+      "en": "Zur Kritik der Hegelschen Rechtsphilosophie. Einleitung, Deutsch-Französische Jahrbücher (1844)",
+      "it": "Zur Kritik der Hegelschen Rechtsphilosophie. Einleitung, Deutsch-Französische Jahrbücher (1844)",
+      "fr": "Zur Kritik der Hegelschen Rechtsphilosophie. Einleitung, Deutsch-Französische Jahrbücher (1844)"
+    },
     "tags": [
       "marxism"
     ],
@@ -57,7 +73,11 @@
   {
     "text": "Die Menschen machen ihre eigene Geschichte, aber sie machen sie nicht aus freien Stücken, nicht unter selbstgewählten, sondern unter unmittelbar vorgefundenen, gegebenen und überlieferten Umständen. - Karl Marx",
     "lang": "de",
-    "work": "Der achtzehnte Brumaire des Louis Bonaparte (1852), ch. I",
+    "work": {
+      "en": "Der achtzehnte Brumaire des Louis Bonaparte (1852), ch. I",
+      "it": "Der achtzehnte Brumaire des Louis Bonaparte (1852), cap. I",
+      "fr": "Der achtzehnte Brumaire des Louis Bonaparte (1852), chap. I"
+    },
     "tags": [
       "marxism",
       "history"
@@ -71,7 +91,11 @@
   {
     "text": "Hegel bemerkte irgendwo, daß alle großen weltgeschichtlichen Tatsachen und Personen sich sozusagen zweimal ereignen. Er hat vergessen, hinzuzufügen: das eine Mal als Tragödie, das andere Mal als Farce. - Karl Marx",
     "lang": "de",
-    "work": "Der achtzehnte Brumaire des Louis Bonaparte (1852), ch. I, opening",
+    "work": {
+      "en": "Der achtzehnte Brumaire des Louis Bonaparte (1852), ch. I, opening",
+      "it": "Der achtzehnte Brumaire des Louis Bonaparte (1852), cap. I, inizio",
+      "fr": "Der achtzehnte Brumaire des Louis Bonaparte (1852), chap. I, début"
+    },
     "tags": [
       "marxism",
       "history"
@@ -85,7 +109,11 @@
   {
     "text": "Jeder nach seinen Fähigkeiten, jedem nach seinen Bedürfnissen! - Karl Marx",
     "lang": "de",
-    "work": "Kritik des Gothaer Programms (1875), part I",
+    "work": {
+      "en": "Kritik des Gothaer Programms (1875), part I",
+      "it": "Kritik des Gothaer Programms (1875), parte I",
+      "fr": "Kritik des Gothaer Programms (1875), partie I"
+    },
     "tags": [
       "marxism"
     ],
@@ -98,7 +126,11 @@
   {
     "text": "Es ist nicht das Bewußtsein der Menschen, das ihr Sein, sondern umgekehrt ihr gesellschaftliches Sein, das ihr Bewußtsein bestimmt. - Karl Marx",
     "lang": "de",
-    "work": "Zur Kritik der politischen Ökonomie (1859), Preface",
+    "work": {
+      "en": "Zur Kritik der politischen Ökonomie (1859), Preface",
+      "it": "Zur Kritik der politischen Ökonomie (1859), Prefazione",
+      "fr": "Zur Kritik der politischen Ökonomie (1859), Préface"
+    },
     "tags": [
       "marxism",
       "philosophy"
@@ -112,7 +144,11 @@
   {
     "text": "Das Kapital ist verstorbne Arbeit, die sich nur vampyrmäßig belebt durch Einsaugung lebendiger Arbeit, und um so mehr lebt, je mehr sie davon einsaugt. - Karl Marx",
     "lang": "de",
-    "work": "Das Kapital, vol. I (1867), ch. 8 \"Der Arbeitstag\", §1 (ch. 10 in the English edition)",
+    "work": {
+      "en": "Das Kapital, vol. I (1867), ch. 8 \"Der Arbeitstag\", §1 (ch. 10 in the English edition)",
+      "it": "Das Kapital, vol. I (1867), cap. 8 \"Der Arbeitstag\", §1",
+      "fr": "Das Kapital, livre I (1867), chap. 8 « Der Arbeitstag », §1"
+    },
     "tags": [
       "marxism",
       "work"
@@ -126,7 +162,11 @@
   {
     "text": "Без революционной теории не может быть и революционного движения. - Владимир Ленин",
     "lang": "ru",
-    "work": "Что делать? (What Is to Be Done?, 1902), ch. I, §d",
+    "work": {
+      "en": "Что делать? (What Is to Be Done?, 1902), ch. I, §d",
+      "it": "Что делать? (Che fare?, 1902), cap. I, §d",
+      "fr": "Что делать? (Que faire ?, 1902), chap. I, §d"
+    },
     "tags": [
       "marxism"
     ],
@@ -139,7 +179,11 @@
   {
     "text": "Freiheit ist immer Freiheit der Andersdenkenden. - Rosa Luxemburg",
     "lang": "de",
-    "work": "Zur russischen Revolution (1918, publ. 1922), in Gesammelte Werke, vol. 4 (Dietz, Berlin 1983), p. 359, note 3",
+    "work": {
+      "en": "Zur russischen Revolution (1918, publ. 1922), in Gesammelte Werke, vol. 4 (Dietz, Berlin 1983), p. 359, note 3",
+      "it": "Zur russischen Revolution (1918, pubbl. 1922), in Gesammelte Werke, vol. 4 (Dietz, Berlino 1983), p. 359, nota 3",
+      "fr": "Zur russischen Revolution (1918, publ. 1922), dans Gesammelte Werke, vol. 4 (Dietz, Berlin 1983), p. 359, note 3"
+    },
     "tags": [
       "marxism",
       "freedom"
@@ -153,7 +197,11 @@
   {
     "text": "Die Revolution wird sich morgen schon »rasselnd wieder in die Höh' richten« und zu eurem Schrecken mit Posaunenklang verkünden: Ich war, ich bin, ich werde sein! - Rosa Luxemburg",
     "lang": "de",
-    "work": "\"Die Ordnung herrscht in Berlin\", Die Rote Fahne no. 14, 14 January 1919, closing words",
+    "work": {
+      "en": "\"Die Ordnung herrscht in Berlin\", Die Rote Fahne no. 14, 14 January 1919, closing words",
+      "it": "\"Die Ordnung herrscht in Berlin\", Die Rote Fahne n. 14, 14 gennaio 1919, parole finali",
+      "fr": "« Die Ordnung herrscht in Berlin », Die Rote Fahne nº 14, 14 janvier 1919, derniers mots"
+    },
     "tags": [
       "marxism",
       "revolution"
@@ -167,7 +215,11 @@
   {
     "text": "So ist das Leben und so muss man es nehmen, tapfer, unverzagt und lächelnd – trotz alledem. - Rosa Luxemburg",
     "lang": "de",
-    "work": "Letter to Sophie Liebknecht, Breslau, mid-December 1917, closing words (Briefe aus dem Gefängnis)",
+    "work": {
+      "en": "Letter to Sophie Liebknecht, Breslau, mid-December 1917, closing words (Briefe aus dem Gefängnis)",
+      "it": "Lettera a Sophie Liebknecht, Breslavia, metà dicembre 1917, parole finali (Briefe aus dem Gefängnis)",
+      "fr": "Lettre à Sophie Liebknecht, Breslau, mi-décembre 1917, derniers mots (Briefe aus dem Gefängnis)"
+    },
     "tags": [
       "marxism",
       "life"
@@ -181,7 +233,11 @@
   {
     "text": "Odio gli indifferenti. Credo che vivere voglia dire essere partigiani. - Antonio Gramsci",
     "lang": "it",
-    "work": "\"Indifferenti\", La Città futura, 11 February 1917",
+    "work": {
+      "en": "\"Indifferenti\", La Città futura, 11 February 1917",
+      "it": "\"Indifferenti\", La Città futura, 11 febbraio 1917",
+      "fr": "« Indifferenti », La Città futura, 11 février 1917"
+    },
     "tags": [
       "marxism",
       "antifascism"
@@ -194,7 +250,11 @@
   {
     "text": "Istruitevi, perché avremo bisogno di tutta la vostra intelligenza. Agitatevi, perché avremo bisogno di tutto il vostro entusiasmo. Organizzatevi, perché avremo bisogno di tutta la vostra forza. - Antonio Gramsci",
     "lang": "it",
-    "work": "L'Ordine Nuovo, year I, no. 1, 1 May 1919, masthead motto",
+    "work": {
+      "en": "L'Ordine Nuovo, year I, no. 1, 1 May 1919, masthead motto",
+      "it": "L'Ordine Nuovo, anno I, n. 1, 1º maggio 1919, motto della testata",
+      "fr": "L'Ordine Nuovo, année I, nº 1, 1er mai 1919, devise du bandeau"
+    },
     "tags": [
       "marxism",
       "education"
@@ -207,7 +267,11 @@
   {
     "text": "La crisi consiste appunto nel fatto che il vecchio muore e il nuovo non può nascere: in questo interregno si verificano i fenomeni morbosi più svariati. - Antonio Gramsci",
     "lang": "it",
-    "work": "Quaderni del carcere, Notebook 3 (1930), §34",
+    "work": {
+      "en": "Quaderni del carcere, Notebook 3 (1930), §34",
+      "it": "Quaderni del carcere, Quaderno 3 (1930), §34",
+      "fr": "Quaderni del carcere, cahier 3 (1930), §34"
+    },
     "tags": [
       "marxism",
       "history"
@@ -220,7 +284,11 @@
   {
     "text": "Es ist niemals ein Dokument der Kultur, ohne zugleich ein solches der Barbarei zu sein. - Walter Benjamin",
     "lang": "de",
-    "work": "Über den Begriff der Geschichte (1940), thesis VII",
+    "work": {
+      "en": "Über den Begriff der Geschichte (1940), thesis VII",
+      "it": "Über den Begriff der Geschichte (1940), tesi VII",
+      "fr": "Über den Begriff der Geschichte (1940), thèse VII"
+    },
     "tags": [
       "marxism",
       "history"
@@ -234,7 +302,11 @@
   {
     "text": "Die Tradition der Unterdrückten belehrt uns darüber, daß der »Ausnahmezustand«, in dem wir leben, die Regel ist. - Walter Benjamin",
     "lang": "de",
-    "work": "Über den Begriff der Geschichte (1940), thesis VIII",
+    "work": {
+      "en": "Über den Begriff der Geschichte (1940), thesis VIII",
+      "it": "Über den Begriff der Geschichte (1940), tesi VIII",
+      "fr": "Über den Begriff der Geschichte (1940), thèse VIII"
+    },
     "tags": [
       "marxism",
       "history"
@@ -248,7 +320,11 @@
   {
     "text": "The economic anarchy of capitalist society as it exists today is, in my opinion, the real source of the evil. - Albert Einstein",
     "lang": "en",
-    "work": "\"Why Socialism?\", Monthly Review, vol. 1, no. 1, May 1949",
+    "work": {
+      "en": "\"Why Socialism?\", Monthly Review, vol. 1, no. 1, May 1949",
+      "it": "\"Why Socialism?\", Monthly Review, vol. 1, n. 1, maggio 1949",
+      "fr": "« Why Socialism? », Monthly Review, vol. 1, nº 1, mai 1949"
+    },
     "tags": [
       "marxism",
       "socialism"
@@ -261,7 +337,11 @@
   {
     "text": "I said then, and I say now, that while there is a lower class, I am in it, and while there is a criminal element, I am of it, and while there is a soul in prison, I am not free. - Eugene V. Debs",
     "lang": "en",
-    "work": "Statement to the Federal Court, Cleveland, Ohio, upon conviction under the Sedition Act, 18 September 1918",
+    "work": {
+      "en": "Statement to the Federal Court, Cleveland, Ohio, upon conviction under the Sedition Act, 18 September 1918",
+      "it": "Dichiarazione alla Corte federale, Cleveland, Ohio, dopo la condanna in base al Sedition Act, 18 settembre 1918",
+      "fr": "Déclaration devant la Cour fédérale, Cleveland, Ohio, après sa condamnation au titre du Sedition Act, 18 septembre 1918"
+    },
     "tags": [
       "marxism",
       "socialism",
@@ -275,7 +355,11 @@
   {
     "text": "The issue is Socialism versus Capitalism. I am for Socialism because I am for humanity. - Eugene V. Debs",
     "lang": "en",
-    "work": "Open letter to the American Railway Union, Chicago Railway Times, 1 January 1897",
+    "work": {
+      "en": "Open letter to the American Railway Union, Chicago Railway Times, 1 January 1897",
+      "it": "Lettera aperta all'American Railway Union, Chicago Railway Times, 1º gennaio 1897",
+      "fr": "Lettre ouverte à l'American Railway Union, Chicago Railway Times, 1er janvier 1897"
+    },
     "tags": [
       "marxism",
       "socialism"
@@ -288,7 +372,11 @@
   {
     "text": "I partiti di oggi sono soprattutto macchine di potere e di clientela. - Enrico Berlinguer",
     "lang": "it",
-    "work": "Interview by Eugenio Scalfari, \"Che cos'è la questione morale\", la Repubblica, 28 July 1981",
+    "work": {
+      "en": "Interview by Eugenio Scalfari, \"Che cos'è la questione morale\", la Repubblica, 28 July 1981",
+      "it": "Intervista di Eugenio Scalfari, \"Che cos'è la questione morale\", la Repubblica, 28 luglio 1981",
+      "fr": "Entretien avec Eugenio Scalfari, « Che cos'è la questione morale », la Repubblica, 28 juillet 1981"
+    },
     "tags": [
       "marxism",
       "politics"
@@ -301,7 +389,11 @@
   {
     "text": "Déjeme decirle, a riesgo de parecer ridículo, que el verdadero revolucionario está guiado por grandes sentimientos de amor. - Ernesto Che Guevara",
     "lang": "es",
-    "work": "\"El socialismo y el hombre en Cuba\", letter to Carlos Quijano, Marcha (Montevideo), 12 March 1965",
+    "work": {
+      "en": "\"El socialismo y el hombre en Cuba\", letter to Carlos Quijano, Marcha (Montevideo), 12 March 1965",
+      "it": "\"El socialismo y el hombre en Cuba\", lettera a Carlos Quijano, Marcha (Montevideo), 12 marzo 1965",
+      "fr": "« El socialismo y el hombre en Cuba », lettre à Carlos Quijano, Marcha (Montevideo), 12 mars 1965"
+    },
     "tags": [
       "marxism",
       "revolution",
@@ -316,7 +408,11 @@
   {
     "text": "Tienen la fuerza, podrán avasallarnos, pero no se detienen los procesos sociales ni con el crimen ni con la fuerza. La historia es nuestra y la hacen los pueblos. - Salvador Allende",
     "lang": "es",
-    "work": "Last speech, broadcast by Radio Magallanes and Radio Corporación, Santiago, 11 September 1973",
+    "work": {
+      "en": "Last speech, broadcast by Radio Magallanes and Radio Corporación, Santiago, 11 September 1973",
+      "it": "Ultimo discorso, trasmesso da Radio Magallanes e Radio Corporación, Santiago, 11 settembre 1973",
+      "fr": "Dernier discours, diffusé par Radio Magallanes et Radio Corporación, Santiago, 11 septembre 1973"
+    },
     "tags": [
       "marxism",
       "antifascism",
@@ -331,7 +427,11 @@
   {
     "text": "Sigan ustedes sabiendo que, mucho más temprano que tarde, de nuevo se abrirán las grandes alamedas por donde pase el hombre libre, para construir una sociedad mejor. - Salvador Allende",
     "lang": "es",
-    "work": "Last speech, broadcast by Radio Magallanes, Santiago, 11 September 1973",
+    "work": {
+      "en": "Last speech, broadcast by Radio Magallanes, Santiago, 11 September 1973",
+      "it": "Ultimo discorso, trasmesso da Radio Magallanes, Santiago, 11 settembre 1973",
+      "fr": "Dernier discours, diffusé par Radio Magallanes, Santiago, 11 septembre 1973"
+    },
     "tags": [
       "marxism",
       "antifascism",
@@ -346,7 +446,11 @@
   {
     "text": "Toujours votre société violente et chaotique, même quand elle veut la paix, même quand elle est à l'état d'apparent repos, porte en elle la guerre, comme la nuée dormante porte l'orage. - Jean Jaurès",
     "lang": "fr",
-    "work": "Speech to the Chambre des députés, 7 March 1895",
+    "work": {
+      "en": "Speech to the Chambre des députés, 7 March 1895",
+      "it": "Discorso alla Chambre des députés, 7 marzo 1895",
+      "fr": "Discours à la Chambre des députés, 7 mars 1895"
+    },
     "tags": [
       "marxism",
       "peace",
@@ -360,7 +464,11 @@
   {
     "text": "Không có gì quý hơn độc lập, tự do. - Hồ Chí Minh",
     "lang": "vi",
-    "work": "Appeal to compatriots and fighters of the whole country (Lời kêu gọi đồng bào và chiến sĩ cả nước), 17 July 1966",
+    "work": {
+      "en": "Lời kêu gọi đồng bào và chiến sĩ cả nước (appeal to compatriots and fighters of the whole country), 17 July 1966",
+      "it": "Lời kêu gọi đồng bào và chiến sĩ cả nước (appello ai compatrioti e ai combattenti di tutto il paese), 17 luglio 1966",
+      "fr": "Lời kêu gọi đồng bào và chiến sĩ cả nước (appel aux compatriotes et combattants de tout le pays), 17 juillet 1966"
+    },
     "tags": [
       "marxism",
       "anticolonialism",
@@ -375,7 +483,11 @@
   {
     "text": "其實地上本沒有路，走的人多了，也便成了路。 - 魯迅",
     "lang": "zh",
-    "work": "故鄉 (My Old Home, 1921), closing sentence",
+    "work": {
+      "en": "故鄉 (My Old Home, 1921), closing sentence",
+      "it": "故鄉 (Il paese natale, 1921), frase finale",
+      "fr": "故鄉 (Le Pays natal, 1921), dernière phrase"
+    },
     "tags": [
       "marxism",
       "literature",

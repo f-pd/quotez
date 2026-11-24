@@ -2,7 +2,11 @@
   {
     "text": "ὁ δὲ ἀνεξέταστος βίος οὐ βιωτὸς ἀνθρώπῳ. - Σωκράτης",
     "lang": "grc",
-    "work": "Plato, Apology of Socrates 38a",
+    "work": {
+      "en": "Plato, Apology of Socrates 38a",
+      "it": "Platone, Apologia di Socrate 38a",
+      "fr": "Platon, Apologie de Socrate 38a"
+    },
     "translations": {
       "en": "The unexamined life is not worth living. - Socrates",
       "it": "Una vita senza ricerca non è degna di essere vissuta. - Socrate",
@@ -12,7 +16,11 @@
   {
     "text": "ἡ δ᾽ ἀρχὴ λέγεται ἥμισυ εἶναι παντός. - Ἀριστοτέλης",
     "lang": "grc",
-    "work": "Politics V, 4, 1303b29",
+    "work": {
+      "en": "Aristotle, Politics V, 4, 1303b29",
+      "it": "Aristotele, Politica V, 4, 1303b29",
+      "fr": "Aristote, Politique V, 4, 1303b29"
+    },
     "translations": {
       "en": "The beginning is said to be half of the whole. - Aristotle",
       "it": "Si dice che il principio sia la metà del tutto. - Aristotele",
@@ -22,7 +30,11 @@
   {
     "text": "Πάντες ἄνθρωποι τοῦ εἰδέναι ὀρέγονται φύσει. - Ἀριστοτέλης",
     "lang": "grc",
-    "work": "Metaphysics I (A), 1, 980a21",
+    "work": {
+      "en": "Aristotle, Metaphysics I (A), 1, 980a21",
+      "it": "Aristotele, Metafisica I (A), 1, 980a21",
+      "fr": "Aristote, Métaphysique I (A), 1, 980a21"
+    },
     "translations": {
       "en": "All men by nature desire to know. - Aristotle",
       "it": "Tutti gli uomini per natura desiderano sapere. - Aristotele",
@@ -32,7 +44,11 @@
   {
     "text": "Μηκέτι ὅλως περὶ τοῦ οἷόν τινα εἶναι τὸν ἀγαθὸν ἄνδρα διαλέγεσθαι, ἀλλὰ εἶναι τοιοῦτον. - Μάρκος Αὐρήλιος",
     "lang": "grc",
-    "work": "Meditations X, 16",
+    "work": {
+      "en": "Meditations X, 16",
+      "it": "Colloqui con sé stesso X, 16",
+      "fr": "Pensées pour moi-même X, 16"
+    },
     "translations": {
       "en": "Waste no more time arguing what a good man should be. Be one. - Marcus Aurelius",
       "it": "Non perdere altro tempo a discutere su come debba essere un uomo buono: sii tale. - Marco Aurelio",
@@ -42,7 +58,11 @@
   {
     "text": "Ὁποῖα ἂν πολλάκις φαντασθῇς, τοιαύτη σοι ἔσται ἡ διάνοια· βάπτεται γὰρ ὑπὸ τῶν φαντασιῶν ἡ ψυχή. - Μάρκος Αὐρήλιος",
     "lang": "grc",
-    "work": "Meditations V, 16",
+    "work": {
+      "en": "Meditations V, 16",
+      "it": "Colloqui con sé stesso V, 16",
+      "fr": "Pensées pour moi-même V, 16"
+    },
     "translations": {
       "en": "Such as are your habitual thoughts, such also will be the character of your mind; for the soul is dyed by the thoughts. - Marcus Aurelius",
       "it": "Quali sono i tuoi pensieri abituali, tale sarà la tua mente: l'anima infatti si tinge dei pensieri. - Marco Aurelio",
@@ -52,7 +72,11 @@
   {
     "text": "Non exiguum temporis habemus, sed multum perdidimus. - Seneca",
     "lang": "la",
-    "work": "De brevitate vitae 1, 3",
+    "work": {
+      "en": "De brevitate vitae 1, 3",
+      "it": "De brevitate vitae 1, 3",
+      "fr": "De brevitate vitae 1, 3"
+    },
     "translations": {
       "en": "It is not that we have a short time to live, but that we waste a lot of it. - Seneca",
       "it": "Non è che abbiamo poco tempo, ma che ne perdiamo molto. - Seneca",
@@ -62,7 +86,11 @@
   {
     "text": "Omnia, Lucili, aliena sunt, tempus tantum nostrum est. - Seneca",
     "lang": "la",
-    "work": "Epistulae morales ad Lucilium 1, 3",
+    "work": {
+      "en": "Epistulae morales ad Lucilium 1, 3",
+      "it": "Epistulae morales ad Lucilium 1, 3",
+      "fr": "Epistulae morales ad Lucilium 1, 3"
+    },
     "translations": {
       "en": "Everything, Lucilius, belongs to others; time alone is ours. - Seneca",
       "it": "Tutto, Lucilio, ci è estraneo; solo il tempo è nostro. - Seneca",
@@ -72,7 +100,11 @@
   {
     "text": "Ποταμῷ γὰρ οὐκ ἔστιν ἐμβῆναι δὶς τῷ αὐτῷ. - Ἡράκλειτος",
     "lang": "grc",
-    "work": "fr. 22 B 91 Diels-Kranz (in Plutarch, De E apud Delphos 392b)",
+    "work": {
+      "en": "fr. 22 B 91 Diels-Kranz (in Plutarch, De E apud Delphos 392b)",
+      "it": "fr. 22 B 91 Diels-Kranz (in Plutarco, De E apud Delphos 392b)",
+      "fr": "fr. 22 B 91 Diels-Kranz (dans Plutarque, De E apud Delphos 392b)"
+    },
     "translations": {
       "en": "It is not possible to step twice into the same river. - Heraclitus",
       "it": "Non è possibile discendere due volte nello stesso fiume. - Eraclito",
@@ -82,7 +114,11 @@
   {
     "text": "千里之行，始於足下。 - 老子",
     "lang": "lzh",
-    "work": "Tao Te Ching (道德經), chapter 64",
+    "work": {
+      "en": "Tao Te Ching (道德經), chapter 64",
+      "it": "Tao Te Ching (道德經), capitolo 64",
+      "fr": "Tao Te King (道德經), chapitre 64"
+    },
     "translations": {
       "en": "A journey of a thousand li begins beneath one's feet. - Laozi",
       "it": "Un viaggio di mille li comincia sotto i propri piedi. - Laozi",
@@ -92,7 +128,11 @@
   {
     "text": "La sapienza è figliola della sperienza. - Leonardo da Vinci",
     "lang": "it",
-    "work": "Codex Forster III, f. 14r",
+    "work": {
+      "en": "Codex Forster III, f. 14r",
+      "it": "Codice Forster III, f. 14r",
+      "fr": "Codex Forster III, f. 14r"
+    },
     "translations": {
       "en": "Wisdom is the daughter of experience. - Leonardo da Vinci",
       "fr": "La sagesse est fille de l'expérience. - Léonard de Vinci"
@@ -101,7 +141,11 @@
   {
     "text": "Nel mezzo del cammin di nostra vita mi ritrovai per una selva oscura. - Dante Alighieri",
     "lang": "it",
-    "work": "Inferno, canto I, 1-2",
+    "work": {
+      "en": "Inferno, canto I, 1-2",
+      "it": "Inferno, canto I, 1-2",
+      "fr": "Inferno, chant I, 1-2"
+    },
     "translations": {
       "en": "Midway upon the journey of our life I found myself within a forest dark. - Dante Alighieri",
       "fr": "Au milieu du chemin de notre vie, je me retrouvai par une forêt obscure. - Dante Alighieri"
@@ -110,7 +154,11 @@
   {
     "text": "Je pense, donc je suis. - René Descartes",
     "lang": "fr",
-    "work": "Discours de la méthode, part IV (1637)",
+    "work": {
+      "en": "Discours de la méthode (1637), part IV",
+      "it": "Discours de la méthode (1637), parte IV",
+      "fr": "Discours de la méthode (1637), partie IV"
+    },
     "translations": {
       "en": "I think, therefore I am. - René Descartes",
       "it": "Penso, dunque sono. - René Descartes"
@@ -119,7 +167,11 @@
   {
     "text": "Imagination is more important than knowledge. - Albert Einstein",
     "lang": "en",
-    "work": "\"What Life Means to Einstein\", interview by G. S. Viereck, The Saturday Evening Post, 26 October 1929",
+    "work": {
+      "en": "\"What Life Means to Einstein\", interview by G. S. Viereck, The Saturday Evening Post, 26 October 1929",
+      "it": "\"What Life Means to Einstein\", intervista di G. S. Viereck, The Saturday Evening Post, 26 ottobre 1929",
+      "fr": "« What Life Means to Einstein », entretien avec G. S. Viereck, The Saturday Evening Post, 26 octobre 1929"
+    },
     "translations": {
       "it": "L'immaginazione è più importante della conoscenza. - Albert Einstein",
       "fr": "L'imagination est plus importante que le savoir. - Albert Einstein"
@@ -128,7 +180,11 @@
   {
     "text": "This above all: to thine own self be true. - William Shakespeare",
     "lang": "en",
-    "work": "Hamlet, act I, scene 3, line 78 (Polonius)",
+    "work": {
+      "en": "Hamlet, act I, scene 3, line 78 (Polonius)",
+      "it": "Hamlet, atto I, scena 3, verso 78 (Polonio)",
+      "fr": "Hamlet, acte I, scène 3, vers 78 (Polonius)"
+    },
     "translations": {
       "it": "Sopra ogni cosa, sii fedele a te stesso. - William Shakespeare",
       "fr": "Avant tout, sois fidèle à toi-même. - William Shakespeare"
@@ -137,7 +193,11 @@
   {
     "text": "Not all those who wander are lost. - J. R. R. Tolkien",
     "lang": "en",
-    "work": "The Fellowship of the Ring, book I, chapter 10 \"Strider\"",
+    "work": {
+      "en": "The Fellowship of the Ring, book I, chapter 10 \"Strider\"",
+      "it": "The Fellowship of the Ring, libro I, capitolo 10 \"Strider\"",
+      "fr": "The Fellowship of the Ring, livre I, chapitre 10 « Strider »"
+    },
     "translations": {
       "it": "Non tutti quelli che vagano sono perduti. - J. R. R. Tolkien",
       "fr": "Tous ceux qui errent ne sont pas perdus. - J. R. R. Tolkien"

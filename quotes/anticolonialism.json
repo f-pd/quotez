@@ -2,7 +2,11 @@
   {
     "text": "Une civilisation qui s'avère incapable de résoudre les problèmes que suscite son fonctionnement est une civilisation décadente. - Aimé Césaire",
     "lang": "fr",
-    "work": "Discours sur le colonialisme (1950), opening sentence",
+    "work": {
+      "en": "Discours sur le colonialisme (1950), opening sentence",
+      "it": "Discours sur le colonialisme (1950), frase d'apertura",
+      "fr": "Discours sur le colonialisme (1950), première phrase"
+    },
     "tags": [
       "anticolonialism"
     ],
@@ -14,7 +18,11 @@
   {
     "text": "Chaque génération doit, dans une relative opacité, découvrir sa mission, la remplir ou la trahir. - Frantz Fanon",
     "lang": "fr",
-    "work": "Les Damnés de la terre (1961), ch. 4 \"Sur la culture nationale\"",
+    "work": {
+      "en": "Les Damnés de la terre (1961), ch. 4 \"Sur la culture nationale\"",
+      "it": "Les Damnés de la terre (1961), cap. 4 \"Sur la culture nationale\"",
+      "fr": "Les Damnés de la terre (1961), chap. 4 « Sur la culture nationale »"
+    },
     "tags": [
       "anticolonialism"
     ],
@@ -26,7 +34,11 @@
   {
     "text": "I have cherished the ideal of a democratic and free society in which all persons live together in harmony and with equal opportunities. It is an ideal which I hope to live for and to achieve. But if needs be, it is an ideal for which I am prepared to die. - Nelson Mandela",
     "lang": "en",
-    "work": "Statement from the dock, Rivonia Trial, Pretoria Supreme Court, 20 April 1964",
+    "work": {
+      "en": "Statement from the dock, Rivonia Trial, Pretoria Supreme Court, 20 April 1964",
+      "it": "Dichiarazione dal banco degli imputati, processo di Rivonia, Corte suprema di Pretoria, 20 aprile 1964",
+      "fr": "Déclaration depuis le banc des accusés, procès de Rivonia, Cour suprême de Pretoria, 20 avril 1964"
+    },
     "tags": [
       "anticolonialism",
       "freedom",
@@ -40,7 +52,11 @@
   {
     "text": "Injustice anywhere is a threat to justice everywhere. - Martin Luther King Jr.",
     "lang": "en",
-    "work": "Letter from Birmingham Jail, 16 April 1963",
+    "work": {
+      "en": "Letter from Birmingham Jail, 16 April 1963",
+      "it": "Letter from Birmingham Jail, 16 aprile 1963",
+      "fr": "Letter from Birmingham Jail, 16 avril 1963"
+    },
     "tags": [
       "anticolonialism",
       "justice",
@@ -54,7 +70,11 @@
   {
     "text": "Power concedes nothing without a demand. It never did and it never will. - Frederick Douglass",
     "lang": "en",
-    "work": "West India Emancipation speech, Canandaigua, New York, 3 August 1857",
+    "work": {
+      "en": "West India Emancipation speech, Canandaigua, New York, 3 August 1857",
+      "it": "Discorso West India Emancipation, Canandaigua, New York, 3 agosto 1857",
+      "fr": "Discours West India Emancipation, Canandaigua, New York, 3 août 1857"
+    },
     "tags": [
       "anticolonialism",
       "civil-rights",

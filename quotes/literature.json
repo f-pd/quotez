@@ -2,7 +2,11 @@
   {
     "text": "We are all in the gutter, but some of us are looking at the stars. - Oscar Wilde",
     "lang": "en",
-    "work": "Lady Windermere's Fan (1892), act III (Lord Darlington)",
+    "work": {
+      "en": "Lady Windermere's Fan (1892), act III (Lord Darlington)",
+      "it": "Lady Windermere's Fan (1892), atto III (Lord Darlington)",
+      "fr": "Lady Windermere's Fan (1892), acte III (Lord Darlington)"
+    },
     "tags": [
       "literature",
       "hope"
@@ -15,7 +19,11 @@
   {
     "text": "So it goes. - Kurt Vonnegut",
     "lang": "en",
-    "work": "Slaughterhouse-Five (1969), ch. 1 and passim",
+    "work": {
+      "en": "Slaughterhouse-Five (1969), ch. 1 and passim",
+      "it": "Slaughterhouse-Five (1969), cap. 1 e passim",
+      "fr": "Slaughterhouse-Five (1969), chap. 1 et passim"
+    },
     "tags": [
       "literature",
       "war",
@@ -29,7 +37,11 @@
   {
     "text": "\"Forty-two,\" said Deep Thought, with infinite majesty and calm. - Douglas Adams",
     "lang": "en",
-    "work": "The Hitchhiker's Guide to the Galaxy (1979), ch. 27",
+    "work": {
+      "en": "The Hitchhiker's Guide to the Galaxy (1979), ch. 27",
+      "it": "The Hitchhiker's Guide to the Galaxy (1979), cap. 27",
+      "fr": "The Hitchhiker's Guide to the Galaxy (1979), chap. 27"
+    },
     "tags": [
       "literature",
       "humour"
@@ -42,7 +54,11 @@
   {
     "text": "On ne voit bien qu'avec le cœur. L'essentiel est invisible pour les yeux. - Antoine de Saint-Exupéry",
     "lang": "fr",
-    "work": "Le Petit Prince (1943), ch. XXI (the fox)",
+    "work": {
+      "en": "Le Petit Prince (1943), ch. XXI (the fox)",
+      "it": "Le Petit Prince (1943), cap. XXI (la volpe)",
+      "fr": "Le Petit Prince (1943), chap. XXI (le renard)"
+    },
     "tags": [
       "literature",
       "love"
@@ -55,7 +71,11 @@
   {
     "text": "Não sou nada. Nunca serei nada. Não posso querer ser nada. À parte isso, tenho em mim todos os sonhos do mundo. - Álvaro de Campos (Fernando Pessoa)",
     "lang": "pt",
-    "work": "\"Tabacaria\" (1928), opening lines",
+    "work": {
+      "en": "\"Tabacaria\" (1928), opening lines",
+      "it": "\"Tabacaria\" (1928), versi iniziali",
+      "fr": "« Tabacaria » (1928), premiers vers"
+    },
     "tags": [
       "literature",
       "dreams"

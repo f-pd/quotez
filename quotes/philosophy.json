@@ -2,7 +2,11 @@
   {
     "text": "Ὁ θάνατος οὐδὲν πρὸς ἡμᾶς· τὸ γὰρ διαλυθὲν ἀναισθητεῖ· τὸ δ᾽ ἀναισθητοῦν οὐδὲν πρὸς ἡμᾶς. - Ἐπίκουρος",
     "lang": "grc",
-    "work": "Κύριαι Δόξαι (Principal Doctrines) II, in Diogenes Laertius X, 139",
+    "work": {
+      "en": "Κύριαι Δόξαι (Principal Doctrines) II, in Diogenes Laertius X, 139",
+      "it": "Κύριαι Δόξαι (Massime capitali) II, in Diogene Laerzio X, 139",
+      "fr": "Κύριαι Δόξαι (Maximes capitales) II, dans Diogène Laërce X, 139"
+    },
     "tags": [
       "philosophy",
       "death"
@@ -16,7 +20,11 @@
   {
     "text": "Tantum religio potuit suadere malorum. - Lucretius",
     "lang": "la",
-    "work": "De rerum natura I, 101",
+    "work": {
+      "en": "De rerum natura I, 101",
+      "it": "De rerum natura I, 101",
+      "fr": "De rerum natura I, 101"
+    },
     "tags": [
       "philosophy",
       "religion"
@@ -30,7 +38,11 @@
   {
     "text": "Homo sum, humani nihil a me alienum puto. - Terentius",
     "lang": "la",
-    "work": "Heauton Timorumenos, line 77 (Chremes)",
+    "work": {
+      "en": "Heauton Timorumenos, line 77 (Chremes)",
+      "it": "Heauton Timorumenos, verso 77 (Cremete)",
+      "fr": "Heauton Timorumenos, vers 77 (Chrémès)"
+    },
     "tags": [
       "philosophy",
       "humanity"
@@ -44,7 +56,11 @@
   {
     "text": "Sed omnia praeclara tam difficilia quam rara sunt. - Benedictus de Spinoza",
     "lang": "la",
-    "work": "Ethica (1677), part V, proposition 42, scholium, closing words",
+    "work": {
+      "en": "Ethica (1677), part V, proposition 42, scholium, closing words",
+      "it": "Ethica (1677), parte V, proposizione 42, scolio, parole finali",
+      "fr": "Ethica (1677), partie V, proposition 42, scolie, derniers mots"
+    },
     "tags": [
       "philosophy"
     ],
@@ -57,7 +73,11 @@
   {
     "text": "Sedulo curavi, humanas actiones non ridere, non lugere, neque detestari, sed intelligere. - Benedictus de Spinoza",
     "lang": "la",
-    "work": "Tractatus politicus (1677), ch. I, §4",
+    "work": {
+      "en": "Tractatus politicus (1677), ch. I, §4",
+      "it": "Tractatus politicus (1677), cap. I, §4",
+      "fr": "Tractatus politicus (1677), chap. I, §4"
+    },
     "tags": [
       "philosophy",
       "understanding"
@@ -71,7 +91,11 @@
   {
     "text": "Parce que c'était lui, parce que c'était moi. - Michel de Montaigne",
     "lang": "fr",
-    "work": "Essais, book I, ch. 28 \"De l'amitié\"",
+    "work": {
+      "en": "Essais, book I, ch. 28 \"De l'amitié\"",
+      "it": "Essais, libro I, cap. 28 \"De l'amitié\"",
+      "fr": "Essais, livre I, chap. 28 « De l'amitié »"
+    },
     "tags": [
       "philosophy",
       "friendship"
@@ -84,7 +108,11 @@
   {
     "text": "Le cœur a ses raisons que la raison ne connaît point. - Blaise Pascal",
     "lang": "fr",
-    "work": "Pensées (1670), fr. 277 Brunschvicg / 423 Lafuma",
+    "work": {
+      "en": "Pensées (1670), fr. 277 Brunschvicg / 423 Lafuma",
+      "it": "Pensées (1670), fr. 277 Brunschvicg / 423 Lafuma",
+      "fr": "Pensées (1670), fr. 277 Brunschvicg / 423 Lafuma"
+    },
     "tags": [
       "philosophy",
       "love"
@@ -97,7 +125,11 @@
   {
     "text": "No Arts; no Letters; no Society; and which is worst of all, continuall feare, and danger of violent death; And the life of man, solitary, poore, nasty, brutish, and short. - Thomas Hobbes",
     "lang": "en",
-    "work": "Leviathan (1651), part I, ch. XIII",
+    "work": {
+      "en": "Leviathan (1651), part I, ch. XIII",
+      "it": "Leviathan (1651), parte I, cap. XIII",
+      "fr": "Leviathan (1651), partie I, chap. XIII"
+    },
     "tags": [
       "philosophy",
       "politics"
@@ -110,7 +142,11 @@
   {
     "text": "L'homme est né libre, et partout il est dans les fers. - Jean-Jacques Rousseau",
     "lang": "fr",
-    "work": "Du contrat social (1762), book I, ch. 1",
+    "work": {
+      "en": "Du contrat social (1762), book I, ch. 1",
+      "it": "Du contrat social (1762), libro I, cap. 1",
+      "fr": "Du contrat social (1762), livre I, chap. 1"
+    },
     "tags": [
       "philosophy",
       "freedom"
@@ -123,7 +159,11 @@
   {
     "text": "Le premier qui, ayant enclos un terrain, s'avisa de dire : Ceci est à moi, et trouva des gens assez simples pour le croire, fut le vrai fondateur de la société civile. - Jean-Jacques Rousseau",
     "lang": "fr",
-    "work": "Discours sur l'origine et les fondements de l'inégalité parmi les hommes (1755), part II, opening",
+    "work": {
+      "en": "Discours sur l'origine et les fondements de l'inégalité parmi les hommes (1755), part II, opening",
+      "it": "Discours sur l'origine et les fondements de l'inégalité parmi les hommes (1755), parte II, inizio",
+      "fr": "Discours sur l'origine et les fondements de l'inégalité parmi les hommes (1755), partie II, début"
+    },
     "tags": [
       "philosophy",
       "property"
@@ -136,7 +176,11 @@
   {
     "text": "Cela est bien dit, répondit Candide, mais il faut cultiver notre jardin. - Voltaire",
     "lang": "fr",
-    "work": "Candide, ou l'Optimisme (1759), ch. XXX, closing words",
+    "work": {
+      "en": "Candide, ou l'Optimisme (1759), ch. XXX, closing words",
+      "it": "Candide, ou l'Optimisme (1759), cap. XXX, parole finali",
+      "fr": "Candide, ou l'Optimisme (1759), chap. XXX, derniers mots"
+    },
     "tags": [
       "philosophy",
       "literature"
@@ -149,7 +193,11 @@
   {
     "text": "Sapere aude! Habe Mut, dich deines eigenen Verstandes zu bedienen! ist also der Wahlspruch der Aufklärung. - Immanuel Kant",
     "lang": "de",
-    "work": "\"Beantwortung der Frage: Was ist Aufklärung?\", Berlinische Monatsschrift, December 1784",
+    "work": {
+      "en": "\"Beantwortung der Frage: Was ist Aufklärung?\", Berlinische Monatsschrift, December 1784",
+      "it": "\"Beantwortung der Frage: Was ist Aufklärung?\", Berlinische Monatsschrift, dicembre 1784",
+      "fr": "« Beantwortung der Frage: Was ist Aufklärung? », Berlinische Monatsschrift, décembre 1784"
+    },
     "tags": [
       "philosophy",
       "enlightenment"
@@ -163,7 +211,11 @@
   {
     "text": "Zwei Dinge erfüllen das Gemüt mit immer neuer und zunehmender Bewunderung und Ehrfurcht, je öfter und anhaltender sich das Nachdenken damit beschäftigt: der bestirnte Himmel über mir und das moralische Gesetz in mir. - Immanuel Kant",
     "lang": "de",
-    "work": "Kritik der praktischen Vernunft (1788), Conclusion",
+    "work": {
+      "en": "Kritik der praktischen Vernunft (1788), Conclusion",
+      "it": "Kritik der praktischen Vernunft (1788), Conclusione",
+      "fr": "Kritik der praktischen Vernunft (1788), Conclusion"
+    },
     "tags": [
       "philosophy",
       "ethics"
@@ -177,7 +229,11 @@
   {
     "text": "Was vernünftig ist, das ist wirklich; und was wirklich ist, das ist vernünftig. - Georg Wilhelm Friedrich Hegel",
     "lang": "de",
-    "work": "Grundlinien der Philosophie des Rechts (1820), Preface",
+    "work": {
+      "en": "Grundlinien der Philosophie des Rechts (1820), Preface",
+      "it": "Grundlinien der Philosophie des Rechts (1820), Prefazione",
+      "fr": "Grundlinien der Philosophie des Rechts (1820), Préface"
+    },
     "tags": [
       "philosophy"
     ],
@@ -190,7 +246,11 @@
   {
     "text": "Die Eule der Minerva beginnt erst mit der einbrechenden Dämmerung ihren Flug. - Georg Wilhelm Friedrich Hegel",
     "lang": "de",
-    "work": "Grundlinien der Philosophie des Rechts (1820), Preface, closing words",
+    "work": {
+      "en": "Grundlinien der Philosophie des Rechts (1820), Preface, closing words",
+      "it": "Grundlinien der Philosophie des Rechts (1820), Prefazione, parole finali",
+      "fr": "Grundlinien der Philosophie des Rechts (1820), Préface, derniers mots"
+    },
     "tags": [
       "philosophy",
       "history"
@@ -204,7 +264,11 @@
   {
     "text": "Det er ganske sandt, hvad Philosophien siger, at Livet maa forstaaes baglænds. Men derover glemmer man den anden Sætning, at det maa leves forlænds. - Søren Kierkegaard",
     "lang": "da",
-    "work": "Journal JJ:167 (1843), Søren Kierkegaards Skrifter vol. 18",
+    "work": {
+      "en": "Journal JJ:167 (1843), Søren Kierkegaards Skrifter vol. 18",
+      "it": "Diario JJ:167 (1843), Søren Kierkegaards Skrifter vol. 18",
+      "fr": "Journal JJ:167 (1843), Søren Kierkegaards Skrifter vol. 18"
+    },
     "tags": [
       "philosophy",
       "life"
@@ -218,7 +282,11 @@
   {
     "text": "If all mankind minus one, were of one opinion, and only one person were of the contrary opinion, mankind would be no more justified in silencing that one person, than he, if he had the power, would be justified in silencing mankind. - John Stuart Mill",
     "lang": "en",
-    "work": "On Liberty (1859), ch. II",
+    "work": {
+      "en": "On Liberty (1859), ch. II",
+      "it": "On Liberty (1859), cap. II",
+      "fr": "On Liberty (1859), chap. II"
+    },
     "tags": [
       "philosophy",
       "freedom"
@@ -231,7 +299,11 @@
   {
     "text": "Aus der Kriegsschule des Lebens. — Was mich nicht umbringt, macht mich stärker. - Friedrich Nietzsche",
     "lang": "de",
-    "work": "Götzen-Dämmerung (1889), \"Sprüche und Pfeile\" 8",
+    "work": {
+      "en": "Götzen-Dämmerung (1889), \"Sprüche und Pfeile\" 8",
+      "it": "Götzen-Dämmerung (1889), \"Sprüche und Pfeile\" 8",
+      "fr": "Götzen-Dämmerung (1889), « Sprüche und Pfeile » 8"
+    },
     "tags": [
       "philosophy"
     ],
@@ -244,7 +316,11 @@
   {
     "text": "Gott ist todt! Gott bleibt todt! Und wir haben ihn getödtet! - Friedrich Nietzsche",
     "lang": "de",
-    "work": "Die fröhliche Wissenschaft (1882), §125 \"Der tolle Mensch\"",
+    "work": {
+      "en": "Die fröhliche Wissenschaft (1882), §125 \"Der tolle Mensch\"",
+      "it": "Die fröhliche Wissenschaft (1882), §125 \"Der tolle Mensch\"",
+      "fr": "Die fröhliche Wissenschaft (1882), §125 « Der tolle Mensch »"
+    },
     "tags": [
       "philosophy",
       "religion"
@@ -258,7 +334,11 @@
   {
     "text": "Wer mit Ungeheuern kämpft, mag zusehn, dass er nicht dabei zum Ungeheuer wird. Und wenn du lange in einen Abgrund blickst, blickt der Abgrund auch in dich hinein. - Friedrich Nietzsche",
     "lang": "de",
-    "work": "Jenseits von Gut und Böse (1886), §146",
+    "work": {
+      "en": "Jenseits von Gut und Böse (1886), §146",
+      "it": "Jenseits von Gut und Böse (1886), §146",
+      "fr": "Jenseits von Gut und Böse (1886), §146"
+    },
     "tags": [
       "philosophy"
     ],
@@ -271,7 +351,11 @@
   {
     "text": "Wovon man nicht sprechen kann, darüber muss man schweigen. - Ludwig Wittgenstein",
     "lang": "de",
-    "work": "Tractatus logico-philosophicus (1921), proposition 7",
+    "work": {
+      "en": "Tractatus logico-philosophicus (1921), proposition 7",
+      "it": "Tractatus logico-philosophicus (1921), proposizione 7",
+      "fr": "Tractatus logico-philosophicus (1921), proposition 7"
+    },
     "tags": [
       "philosophy",
       "language"
@@ -285,7 +369,11 @@
   {
     "text": "Die Grenzen meiner Sprache bedeuten die Grenzen meiner Welt. - Ludwig Wittgenstein",
     "lang": "de",
-    "work": "Tractatus logico-philosophicus (1921), proposition 5.6",
+    "work": {
+      "en": "Tractatus logico-philosophicus (1921), proposition 5.6",
+      "it": "Tractatus logico-philosophicus (1921), proposizione 5.6",
+      "fr": "Tractatus logico-philosophicus (1921), proposition 5.6"
+    },
     "tags": [
       "philosophy",
       "language"
@@ -299,7 +387,11 @@
   {
     "text": "C'est ce que j'exprimerai en disant que l'homme est condamné à être libre. - Jean-Paul Sartre",
     "lang": "fr",
-    "work": "L'existentialisme est un humanisme (1946)",
+    "work": {
+      "en": "L'existentialisme est un humanisme (1946)",
+      "it": "L'existentialisme est un humanisme (1946)",
+      "fr": "L'existentialisme est un humanisme (1946)"
+    },
     "tags": [
       "philosophy",
       "freedom"
@@ -312,7 +404,11 @@
   {
     "text": "L'enfer, c'est les Autres. - Jean-Paul Sartre",
     "lang": "fr",
-    "work": "Huis clos (1944), scene 5 (Garcin)",
+    "work": {
+      "en": "Huis clos (1944), scene 5 (Garcin)",
+      "it": "Huis clos (1944), scena 5 (Garcin)",
+      "fr": "Huis clos (1944), scène 5 (Garcin)"
+    },
     "tags": [
       "philosophy",
       "literature"
@@ -325,7 +421,11 @@
   {
     "text": "Il faut imaginer Sisyphe heureux. - Albert Camus",
     "lang": "fr",
-    "work": "Le Mythe de Sisyphe (1942), closing sentence",
+    "work": {
+      "en": "Le Mythe de Sisyphe (1942), closing sentence",
+      "it": "Le Mythe de Sisyphe (1942), frase finale",
+      "fr": "Le Mythe de Sisyphe (1942), dernière phrase"
+    },
     "tags": [
       "philosophy",
       "life"
@@ -338,7 +438,11 @@
   {
     "text": "L'attention, à son plus haut degré, est la même chose que la prière. Elle suppose la foi et l'amour. - Simone Weil",
     "lang": "fr",
-    "work": "La Pesanteur et la Grâce (1947), \"L'attention et la volonté\"",
+    "work": {
+      "en": "La Pesanteur et la Grâce (1947), \"L'attention et la volonté\"",
+      "it": "La Pesanteur et la Grâce (1947), \"L'attention et la volonté\"",
+      "fr": "La Pesanteur et la Grâce (1947), « L'attention et la volonté »"
+    },
     "tags": [
       "philosophy",
       "attention"
@@ -351,7 +455,11 @@
   {
     "text": "L'âme, prison du corps. - Michel Foucault",
     "lang": "fr",
-    "work": "Surveiller et punir (1975), part I, ch. 1, closing words",
+    "work": {
+      "en": "Surveiller et punir (1975), part I, ch. 1, closing words",
+      "it": "Surveiller et punir (1975), parte I, cap. 1, parole finali",
+      "fr": "Surveiller et punir (1975), partie I, chap. 1, derniers mots"
+    },
     "tags": [
       "philosophy",
       "power"
