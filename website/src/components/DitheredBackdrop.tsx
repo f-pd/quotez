@@ -63,15 +63,15 @@ const ZEN_STOPS: [RGB, RGB, RGB] = [
 const MAX_PIXELS = 12_000_000;
 
 function paint(canvas: HTMLCanvasElement, kind: Kind) {
-  const parent = canvas.parentElement;
-  if (!parent) return;
-  const cssW = parent.clientWidth;
-  const cssH = parent.clientHeight;
+  // The canvas's own CSS box (not affected by the drift transform). For Zen
+  // it is four screens wide; cssW is one screen.
+  const widthFactor = kind === 'zen' ? 4 : 1;
+  const cssW = canvas.clientWidth / widthFactor;
+  const cssH = canvas.clientHeight;
   if (cssW === 0 || cssH === 0) return;
 
   // Zen: the gradient image is 4x the screen in both directions and drifts
   // horizontally; only a band one screen tall (rows 1.5H..2.5H) is ever seen.
-  const widthFactor = kind === 'zen' ? 4 : 1;
   let scale = Math.min(window.devicePixelRatio || 1, 2);
   const want = cssW * widthFactor * cssH * scale * scale;
   if (want > MAX_PIXELS) scale *= Math.sqrt(MAX_PIXELS / want);
@@ -166,8 +166,7 @@ export function DitheredBackdrop({ kind, className }: DitheredBackdropProps) {
     const canvas = ref.current;
     if (!canvas) return;
     const sizeKey = () => {
-      const p = canvas.parentElement;
-      return p ? `${p.clientWidth}x${p.clientHeight}@${window.devicePixelRatio}` : '';
+      return `${canvas.clientWidth}x${canvas.clientHeight}@${window.devicePixelRatio}`;
     };
     paint(canvas, kind);
     let last = sizeKey();
@@ -180,7 +179,7 @@ export function DitheredBackdrop({ kind, className }: DitheredBackdropProps) {
       clearTimeout(timer);
       timer = setTimeout(() => paint(canvas, kind), 150);
     });
-    if (canvas.parentElement) observer.observe(canvas.parentElement);
+    observer.observe(canvas);
     return () => {
       observer.disconnect();
       clearTimeout(timer);
