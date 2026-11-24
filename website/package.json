@@ -6,7 +6,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "start": "bun run server.ts",
-    "test": "playwright test --project=e2e",
+    "test": "playwright test --project=e2e --project=firefox --project=webkit",
     "test:e2e": "playwright test --project=e2e",
     "test:visual": "playwright test --project=visual",
     "typecheck": "tsc --noEmit"

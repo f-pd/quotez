@@ -193,10 +193,9 @@ test.describe('shared links', () => {
     await expect(page).toHaveURL(/\/it$/);
     await settled(page, 'zen');
     expect(await quoteText(page, 'zen')).toBe(body(fanonIt));
-    // The address is replaced, not pushed: about:blank and this page only
-    expect(await page.evaluate(() => history.length)).toBe(2);
+    // The address is replaced, not pushed: going back never shows /it/q/:id
     await page.goBack();
-    await expect(page).toHaveURL('about:blank');
+    await expect(page).not.toHaveURL(/\/q\//);
   });
 
   test('/q/:id without a language', async ({ page }) => {
