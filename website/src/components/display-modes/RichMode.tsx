@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import type { ModeLabels } from '../../lib/i18n';
 import { SmoothSwap } from '../SmoothSwap';
 import { DitheredBackdrop } from '../DitheredBackdrop';
@@ -16,11 +17,13 @@ interface RichModeProps {
   quoteId?: number;
   /** True while the original language is shown instead of the translation */
   showingOriginal?: boolean;
+  /** Share button, shown next to "New quote" */
+  share?: ReactNode;
 }
 
 const DEFAULT_LABELS: ModeLabels = { newQuote: 'New Quote', loading: 'Loading...', couldNotLoad: 'Could not load quote', retry: 'Retry' };
 
-export function RichMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS, work, quoteId = 0, showingOriginal = false }: RichModeProps) {
+export function RichMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS, work, quoteId = 0, showingOriginal = false, share }: RichModeProps) {
   const [visible, setVisible] = useState(false);
   const [quoteCount, setQuoteCount] = useState(0);
 
@@ -125,14 +128,17 @@ export function RichMode({ quote, loading, error, onNewQuote, labels = DEFAULT_L
           </div>
         </div>
         </SmoothSwap>
-        <button 
-          className="rich-button" 
-          data-testid="new-quote-btn" 
-          onClick={onNewQuote}
-          disabled={loading}
-        >
-          {labels.newQuote}
-        </button>
+        <div className="quote-actions rich-actions">
+          <button
+            className="rich-button"
+            data-testid="new-quote-btn"
+            onClick={onNewQuote}
+            disabled={loading}
+          >
+            {labels.newQuote}
+          </button>
+          {share}
+        </div>
       </div>
     );
   };

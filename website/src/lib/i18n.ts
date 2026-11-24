@@ -10,6 +10,8 @@
 export type LocalesInfo = { supported: string[]; default: string };
 
 export type LocalizedQuote = {
+  /** Stable id (content hash), used in shared links /:locale/q/:id */
+  id?: string;
   text: string;
   author: string | null;
   tags: string[];
@@ -90,6 +92,9 @@ type Labels = {
   showOriginal: (language: string) => string;
   showTranslation: (language: string) => string;
   language: string;
+  share: string;
+  linkCopied: string;
+  copyFailed: string;
 };
 
 const LABELS: Record<string, Labels> = {
@@ -102,6 +107,9 @@ const LABELS: Record<string, Labels> = {
     showOriginal: (l) => `Show original (${l})`,
     showTranslation: (l) => `Show translation (${l})`,
     language: 'Language',
+    share: 'Share',
+    linkCopied: 'Link copied',
+    copyFailed: 'Copy failed',
   },
   it: {
     newQuote: 'Nuova citazione',
@@ -112,6 +120,9 @@ const LABELS: Record<string, Labels> = {
     showOriginal: (l) => `Mostra l'originale (${l})`,
     showTranslation: (l) => `Mostra la traduzione (${l})`,
     language: 'Lingua',
+    share: 'Condividi',
+    linkCopied: 'Link copiato',
+    copyFailed: 'Copia non riuscita',
   },
   fr: {
     newQuote: 'Nouvelle citation',
@@ -122,6 +133,9 @@ const LABELS: Record<string, Labels> = {
     showOriginal: (l) => `Voir l'original (${l})`,
     showTranslation: (l) => `Voir la traduction (${l})`,
     language: 'Langue',
+    share: 'Partager',
+    linkCopied: 'Lien copié',
+    copyFailed: 'Échec de la copie',
   },
 };
 
@@ -131,6 +145,7 @@ export function labelsFor(locale: string): Labels {
 }
 
 export type ModeLabels = Pick<Labels, 'newQuote' | 'loading' | 'couldNotLoad' | 'retry'>;
+export type ShareLabels = Pick<Labels, 'share' | 'linkCopied' | 'copyFailed'>;
 
 const STORAGE_KEY = 'quote_locale';
 

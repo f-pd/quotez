@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { ModeLabels } from '../../lib/i18n';
 import '../../styles/simple.css';
 
@@ -9,11 +10,13 @@ interface SimpleModeProps {
   labels?: ModeLabels;
   /** Source work shown under the author */
   work?: string | null;
+  /** Share button, shown next to "New quote" */
+  share?: ReactNode;
 }
 
 const DEFAULT_LABELS: ModeLabels = { newQuote: 'New Quote', loading: 'Loading...', couldNotLoad: 'Could not load quote', retry: 'Retry' };
 
-export function SimpleMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS, work }: SimpleModeProps) {
+export function SimpleMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS, work, share }: SimpleModeProps) {
   const renderContent = () => {
     if (loading && !quote) {
       return <div className="simple-status">{labels.loading}</div>;
@@ -68,14 +71,17 @@ export function SimpleMode({ quote, loading, error, onNewQuote, labels = DEFAULT
     <div className="simple-container">
       {renderContent()}
       {(!loading || quote) && !error && (
-        <button 
-          className="simple-button" 
-          data-testid="new-quote-btn" 
-          onClick={onNewQuote}
-          disabled={loading}
-        >
-          {labels.newQuote}
-        </button>
+        <div className="quote-actions simple-actions">
+          <button
+            className="simple-button"
+            data-testid="new-quote-btn"
+            onClick={onNewQuote}
+            disabled={loading}
+          >
+            {labels.newQuote}
+          </button>
+          {share}
+        </div>
       )}
     </div>
   );

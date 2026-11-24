@@ -5,6 +5,8 @@ import { SimpleMode } from './display-modes/SimpleMode';
 import { Link } from '@tanstack/react-router';
 import { ModeSelector } from './ModeSelector';
 import { LocaleSelector } from './LocaleSelector';
+import { ShareButton } from './ShareButton';
+import { clearSharedQuote, sharedQuote } from '../lib/share';
 import {
   labelsFor,
   languageName,
@@ -18,6 +20,7 @@ import { aboutFor } from '../lib/about';
 import '../styles/locale.css';
 import '../styles/about.css';
 import '../styles/layout.css';
+import '../styles/share.css';
 
 export type DisplayMode = 'zen' | 'rich' | 'simple';
 
@@ -86,7 +89,16 @@ export function QuoteDisplay({ urlLocale, onLocaleChange }: QuoteDisplayProps) {
     setError('none');
     setShowOriginal(false);
     try {
-      const response = await fetch(`/${encodeURIComponent(locale)}/quote?format=json`);
+      // A shared link (/it/q/:id) opens on that quote; if it is gone or not
+      // available in this language, a random one is shown instead
+      const shared = sharedQuote();
+      let response: Response | null = null;
+      if (shared) {
+        const byId = await fetch(`/${encodeURIComponent(locale)}/quote/${encodeURIComponent(shared.id)}?format=json`).catch(() => null);
+        clearSharedQuote();
+        if (byId?.ok) response = byId;
+      }
+      response ??= await fetch(`/${encodeURIComponent(locale)}/quote?format=json`);
       if (response.status === 404) {
         setQuote(null);
         setError('no-quotes');
@@ -132,7 +144,21 @@ export function QuoteDisplay({ urlLocale, onLocaleChange }: QuoteDisplayProps) {
     ? joinAuthor(showOriginal && quote.original ? quote.original : quote.text, quote.author)
     : null;
 
+  const shareText = quote ? joinAuthor(quote.text, quote.author) : '';
+  const share =
+    quote?.id && locale && error === 'none' ? (
+      <ShareButton
+        locale={matchSupported(locale, locales?.supported ?? []) ?? locale}
+        quoteId={quote.id}
+        text={shareText}
+        labels={labels}
+        className={mode === 'zen' ? 'zen-button' : mode === 'rich' ? 'rich-button rich-button-secondary' : 'simple-button'}
+        disabled={loading}
+      />
+    ) : null;
+
   const props = {
+    share,
     quote: shown,
     loading,
     error: error !== 'none',

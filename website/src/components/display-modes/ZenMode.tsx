@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { ModeLabels } from '../../lib/i18n';
 import { SmoothSwap } from '../SmoothSwap';
 import { DitheredBackdrop } from '../DitheredBackdrop';
@@ -15,11 +16,13 @@ interface ZenModeProps {
   quoteId?: number;
   /** True while the original language is shown instead of the translation */
   showingOriginal?: boolean;
+  /** Share button, shown next to "New quote" */
+  share?: ReactNode;
 }
 
 const DEFAULT_LABELS: ModeLabels = { newQuote: 'New Quote', loading: 'Loading...', couldNotLoad: 'Could not load quote', retry: 'Retry' };
 
-export function ZenMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS, work, quoteId = 0, showingOriginal = false }: ZenModeProps) {
+export function ZenMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS, work, quoteId = 0, showingOriginal = false, share }: ZenModeProps) {
   const renderContent = () => {
     if (loading && !quote) {
       return <div className="zen-status">{labels.loading}</div>;
@@ -78,14 +81,17 @@ export function ZenMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LA
       <div className="zen-content">
         {renderContent()}
         
-        <button 
-          className="zen-button" 
-          data-testid="new-quote-btn" 
-          onClick={onNewQuote}
-          disabled={loading}
-        >
-          {labels.newQuote}
-        </button>
+        <div className="quote-actions zen-actions">
+          <button
+            className="zen-button"
+            data-testid="new-quote-btn"
+            onClick={onNewQuote}
+            disabled={loading}
+          >
+            {labels.newQuote}
+          </button>
+          {share}
+        </div>
       </div>
     </div>
   );

@@ -4,6 +4,9 @@ import { initDb, getSetting, setSetting, getAllSettings } from "./src/lib/settin
 import path from "node:path";
 import fs from "node:fs";
 import { timingSafeEqual } from "node:crypto";
+import { renderQuoteImage, renderSiteImage } from "./src/lib/og";
+import { clip, injectHead, siteText, splitAuthor, type PageMeta } from "./src/lib/meta";
+import { aboutFor } from "./src/lib/about";
 
 const QOTD_API_HOST = process.env.QOTD_API_HOST ?? "127.0.0.1";
 const QOTD_API_PORT = parseInt(process.env.QOTD_API_PORT ?? "8080");
@@ -58,7 +61,241 @@ async function serveStats(): Promise<Response> {
   }
 }
 
-const PUBLIC_ROUTE = /^(?:\/help|\/tags|\/locales|(?:\/[A-Za-z]{2,3}(?:[-_][A-Za-z0-9]{1,8})*)?\/(?:quote|n\/[^/]*))$/;
+const PUBLIC_ROUTE = /^(?:\/help|\/tags|\/locales|(?:\/[A-Za-z]{2,3}(?:[-_][A-Za-z0-9]{1,8})*)?\/(?:quote(?:\/[^/]+)?|n\/[^/]*))$/;
+
+// ---------------------------------------------------------------------------
+// Link previews: <head> tags per page and Open Graph images
+// ---------------------------------------------------------------------------
+
+/** Public origin for absolute URLs; else taken from the proxy headers */
+const PUBLIC_URL = process.env.PUBLIC_URL?.replace(/\/+$/, "");
+
+function originOf(req: Request, url: URL): string {
+  if (PUBLIC_URL) return PUBLIC_URL;
+  const proto = req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() || url.protocol.replace(":", "");
+  const host = req.headers.get("x-forwarded-host")?.split(",")[0]?.trim() || req.headers.get("host") || url.host;
+  return `${proto}://${host}`;
+}
+
+const LOCALE_SEGMENT = /^[A-Za-z]{2,3}(?:[-_][A-Za-z0-9]{1,8})*$/;
+const QUOTE_ID = /^[0-9a-f]{10}$/i;
+
+function canonicalTag(raw: string): string {
+  return raw
+    .split(/[-_]/)
+    .map((p, i) => (i === 0 ? p.toLowerCase() : p.length === 2 ? p.toUpperCase() : p.toLowerCase()))
+    .join("-");
+}
+
+type LocalesInfo = { supported: string[]; default: string };
+let localesCache: { info: LocalesInfo; at: number } | null = null;
+
+async function zigJson<T>(pathname: string): Promise<{ status: number; body: T | null }> {
+  try {
+    const res = await fetch(`http://${QOTD_API_HOST}:${QOTD_API_PORT}${pathname}`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(3000),
+    });
+    return { status: res.status, body: res.ok ? ((await res.json()) as T) : null };
+  } catch {
+    return { status: 503, body: null };
+  }
+}
+
+async function supportedLocales(): Promise<LocalesInfo> {
+  if (localesCache && Date.now() - localesCache.at < 5 * 60 * 1000) return localesCache.info;
+  const { body } = await zigJson<LocalesInfo>("/locales?format=json");
+  const info = body ?? localesCache?.info ?? { supported: ["en", "it", "fr"], default: "en" };
+  localesCache = { info, at: Date.now() };
+  return info;
+}
+
+function baseLang(tag: string): string {
+  return (tag.split("-")[0] ?? tag).toLowerCase();
+}
+
+/** Supported locale for a tag: exact, else same language */
+function matchLocale(tag: string, supported: string[]): string | null {
+  return (
+    supported.find((s) => s.toLowerCase() === tag.toLowerCase()) ??
+    supported.find((s) => baseLang(s) === baseLang(tag)) ??
+    null
+  );
+}
+
+/** Locale for "/" from Accept-Language (the page itself decides on the client) */
+function localeFromHeader(req: Request, info: LocalesInfo): string {
+  const header = req.headers.get("accept-language") ?? "";
+  for (const part of header.split(",")) {
+    const tag = part.split(";")[0]?.trim();
+    if (!tag || !LOCALE_SEGMENT.test(tag)) continue;
+    const m = matchLocale(canonicalTag(tag), info.supported);
+    if (m) return m;
+  }
+  return info.default;
+}
+
+type PublicQuote = {
+  id: string;
+  text: string;
+  author: string | null;
+  work: string | null;
+  lang: string;
+  original_lang: string;
+  langs?: string[];
+};
+
+async function fetchQuoteById(locale: string, id: string): Promise<PublicQuote | null> {
+  const { body } = await zigJson<PublicQuote>(`/${encodeURIComponent(locale)}/quote/${encodeURIComponent(id)}?format=json`);
+  return body;
+}
+
+/** Small LRU for rendered images: a shared link is fetched by many crawlers */
+const OG_CACHE_MAX = 300;
+const ogCache = new Map<string, Uint8Array>();
+const ogPending = new Map<string, Promise<Uint8Array | null>>();
+
+function cached(key: string, make: () => Promise<Uint8Array | null>): Promise<Uint8Array | null> {
+  const hit = ogCache.get(key);
+  if (hit) {
+    ogCache.delete(key);
+    ogCache.set(key, hit);
+    return Promise.resolve(hit);
+  }
+  const pending = ogPending.get(key);
+  if (pending) return pending;
+  const p = make()
+    .then((png) => {
+      if (png) {
+        ogCache.set(key, png);
+        if (ogCache.size > OG_CACHE_MAX) ogCache.delete(ogCache.keys().next().value as string);
+      }
+      return png;
+    })
+    .finally(() => ogPending.delete(key));
+  ogPending.set(key, p);
+  return p;
+}
+
+function pngResponse(png: Uint8Array): Response {
+  return new Response(png, {
+    headers: {
+      "Content-Type": "image/png",
+      "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+    },
+  });
+}
+
+/** GET /og/:locale.png (site card) and /og/:locale/:id.png (quote card) */
+async function serveOgImage(req: Request, url: URL): Promise<Response | null> {
+  const m = /^\/og\/([^/]+?)(?:\/([^/]+?))?\.png$/.exec(url.pathname);
+  if (!m || !LOCALE_SEGMENT.test(m[1]!)) return null;
+  const locale = canonicalTag(m[1]!);
+  const host = new URL(originOf(req, url)).host;
+  const id = m[2];
+  try {
+    if (!id) {
+      const png = await cached(`site:${baseLang(locale)}:${host}`, () => renderSiteImage(siteText(locale).tagline, host));
+      return png ? pngResponse(png) : null;
+    }
+    if (!QUOTE_ID.test(id)) return null;
+    const png = await cached(`q:${locale}:${id.toLowerCase()}:${host}`, async () => {
+      const q = await fetchQuoteById(locale, id);
+      if (!q) return null;
+      const { text, author } = splitAuthor(q.text, q.author);
+      return renderQuoteImage({ text, author, work: q.work }, host);
+    });
+    if (png) return pngResponse(png);
+    return new Response("Not found", { status: 404 });
+  } catch (err) {
+    console.error("[server] og image error:", err);
+    return new Response("Image unavailable", { status: 500 });
+  }
+}
+
+/** Meta tags for an HTML page, or null for pages that keep the defaults (admin) */
+async function pageMeta(req: Request, url: URL): Promise<PageMeta | null> {
+  const origin = originOf(req, url);
+  const parts = url.pathname.split("/").filter(Boolean);
+  const info = await supportedLocales();
+
+  // Shared quote: /:locale/q/:id
+  if (parts.length === 3 && parts[1] === "q" && LOCALE_SEGMENT.test(parts[0]!) && QUOTE_ID.test(parts[2]!)) {
+    const locale = canonicalTag(parts[0]!);
+    const id = parts[2]!.toLowerCase();
+    const q = matchLocale(locale, info.supported) ? await fetchQuoteById(locale, id) : null;
+    if (q) {
+      const { text, author } = splitAuthor(q.text, q.author);
+      const quoted = `“${text}”`;
+      const title = author ? `${clip(quoted, 90)} — ${author}` : clip(quoted, 110);
+      const description = clip([author ? `${quoted} — ${author}` : quoted, q.work].filter(Boolean).join(" · "), 300);
+      // The same quote in every supported language it exists in
+      const langs = info.supported.filter((s) =>
+        (q.langs ?? [q.lang]).some((l) => l.toLowerCase() === s.toLowerCase() || baseLang(l) === s.toLowerCase()),
+      );
+      const href = (l: string) => `${origin}/${l}/q/${id}`;
+      const original = langs.find((l) => baseLang(l) === baseLang(q.original_lang)) ?? langs[0] ?? locale;
+      return {
+        locale,
+        title,
+        description,
+        url: href(locale),
+        image: `${origin}/og/${locale}/${id}.png`,
+        imageAlt: clip(author ? `${quoted} — ${author}` : quoted, 400),
+        type: "article",
+        alternates: [...langs.map((l): [string, string] => [l, href(l)]), ["x-default", href(original)]],
+      };
+    }
+    // Unknown id: the page falls back to a random quote, previews show the site
+  }
+
+  if (parts[0] === "admin") return null;
+
+  // Site pages: /, /about, /:locale, /:locale/about
+  let locale: string | null = null;
+  let rest = parts;
+  if (parts[0] && parts[0] !== "about" && LOCALE_SEGMENT.test(parts[0])) {
+    locale = matchLocale(canonicalTag(parts[0]), info.supported) ? canonicalTag(parts[0]) : null;
+    rest = parts.slice(1);
+  }
+  const about = rest[0] === "about";
+  const suffix = about ? "/about" : "";
+  const pageLocale = locale ?? localeFromHeader(req, info);
+  const text = siteText(pageLocale);
+  return {
+    locale: pageLocale,
+    title: about ? aboutFor(pageLocale).title : `Quotez — ${text.tagline}`,
+    description: text.description,
+    url: `${origin}${locale ? `/${locale}` : ""}${suffix || (locale ? "" : "/")}`,
+    image: `${origin}/og/${pageLocale}.png`,
+    imageAlt: text.imageAlt,
+    type: "website",
+    alternates: [
+      ...info.supported.map((l): [string, string] => [l, `${origin}/${l}${suffix}`]),
+      ["x-default", `${origin}${suffix || "/"}`],
+    ],
+  };
+}
+
+let indexHtml: { text: string; mtime: number } | null = null;
+
+async function serveIndex(req: Request, url: URL): Promise<Response | null> {
+  const file = Bun.file(path.join(distDir, "index.html"));
+  if (!(await file.exists())) return null;
+  if (!indexHtml || indexHtml.mtime !== file.lastModified) {
+    indexHtml = { text: await file.text(), mtime: file.lastModified };
+  }
+  let html = indexHtml.text;
+  try {
+    const meta = await pageMeta(req, url);
+    if (meta) html = injectHead(html, meta);
+  } catch (err) {
+    console.error("[server] meta error:", err);
+  }
+  return new Response(html, {
+    headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache", Vary: "Accept-Language" },
+  });
+}
 
 function serviceUnavailable(): Response {
   return new Response(JSON.stringify({ error: "Service unavailable" }), {
@@ -97,20 +334,24 @@ function validateAuthHeader(authHeader: string | null): boolean {
   }
 }
 
-async function serveStatic(pathname: string): Promise<Response> {
+async function serveStatic(req: Request, url: URL): Promise<Response> {
+  const { pathname } = url;
   // Normalise path to prevent directory traversal
   const safePath = path.normalize(pathname).replace(/^(\.\.[/\\])+/, "");
-  const filePath = path.join(distDir, safePath === "/" ? "index.html" : safePath);
 
-  const file = Bun.file(filePath);
-  if (await file.exists()) {
-    return new Response(file);
+  if (safePath !== "/" && safePath !== "/index.html") {
+    const file = Bun.file(path.join(distDir, safePath));
+    if (await file.exists()) {
+      // Vite's hashed bundles never change; icons and manifest may
+      const immutable = safePath.startsWith("/assets/");
+      return new Response(file, {
+        headers: { "Cache-Control": immutable ? "public, max-age=31536000, immutable" : "public, max-age=3600" },
+      });
+    }
   }
 
-  const indexFile = Bun.file(path.join(distDir, "index.html"));
-  if (await indexFile.exists()) {
-    return new Response(indexFile, { headers: { "Content-Type": "text/html" } });
-  }
+  const page = await serveIndex(req, url);
+  if (page) return page;
 
   return new Response(
     `<!DOCTYPE html><html><head><meta charset="utf-8"><title>quotez</title></head>` +
@@ -221,7 +462,12 @@ const server = Bun.serve({
       return proxyToZig(req, pathname, search);
     }
 
-    return serveStatic(pathname);
+    if (req.method === "GET" && pathname.startsWith("/og/")) {
+      const og = await serveOgImage(req, url);
+      if (og) return og;
+    }
+
+    return serveStatic(req, url);
   },
 
   error(err) {
