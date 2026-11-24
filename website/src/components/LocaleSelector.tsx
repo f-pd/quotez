@@ -1,3 +1,4 @@
+import { For } from 'solid-js';
 import { languageName } from '../lib/i18n';
 
 interface LocaleSelectorProps {
@@ -8,16 +9,18 @@ interface LocaleSelectorProps {
 }
 
 /** Language picker: each language is named in itself (English, Italiano, Français) */
-export function LocaleSelector({ locales, value, label, onChange }: LocaleSelectorProps) {
+export function LocaleSelector(props: LocaleSelectorProps) {
   return (
-    <label className="locale-selector" data-testid="locale-selector">
-      <span className="visually-hidden">{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)} aria-label={label}>
-        {locales.map((l) => (
-          <option key={l} value={l} lang={l}>
-            {languageName(l)}
-          </option>
-        ))}
+    <label class="locale-selector" data-testid="locale-selector">
+      <span class="visually-hidden">{props.label}</span>
+      <select value={props.value} onChange={(e) => props.onChange(e.currentTarget.value)} aria-label={props.label}>
+        <For each={props.locales}>
+          {(l) => (
+            <option value={l} lang={l} selected={l === props.value}>
+              {languageName(l)}
+            </option>
+          )}
+        </For>
       </select>
     </label>
   );

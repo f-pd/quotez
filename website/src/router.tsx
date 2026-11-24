@@ -1,4 +1,4 @@
-import { createRouter, createRoute, createRootRoute, redirect } from '@tanstack/react-router';
+import { createRouter, createRoute, createRootRoute, redirect } from '@tanstack/solid-router';
 import { PublicLayout } from './components/PublicLayout';
 import { AdminLayout } from './components/AdminLayout';
 import { PublicPage } from './routes/public';
@@ -98,7 +98,7 @@ const routeTree = rootRoute.addChildren([
 
 export const router = createRouter({ routeTree });
 
-declare module '@tanstack/react-router' {
+declare module '@tanstack/solid-router' {
   interface Register {
     router: typeof router;
   }

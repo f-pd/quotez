@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { For, Show, createEffect, createSignal, on, onCleanup } from 'solid-js';
 import { fetchLogs, setDebug, type LogLine } from '../../lib/api';
 import { notifyModesChanged } from '../../components/AdminLayout';
 
 const POLL_MS = 2000;
 const MAX_LINES = 2000;
 const LEVELS = ['debug', 'info', 'warn', 'error'] as const;
+type Level = (typeof LEVELS)[number];
 
 function formatTs(ms: number): string {
   const d = new Date(ms);
@@ -12,30 +13,37 @@ function formatTs(ms: number): string {
 }
 
 export function AdminLogsPage() {
-  const [lines, setLines] = useState<LogLine[]>([]);
-  const [level, setLevel] = useState<(typeof LEVELS)[number]>('info');
-  const [filter, setFilter] = useState('');
-  const [paused, setPaused] = useState(false);
-  const [follow, setFollow] = useState(true);
-  const [debugOn, setDebugOn] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const sinceRef = useRef(0);
-  const boxRef = useRef<HTMLDivElement>(null);
+  const [lines, setLines] = createSignal<LogLine[]>([]);
+  const [level, setLevel] = createSignal<Level>('info');
+  const [filter, setFilter] = createSignal('');
+  const [paused, setPaused] = createSignal(false);
+  const [follow, setFollow] = createSignal(true);
+  const [debugOn, setDebugOn] = createSignal(false);
+  const [error, setError] = createSignal<string | null>(null);
+  let since = 0;
+  let box!: HTMLDivElement;
 
   // Restart the tail whenever the level changes
-  useEffect(() => {
-    sinceRef.current = 0;
-    setLines([]);
-  }, [level]);
+  createEffect(
+    on(
+      level,
+      () => {
+        since = 0;
+        setLines([]);
+      },
+      { defer: true },
+    ),
+  );
 
-  useEffect(() => {
-    if (paused) return;
+  createEffect(() => {
+    if (paused()) return;
+    const lv = level();
     let alive = true;
     const poll = async () => {
       try {
-        const res = await fetchLogs({ since: sinceRef.current, level, limit: 500 });
+        const res = await fetchLogs({ since, level: lv, limit: 500 });
         if (!alive) return;
-        sinceRef.current = res.next_seq - 1;
+        since = res.next_seq - 1;
         setDebugOn(res.debug);
         if (res.lines.length) {
           setLines((prev) => {
@@ -50,108 +58,106 @@ export function AdminLogsPage() {
     };
     poll();
     const t = setInterval(poll, POLL_MS);
-    return () => {
+    onCleanup(() => {
       alive = false;
       clearInterval(t);
-    };
-  }, [paused, level]);
+    });
+  });
 
-  useEffect(() => {
-    if (follow && boxRef.current) boxRef.current.scrollTop = boxRef.current.scrollHeight;
-  }, [lines, follow]);
+  createEffect(() => {
+    lines();
+    if (follow()) box.scrollTop = box.scrollHeight;
+  });
 
-  const onScroll = () => {
-    const el = boxRef.current;
-    if (!el) return;
-    setFollow(el.scrollHeight - el.scrollTop - el.clientHeight < 24);
-  };
+  const onScroll = () => setFollow(box.scrollHeight - box.scrollTop - box.clientHeight < 24);
 
   const toggleDebug = async () => {
     try {
-      const r = await setDebug(!debugOn);
+      const r = await setDebug(!debugOn());
       setDebugOn(r.debug);
-      if (r.debug && level !== 'debug') setLevel('debug');
+      if (r.debug && level() !== 'debug') setLevel('debug');
       notifyModesChanged();
     } catch (err: any) {
       setError(err.message);
     }
   };
 
-  const needle = filter.trim().toLowerCase();
-  const shown = needle ? lines.filter((l) => l.message.toLowerCase().includes(needle)) : lines;
+  const shown = () => {
+    const needle = filter().trim().toLowerCase();
+    return needle ? lines().filter((l) => l.message.toLowerCase().includes(needle)) : lines();
+  };
 
   return (
     <div>
-      <div className="page-head">
+      <div class="page-head">
         <div>
           <h1>Logs</h1>
-          <div className="muted small">Live tail of the service log (last {MAX_LINES} lines kept in view, 500 on the server).</div>
+          <div class="muted small">Live tail of the service log (last {MAX_LINES} lines kept in view, 500 on the server).</div>
         </div>
-        <div className="actions">
-          <span className="muted small">Debug mode</span>
+        <div class="actions">
+          <span class="muted small">Debug mode</span>
           <button
-            className={`switch ${debugOn ? 'on' : ''}`}
+            class={`switch ${debugOn() ? 'on' : ''}`}
             role="switch"
-            aria-checked={debugOn}
+            aria-checked={debugOn()}
             aria-label="Debug mode"
             onClick={toggleDebug}
           />
         </div>
       </div>
 
-      <div className="toolbar">
-        <select className="select" value={level} onChange={(e) => setLevel(e.target.value as (typeof LEVELS)[number])}>
-          {LEVELS.map((l) => (
-            <option key={l} value={l}>
-              {l === 'debug' ? 'All levels' : `${l} and above`}
-            </option>
-          ))}
+      <div class="toolbar">
+        <select class="select" value={level()} onChange={(e) => setLevel(e.currentTarget.value as Level)}>
+          <For each={LEVELS}>
+            {(l) => (
+              <option value={l} selected={l === level()}>
+                {l === 'debug' ? 'All levels' : `${l} and above`}
+              </option>
+            )}
+          </For>
         </select>
         <input
-          className="input grow"
+          class="input grow"
           type="search"
           placeholder="Filter lines…"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
+          value={filter()}
+          onInput={(e) => setFilter(e.currentTarget.value)}
         />
-        <button className="btn" onClick={() => setPaused(!paused)}>
-          {paused ? 'Resume' : 'Pause'}
+        <button class="btn" onClick={() => setPaused(!paused())}>
+          {paused() ? 'Resume' : 'Pause'}
         </button>
-        <button className="btn" onClick={() => setLines([])}>
+        <button class="btn" onClick={() => setLines([])}>
           Clear view
         </button>
       </div>
 
-      {error && <div className="banner err">{error}</div>}
-      {level === 'debug' && !debugOn && (
-        <div className="banner info">Debug lines are only recorded while debug mode is on.</div>
-      )}
+      <Show when={error()}>
+        <div class="banner err">{error()}</div>
+      </Show>
+      <Show when={level() === 'debug' && !debugOn()}>
+        <div class="banner info">Debug lines are only recorded while debug mode is on.</div>
+      </Show>
 
-      <div className="logs" ref={boxRef} onScroll={onScroll}>
-        {shown.length === 0 ? (
-          <div className="empty">{paused ? 'Paused.' : 'Waiting for log lines…'}</div>
-        ) : (
-          shown.map((l) => (
-            <div className="line" key={l.seq}>
-              <span className="ts">{formatTs(l.ts)}</span>
-              <span className={`lv-${l.level}`}>{l.level}</span>
-              <span>{l.message}</span>
-            </div>
-          ))
-        )}
+      <div class="logs" ref={box} onScroll={onScroll}>
+        <Show when={shown().length > 0} fallback={<div class="empty">{paused() ? 'Paused.' : 'Waiting for log lines…'}</div>}>
+          <For each={shown()}>
+            {(l) => (
+              <div class="line">
+                <span class="ts">{formatTs(l.ts)}</span>
+                <span class={`lv-${l.level}`}>{l.level}</span>
+                <span>{l.message}</span>
+              </div>
+            )}
+          </For>
+        </Show>
       </div>
-      {!follow && (
-        <div style={{ marginTop: 8 }}>
-          <button
-            className="btn sm"
-            onClick={() => {
-              setFollow(true);
-            }}
-          >
+      <Show when={!follow()}>
+        <div style={{ 'margin-top': '8px' }}>
+          <button class="btn sm" onClick={() => setFollow(true)}>
             Jump to latest
           </button>
         </div>
-      )}
+      </Show>
     </div>
   );
 }

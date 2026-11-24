@@ -3,7 +3,9 @@
 ## Stack
 
 - Zig 0.17.0 (mandatory) for the QOTD service in `src/`, tests in `tests/`
-- Bun + React + Vite for the website in `website/`
+- Bun + Solid (TanStack Solid Router) + Vite for the website in `website/`;
+  end-to-end tests: `cd website && bun run test` (Playwright), screenshots and bundle
+  size against main: `bash website/e2e/compare.sh`
 - Config: `quotez.toml` for local runs, `quotez.docker.toml` baked into the image;
   production differences go in environment variables, never in a third file
 

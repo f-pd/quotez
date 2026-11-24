@@ -1,28 +1,39 @@
-import { useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { Show, createSignal } from 'solid-js';
+import { useNavigate } from '@tanstack/solid-router';
 import { verifyCredentials, setCredentials } from '../lib/auth';
 
+const fieldStyle = {
+  padding: 'var(--spacing-sm)',
+  'border-radius': 'var(--radius)',
+  border: '1px solid var(--color-border)',
+  'background-color': 'var(--color-bg)',
+  color: 'var(--color-text)',
+  'font-family': 'inherit',
+};
+
+const rowStyle = { display: 'flex', 'flex-direction': 'column', gap: 'var(--spacing-sm)' } as const;
+
 export function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [username, setUsername] = createSignal('');
+  const [password, setPassword] = createSignal('');
+  const [error, setError] = createSignal('');
+  const [loading, setLoading] = createSignal(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const isValid = await verifyCredentials(username, password);
+      const isValid = await verifyCredentials(username(), password());
       if (isValid) {
-        setCredentials(username, password);
+        setCredentials(username(), password());
         navigate({ to: '/admin' });
       } else {
         setError('Invalid credentials');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred during login');
     } finally {
       setLoading(false);
@@ -30,98 +41,92 @@ export function LoginPage() {
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '100vh',
-      backgroundColor: 'var(--color-bg)'
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        'justify-content': 'center',
+        'align-items': 'center',
+        'min-height': '100vh',
+        'background-color': 'var(--color-bg)',
+      }}
+    >
       <form
         data-testid="login-form"
         onSubmit={handleSubmit}
         style={{
-          backgroundColor: 'var(--color-surface)',
+          'background-color': 'var(--color-surface)',
           padding: 'var(--spacing-xl)',
-          borderRadius: 'var(--radius)',
+          'border-radius': 'var(--radius)',
           border: '1px solid var(--color-border)',
           width: '100%',
-          maxWidth: '400px',
+          'max-width': '400px',
           display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--spacing-md)'
+          'flex-direction': 'column',
+          gap: 'var(--spacing-md)',
         }}
       >
-        <h1 style={{ textAlign: 'center', marginBottom: 'var(--spacing-md)' }}>Admin Login</h1>
-        
-        {error && (
-          <div style={{
-            color: '#ff6b6b',
-            backgroundColor: 'rgba(255, 107, 107, 0.1)',
-            padding: 'var(--spacing-sm)',
-            borderRadius: 'var(--radius)',
-            textAlign: 'center'
-          }}>
-            {error}
-          </div>
-        )}
+        <h1 style={{ 'text-align': 'center', 'margin-bottom': 'var(--spacing-md)' }}>Admin Login</h1>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-          <label htmlFor="username" style={{ color: 'var(--color-text-muted)' }}>Username</label>
+        <Show when={error()}>
+          <div
+            style={{
+              color: '#ff6b6b',
+              'background-color': 'rgba(255, 107, 107, 0.1)',
+              padding: 'var(--spacing-sm)',
+              'border-radius': 'var(--radius)',
+              'text-align': 'center',
+            }}
+          >
+            {error()}
+          </div>
+        </Show>
+
+        <div style={rowStyle}>
+          <label for="username" style={{ color: 'var(--color-text-muted)' }}>
+            Username
+          </label>
           <input
             id="username"
             type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={username()}
+            onInput={(e) => setUsername(e.currentTarget.value)}
             required
-            style={{
-              padding: 'var(--spacing-sm)',
-              borderRadius: 'var(--radius)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-bg)',
-              color: 'var(--color-text)',
-              fontFamily: 'inherit'
-            }}
+            style={fieldStyle}
           />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-          <label htmlFor="password" style={{ color: 'var(--color-text-muted)' }}>Password</label>
+        <div style={rowStyle}>
+          <label for="password" style={{ color: 'var(--color-text-muted)' }}>
+            Password
+          </label>
           <input
             id="password"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={password()}
+            onInput={(e) => setPassword(e.currentTarget.value)}
             required
-            style={{
-              padding: 'var(--spacing-sm)',
-              borderRadius: 'var(--radius)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-bg)',
-              color: 'var(--color-text)',
-              fontFamily: 'inherit'
-            }}
+            style={fieldStyle}
           />
         </div>
 
         <button
           data-testid="login-submit"
           type="submit"
-          disabled={loading}
+          disabled={loading()}
           style={{
-            marginTop: 'var(--spacing-md)',
+            'margin-top': 'var(--spacing-md)',
             padding: 'var(--spacing-md)',
-            backgroundColor: 'var(--color-accent)',
+            'background-color': 'var(--color-accent)',
             color: '#fff',
             border: 'none',
-            borderRadius: 'var(--radius)',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            fontWeight: 'bold',
-            opacity: loading ? 0.7 : 1,
-            transition: 'background-color var(--transition)'
+            'border-radius': 'var(--radius)',
+            cursor: loading() ? 'not-allowed' : 'pointer',
+            'font-weight': 'bold',
+            opacity: loading() ? 0.7 : 1,
+            transition: 'background-color var(--transition)',
           }}
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading() ? 'Logging in...' : 'Login'}
         </button>
       </form>
     </div>
