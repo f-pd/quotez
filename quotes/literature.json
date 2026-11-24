@@ -10,7 +10,13 @@
     "tags": [
       "literature",
       "hope"
-    ]
+    ],
+    "translations": {
+      "it": "Siamo tutti immersi nel fango, ma alcuni di noi guardano le stelle. - Oscar Wilde"
+    },
+    "translation_sources": {
+      "it": "Ginevra Vivante, in Oscar Wilde, Tutte le opere, 2010 (via Wikiquote it) — https://it.wikiquote.org/wiki/Oscar_Wilde#Il_ventaglio_di_Lady_Windermere"
+    }
   },
   {
     "text": "So it goes. - Kurt Vonnegut",
@@ -24,7 +30,13 @@
       "literature",
       "war",
       "death"
-    ]
+    ],
+    "translations": {
+      "it": "Così va la vita. - Kurt Vonnegut"
+    },
+    "translation_sources": {
+      "it": "Luigi Brioschi, Mattatoio n. 5, Feltrinelli 2017 (via Wikiquote it) — https://it.wikiquote.org/wiki/Kurt_Vonnegut#Mattatoio_n._5"
+    }
   },
   {
     "text": "\"Forty-two,\" said Deep Thought, with infinite majesty and calm. - Douglas Adams",
@@ -50,7 +62,15 @@
     "tags": [
       "literature",
       "love"
-    ]
+    ],
+    "translations": {
+      "it": "Si vede solo con il cuore. L'essenziale è invisibile agli occhi. - Antoine de Saint-Exupéry",
+      "en": "It is only with the heart that one can see rightly; what is essential is invisible to the eye. - Antoine de Saint-Exupéry"
+    },
+    "translation_sources": {
+      "it": "Yasmina Melaouah, Il piccolo principe, Gribaudo 2015, cap. XXI, p. 97 (per bibliografia Wikiquote it) — https://it.wikiquote.org/wiki/Antoine_de_Saint-Exup%C3%A9ry#Il_piccolo_principe",
+      "en": "Wikiquote (en), page The Little Prince (Katherine Woods' translation, 1943) — https://en.wikiquote.org/wiki/The_Little_Prince"
+    }
   },
   {
     "text": "Não sou nada. Nunca serei nada. Não posso querer ser nada. À parte isso, tenho em mim todos os sonhos do mundo. - Álvaro de Campos (Fernando Pessoa)",
@@ -63,6 +83,16 @@
     "tags": [
       "literature",
       "dreams"
-    ]
+    ],
+    "translations": {
+      "it": "Non sono niente. Non sarò mai niente. Non posso voler essere niente. A parte ciò, ho in me tutti i sogni del mondo. - Álvaro de Campos (Fernando Pessoa)",
+      "en": "I am nothing. Never shall be anything. Cannot will to be anything. This apart, I have in me all the dreams of the world. - Álvaro de Campos (Fernando Pessoa)",
+      "fr": "Je ne suis rien. Je ne serai jamais rien. Je ne peux vouloir être rien. À part ça, j’ai en moi tous les rêves du monde. - Álvaro de Campos (Fernando Pessoa)"
+    },
+    "translation_sources": {
+      "it": "Antonio Tabucchi, in Poesie di Álvaro de Campos, a cura di Maria José de Lancastre, Adelphi 2007, p. 199 (via Wikiquote it) — https://it.wikiquote.org/wiki/Fernando_Pessoa",
+      "en": "Jonathan Griffin, Selected Poems, Penguin Books 1974, p. 111 (via Wikiquote en) — https://en.wikiquote.org/wiki/Fernando_Pessoa",
+      "fr": "Fernando Pessoa, Œuvres poétiques, Gallimard (Bibliothèque de la Pléiade) 2001, p. 362 (via Wikiquote fr; translator not named on page) — https://fr.wikiquote.org/wiki/Fernando_Pessoa"
+    }
   }
 ]

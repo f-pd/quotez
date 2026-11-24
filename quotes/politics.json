@@ -10,7 +10,15 @@
     "tags": [
       "politics",
       "democracy"
-    ]
+    ],
+    "translations": {
+      "fr": "le gouvernement du peuple, par le peuple, pour le peuple, ne disparaîtra pas de la terre. - Abraham Lincoln",
+      "it": "il governo del popolo, col popolo, per il popolo non può sparire dalla terra! - Abraham Lincoln"
+    },
+    "translation_sources": {
+      "fr": "Wikiquote (fr), page Abraham Lincoln (translation credited to Wikisource) — https://fr.wikiquote.org/wiki/Abraham_Lincoln",
+      "it": "Antonio Agresti, Abramo Lincoln, 1913 (translation of the speech quoted in the biography; Wikisource it) — https://it.wikisource.org/wiki/Abramo_Lincoln/Biografia"
+    }
   },
   {
     "text": "So, first of all, let me assert my firm belief that the only thing we have to fear is fear itself. - Franklin D. Roosevelt",
@@ -23,6 +31,12 @@
     "tags": [
       "politics",
       "courage"
-    ]
+    ],
+    "translations": {
+      "it": "Quindi, prima di tutto, lasciatemi esprimere la mia ferma convinzione che l'unica cosa di cui dobbiamo avere paura è la paura stessa. - Franklin D. Roosevelt"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Franklin Delano Roosevelt (no translator named) — https://it.wikiquote.org/wiki/Franklin_Delano_Roosevelt"
+    }
   }
 ]

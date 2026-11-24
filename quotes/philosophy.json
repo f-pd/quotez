@@ -10,7 +10,17 @@
     "tags": [
       "philosophy",
       "death"
-    ]
+    ],
+    "translations": {
+      "it": "La morte non è niente per noi. Ciò che si dissolve non ha più sensibilità, e ciò che non ha sensibilità non è niente per noi. - Epicuro",
+      "en": "Death is nothing to us; for the body, when it has been resolved into its elements, has no feeling, and that which has no feeling is nothing to us. - Epicurus",
+      "fr": "La mort n’est rien à notre égard ; car ce qui est une fois dissous est incapable de sentir, et ce qui ne sent point n’est rien pour nous. - Épicure"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Epicuro, Massime Capitali II (translator not stated per quote; page bibliography: Epicuro, Opere, trad. Graziano Arrighetti, Einaudi, 1973) — https://it.wikiquote.org/wiki/Epicuro",
+      "en": "Epicurus, Principal Doctrines 2, translated by Robert Drew Hicks (Wikisource) — https://en.wikisource.org/wiki/Principal_Doctrines",
+      "fr": "Wikisource (fr), 'Les Idées antiques sur la mort et la critique de ces idées par Épicure' (19th-c. article quoting the Maxims; same wording in J.-M. Guyau, La Morale d’Épicure, Wikisource) — https://fr.wikisource.org/wiki/Les_Id%C3%A9es_antiques_sur_la_mort_et_la_critique_de_ces_id%C3%A9es_par_%C3%89picure"
+    }
   },
   {
     "text": "Tantum religio potuit suadere malorum. - Lucretius",
@@ -23,7 +33,17 @@
     "tags": [
       "philosophy",
       "religion"
-    ]
+    ],
+    "translations": {
+      "it": "A tante sciagure ha potuto indurre la religione. - Lucrezio",
+      "en": "So potent was Religion in persuading to do wrong. - Lucretius",
+      "fr": "Tant la religion put conseiller de crimes ! - Lucrèce"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Tito Lucrezio Caro, De rerum natura I, 101 (translator not stated per quote) — https://it.wikiquote.org/wiki/Tito_Lucrezio_Caro",
+      "en": "Wikiquote (en), page Lucretius, De rerum natura I, line 101 (translator not stated for this line) — https://en.wikiquote.org/wiki/Lucretius",
+      "fr": "Lucrèce, De la nature des choses, traduction (en vers) par André Lefèvre, Société d’éditions littéraires, 1899 (Wikisource) — https://fr.wikisource.org/wiki/De_la_nature_des_choses_(traduction_Lef%C3%A8vre)/Livre_I"
+    }
   },
   {
     "text": "Homo sum, humani nihil a me alienum puto. - Terentius",
@@ -36,7 +56,17 @@
     "tags": [
       "philosophy",
       "humanity"
-    ]
+    ],
+    "translations": {
+      "it": "Sono un uomo e nulla di ciò che è umano mi è estraneo. - Terenzio",
+      "en": "I am human, I consider nothing human alien to me. - Terence",
+      "fr": "Je suis humain : rien de ce qui est humain ne m'est étranger. - Térence"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Publio Terenzio Afro; cited in Françoise Waquet, Latino. L'impero di un segno, trad. Alessandro Serra, Feltrinelli, 2004, p. 293 — https://it.wikiquote.org/wiki/Publio_Terenzio_Afro",
+      "en": "Wikiquote (en), page Terence, Heauton Timorumenos — https://en.wikiquote.org/wiki/Terence",
+      "fr": "Wikiquote (fr), page Térence; Térence, tome II, Collection des Universités de France, Les Belles Lettres, p. 23 — https://fr.wikiquote.org/wiki/T%C3%A9rence"
+    }
   },
   {
     "text": "Sed omnia praeclara tam difficilia quam rara sunt. - Benedictus de Spinoza",
@@ -48,7 +78,17 @@
     },
     "tags": [
       "philosophy"
-    ]
+    ],
+    "translations": {
+      "it": "Ma tutte le cose eccellenti sono tanto difficili quanto rare. - Baruch Spinoza",
+      "en": "But all things excellent are as difficult as they are rare. - Baruch Spinoza",
+      "fr": "Mais tout ce qui est beau est aussi difficile que rare. - Baruch Spinoza"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Ethica; Spinoza, Etica, trad. Sossio Giametta, Bollati Boringhieri, 1992 — https://it.wikiquote.org/wiki/Ethica",
+      "en": "Wikiquote (en), page Baruch Spinoza, Ethics V, Prop. XLII, Scholium (translator not named on the page) — https://en.wikiquote.org/wiki/Baruch_Spinoza",
+      "fr": "Spinoza, Éthique, traduction par Émile Saisset, Charpentier, 1861 (Wikisource) — https://fr.wikisource.org/wiki/%C3%89thique_(Saisset,_1861)/Partie_V"
+    }
   },
   {
     "text": "Sedulo curavi, humanas actiones non ridere, non lugere, neque detestari, sed intelligere. - Benedictus de Spinoza",
@@ -61,7 +101,15 @@
     "tags": [
       "philosophy",
       "understanding"
-    ]
+    ],
+    "translations": {
+      "en": "I have laboured carefully, not to mock, lament, or execrate human actions, but to understand them. - Baruch Spinoza",
+      "fr": "je me suis soigneusement abstenu de tourner en dérision les actions humaines, de les prendre en pitié ou en haine ; je n’ai voulu que les comprendre. - Baruch Spinoza"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Baruch Spinoza, Political Treatise ch. 1 — https://en.wikiquote.org/wiki/Baruch_Spinoza",
+      "fr": "Spinoza, Traité politique, ch. I §4, traduction par Émile Saisset, Charpentier, 1861 (Wikisource) — https://fr.wikisource.org/wiki/Trait%C3%A9_politique/Introduction"
+    }
   },
   {
     "text": "Parce que c'était lui, parce que c'était moi. - Michel de Montaigne",
@@ -74,7 +122,13 @@
     "tags": [
       "philosophy",
       "friendship"
-    ]
+    ],
+    "translations": {
+      "it": "Perché era lui; perché ero io - Michel de Montaigne"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Michel de Montaigne (Saggi I, XXVIII); Montaigne, Saggi, trad. Fausta Garavini, Bompiani, 2014 — https://it.wikiquote.org/wiki/Michel_de_Montaigne"
+    }
   },
   {
     "text": "Le cœur a ses raisons que la raison ne connaît point. - Blaise Pascal",
@@ -87,7 +141,15 @@
     "tags": [
       "philosophy",
       "love"
-    ]
+    ],
+    "translations": {
+      "it": "Il cuore ha le sue ragioni, che la ragione non conosce. - Blaise Pascal",
+      "en": "The heart has its reasons, which reason does not know. - Blaise Pascal"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Cuore (attributed to Blaise Pascal; translator not named) — https://it.wikiquote.org/wiki/Cuore",
+      "en": "Wikiquote (en), page Pensées — https://en.wikiquote.org/wiki/Pensées"
+    }
   },
   {
     "text": "No Arts; no Letters; no Society; and which is worst of all, continuall feare, and danger of violent death; And the life of man, solitary, poore, nasty, brutish, and short. - Thomas Hobbes",
@@ -100,7 +162,13 @@
     "tags": [
       "philosophy",
       "politics"
-    ]
+    ],
+    "translations": {
+      "it": "né arti, né lettere, né società, e, quel che è peggio di tutto, v'è continuo timore e pericolo di morte violenta, e la vita dell'uomo è solitaria, misera, sgradevole, brutale e breve. - Thomas Hobbes"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Thomas Hobbes, Leviatano I, XIII (page bibliography: trad. Francesco Moffa, Carabba 1932; trad. Roberto Giammanco, UTET 1955) — https://it.wikiquote.org/wiki/Thomas_Hobbes"
+    }
   },
   {
     "text": "L'homme est né libre, et partout il est dans les fers. - Jean-Jacques Rousseau",
@@ -113,7 +181,15 @@
     "tags": [
       "philosophy",
       "freedom"
-    ]
+    ],
+    "translations": {
+      "it": "L'uomo è nato libero e ovunque si trova in catene. - Jean-Jacques Rousseau",
+      "en": "Man is born free; and everywhere he is in chains. - Jean-Jacques Rousseau"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Jean-Jacques Rousseau, Il contratto sociale, incipit (page bibliography: Del contratto sociale, trad. Rodolfo Mondolfo) — https://it.wikiquote.org/wiki/Jean-Jacques_Rousseau",
+      "en": "Wikiquote (en), page The Social Contract, Book I, ch. 1 — https://en.wikiquote.org/wiki/The_Social_Contract"
+    }
   },
   {
     "text": "Le premier qui, ayant enclos un terrain, s'avisa de dire : Ceci est à moi, et trouva des gens assez simples pour le croire, fut le vrai fondateur de la société civile. - Jean-Jacques Rousseau",
@@ -126,7 +202,15 @@
     "tags": [
       "philosophy",
       "property"
-    ]
+    ],
+    "translations": {
+      "it": "Il primo che, avendo cintato un terreno, pensò di dire \"questo è mio\" e trovò delle persone abbastanza stupide da credergli, fu il vero fondatore della società civile. - Jean-Jacques Rousseau",
+      "en": "The first man who, having enclosed a piece of ground, bethought himself of saying This is mine, and found people simple enough to believe him, was the real founder of civil society. - Jean-Jacques Rousseau"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Jean-Jacques Rousseau, Discorso sull'origine della disuguaglianza (page bibliography: trad. Rodolfo Mondolfo) — https://it.wikiquote.org/wiki/Jean-Jacques_Rousseau",
+      "en": "Wikiquote (en), page Discourse on Inequality, part II ('This is mine' in italics on page) — https://en.wikiquote.org/wiki/Discourse_on_Inequality"
+    }
   },
   {
     "text": "Cela est bien dit, répondit Candide, mais il faut cultiver notre jardin. - Voltaire",
@@ -139,7 +223,13 @@
     "tags": [
       "philosophy",
       "literature"
-    ]
+    ],
+    "translations": {
+      "en": "\"Excellently observed,\" answered Candide; \"but let us cultivate our garden.\" - Voltaire"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Candide, ch. xxx (translator not stated) — https://en.wikiquote.org/wiki/Candide"
+    }
   },
   {
     "text": "Sapere aude! Habe Mut, dich deines eigenen Verstandes zu bedienen! ist also der Wahlspruch der Aufklärung. - Immanuel Kant",
@@ -152,7 +242,17 @@
     "tags": [
       "philosophy",
       "enlightenment"
-    ]
+    ],
+    "translations": {
+      "it": "Sapere aude! Abbi il coraggio di servirti della tua propria intelligenza! È questo il motto dell'illuminismo. - Immanuel Kant",
+      "en": "Sapere aude! \"Have courage to use your own reason!\" - that is the motto of enlightenment. - Immanuel Kant",
+      "fr": "Sapere aude, aie le courage de te servir de ta propre intelligence ! voilà donc la devise des lumières. - Immanuel Kant"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Immanuel Kant (Risposta alla domanda: che cos'è l'Illuminismo?; translator not named) — https://it.wikiquote.org/wiki/Immanuel_Kant",
+      "en": "Kant, What is Enlightenment?, translated by Lewis White Beck (Wikisource) — https://en.wikisource.org/wiki/What_is_Enlightenment%3F",
+      "fr": "Kant, Réponse à la question : Qu’est-ce que les lumières ?, traduction par Jules Barni (Métaphysique des mœurs, trad. Barni, tome I), Wikisource — https://fr.wikisource.org/wiki/M%C3%A9taphysique_des_m%C5%93urs_(trad._Barni)/Tome_I/PERAD/R%C3%A9ponse"
+    }
   },
   {
     "text": "Zwei Dinge erfüllen das Gemüt mit immer neuer und zunehmender Bewunderung und Ehrfurcht, je öfter und anhaltender sich das Nachdenken damit beschäftigt: der bestirnte Himmel über mir und das moralische Gesetz in mir. - Immanuel Kant",
@@ -165,7 +265,17 @@
     "tags": [
       "philosophy",
       "ethics"
-    ]
+    ],
+    "translations": {
+      "it": "Due cose riempiono l'animo di ammirazione e venerazione sempre nuova e crescente, quanto più spesso e più a lungo la riflessione si occupa di esse: il cielo stellato sopra di me, e la legge morale in me. - Immanuel Kant",
+      "en": "Two things fill the mind with ever new and increasing admiration and awe, the oftener and the more steadily we reflect on them: the starry heavens above and the moral law within. - Immanuel Kant",
+      "fr": "Deux choses remplissent l’âme d’une admiration et d’un respect toujours renaissants et qui s’accroissent à mesure que la pensée y revient plus souvent et s’y applique d’avantage : le ciel étoilé au-dessus de nous, la loi morale au-dedans. - Immanuel Kant"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Immanuel Kant; Critica della ragion pratica, trad. Francesco Capra e Eugenio Garin, Laterza, 2006, Conclusione, p. 353 — https://it.wikiquote.org/wiki/Immanuel_Kant",
+      "en": "Kant, Critique of Practical Reason, Conclusion, translated by Thomas Kingsmill Abbott (Wikisource) — https://en.wikisource.org/wiki/Critique_of_Practical_Reason",
+      "fr": "Kant, Critique de la raison pratique, Conclusion, traduction par Jules Barni, Ladrange, 1848 (Wikisource) — https://fr.wikisource.org/wiki/Critique_de_la_raison_pratique_(trad._Barni)/P2/Conclusion"
+    }
   },
   {
     "text": "Was vernünftig ist, das ist wirklich; und was wirklich ist, das ist vernünftig. - Georg Wilhelm Friedrich Hegel",
@@ -177,7 +287,15 @@
     },
     "tags": [
       "philosophy"
-    ]
+    ],
+    "translations": {
+      "it": "Ciò che è razionale è reale; e ciò che è reale è razionale. - G. W. F. Hegel",
+      "en": "What is reasonable is real; that which is real is reasonable. - G. W. F. Hegel"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Georg Wilhelm Friedrich Hegel, Lineamenti di filosofia del diritto, Prefazione, p. 14 (translator not named per quote) — https://it.wikiquote.org/wiki/Georg_Wilhelm_Friedrich_Hegel",
+      "en": "Wikiquote (en), page Georg Wilhelm Friedrich Hegel, Philosophy of Right, Preface — https://en.wikiquote.org/wiki/Georg_Wilhelm_Friedrich_Hegel"
+    }
   },
   {
     "text": "Die Eule der Minerva beginnt erst mit der einbrechenden Dämmerung ihren Flug. - Georg Wilhelm Friedrich Hegel",
@@ -190,7 +308,15 @@
     "tags": [
       "philosophy",
       "history"
-    ]
+    ],
+    "translations": {
+      "it": "la nottola di Minerva inizia il suo volo soltanto sul far del crepuscolo. - G. W. F. Hegel",
+      "en": "The owl of Minerva first begins her flight with the onset of dusk. - G. W. F. Hegel"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Georg Wilhelm Friedrich Hegel, Lineamenti di filosofia del diritto, Prefazione, p. 17 — https://it.wikiquote.org/wiki/Georg_Wilhelm_Friedrich_Hegel",
+      "en": "Wikiquote (en), page Georg Wilhelm Friedrich Hegel, Philosophy of Right, Preface — https://en.wikiquote.org/wiki/Georg_Wilhelm_Friedrich_Hegel"
+    }
   },
   {
     "text": "Det er ganske sandt, hvad Philosophien siger, at Livet maa forstaaes baglænds. Men derover glemmer man den anden Sætning, at det maa leves forlænds. - Søren Kierkegaard",
@@ -203,7 +329,15 @@
     "tags": [
       "philosophy",
       "life"
-    ]
+    ],
+    "translations": {
+      "it": "È proprio vero quel che dicono i filosofi: «La vita va compresa all'indietro». Ma non bisogna dimenticare l'altro principio, che «si vive in avanti». - Søren Kierkegaard",
+      "en": "It is perfectly true, as the philosophers say, that life must be understood backwards. But they forget the other proposition, that it must be lived forwards. - Søren Kierkegaard"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Søren Kierkegaard (§ 749); Kierkegaard, Diario, a cura di Cornelio Fabro, Morcelliana, 1962 — https://it.wikiquote.org/wiki/Søren_Kierkegaard",
+      "en": "Wikiquote (en), page Søren Kierkegaard (Journals) — https://en.wikiquote.org/wiki/Søren_Kierkegaard"
+    }
   },
   {
     "text": "If all mankind minus one, were of one opinion, and only one person were of the contrary opinion, mankind would be no more justified in silencing that one person, than he, if he had the power, would be justified in silencing mankind. - John Stuart Mill",
@@ -216,7 +350,15 @@
     "tags": [
       "philosophy",
       "freedom"
-    ]
+    ],
+    "translations": {
+      "fr": "Si toute l’espèce humaine, moins une personne, était d’un avis et qu’une personne seulement fût de l’avis contraire, l’espèce humaine ne serait pas plus justifiable en imposant silence à cette personne, qu’elle ne serait justifiable en imposant silence à l’espèce humaine, si elle le pouvait. - John Stuart Mill",
+      "it": "Quand'anche l'intera umanità, a eccezione di una sola persona, avesse una certa opinione, e quell'unica persona ne avesse una opposta, non per questo l'umanità potrebbe metterla a tacere: non avrebbe maggiori giustificazioni di quante ne avrebbe quell'unica persona per mettere a tacere l'umanità, avendone il potere. - John Stuart Mill"
+    },
+    "translation_sources": {
+      "fr": "John Stuart Mill, De la liberté, trad. Charles Brook Dupont-White, Guillaumin et Cie 1860 (Wikisource fr) — https://fr.wikisource.org/wiki/De_la_libert%C3%A9/Texte_entier",
+      "it": "John Stuart Mill, La libertà, BUR, 1999, p. 85 (translator not named), as quoted on Wikibooks (it), Storia della filosofia/John Stuart Mill — https://it.wikibooks.org/wiki/Storia_della_filosofia/John_Stuart_Mill"
+    }
   },
   {
     "text": "Aus der Kriegsschule des Lebens. — Was mich nicht umbringt, macht mich stärker. - Friedrich Nietzsche",
@@ -228,7 +370,17 @@
     },
     "tags": [
       "philosophy"
-    ]
+    ],
+    "translations": {
+      "it": "Dalla scuola di guerra della vita. Quello che non mi ammazza mi rende più forte. - Friedrich Nietzsche",
+      "en": "What does not kill me, makes me stronger. - Friedrich Nietzsche",
+      "fr": "À l’école de guerre de la vie. — Ce qui ne me fait pas mourir me rend plus fort. - Friedrich Nietzsche"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Friedrich Nietzsche, Crepuscolo degli idoli, Detti e frecce 8 (1989 edition cited on page) — https://it.wikiquote.org/wiki/Friedrich_Nietzsche",
+      "en": "Wikiquote (en), page Twilight of the Idols, Maxims and Arrows 8 — https://en.wikiquote.org/wiki/Twilight_of_the_Idols",
+      "fr": "Nietzsche, Le Crépuscule des Idoles, Maximes et pointes 8, traduction par Henri Albert (Wikisource) — https://fr.wikisource.org/wiki/Le_Cr%C3%A9puscule_des_Idoles/Maximes_et_pointes"
+    }
   },
   {
     "text": "Gott ist todt! Gott bleibt todt! Und wir haben ihn getödtet! - Friedrich Nietzsche",
@@ -241,7 +393,17 @@
     "tags": [
       "philosophy",
       "religion"
-    ]
+    ],
+    "translations": {
+      "it": "Dio è morto! Dio resta morto! E noi lo abbiamo ucciso! - Friedrich Nietzsche",
+      "en": "God is dead! God remains dead! And we have killed him. - Friedrich Nietzsche",
+      "fr": "Dieu est mort ! Dieu reste mort ! Et c’est nous qui l’avons tué ! - Friedrich Nietzsche"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), voce tematica Morte di Dio, attributed to Friedrich Nietzsche (translator not named on the page) — https://it.wikiquote.org/wiki/Morte_di_Dio",
+      "en": "Wikiquote (en), page Friedrich Nietzsche, The Gay Science §125 — https://en.wikiquote.org/wiki/Friedrich_Nietzsche",
+      "fr": "Nietzsche, Le Gai Savoir §125, traduction par Henri Albert, Mercure de France, 1901 (Wikisource) — https://fr.wikisource.org/wiki/Le_Gai_Savoir/Livre_troisi%C3%A8me"
+    }
   },
   {
     "text": "Wer mit Ungeheuern kämpft, mag zusehn, dass er nicht dabei zum Ungeheuer wird. Und wenn du lange in einen Abgrund blickst, blickt der Abgrund auch in dich hinein. - Friedrich Nietzsche",
@@ -253,7 +415,17 @@
     },
     "tags": [
       "philosophy"
-    ]
+    ],
+    "translations": {
+      "it": "Chi lotta con i mostri deve guardarsi di non diventare, così facendo, un mostro. E se tu scruterai a lungo in un abisso, anche l'abisso scruterà dentro di te. - Friedrich Nietzsche",
+      "en": "He who fights with monsters might take care lest he thereby become a monster. And when you gaze long into an abyss the abyss also gazes into you. - Friedrich Nietzsche",
+      "fr": "Celui qui lutte contre les monstres doit veiller à ne pas le devenir lui-même. Et quand ton regard pénètre longtemps au fond d’un abîme, l’abîme, lui aussi, pénètre en toi. - Friedrich Nietzsche"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Friedrich Nietzsche, Al di là del bene e del male §146 (2007 edition cited on page) — https://it.wikiquote.org/wiki/Friedrich_Nietzsche",
+      "en": "Wikiquote (en), page Beyond Good and Evil, aphorism 146 (translator not named) — https://en.wikiquote.org/wiki/Beyond_Good_and_Evil",
+      "fr": "Nietzsche, Par delà le bien et le mal §146, traduction par Henri Albert, Mercure de France, 1913 (Wikisource) — https://fr.wikisource.org/wiki/Par_del%C3%A0_le_bien_et_le_mal/Chapitre_IV._Maximes_et_interm%C3%A8des"
+    }
   },
   {
     "text": "Wovon man nicht sprechen kann, darüber muss man schweigen. - Ludwig Wittgenstein",
@@ -266,7 +438,15 @@
     "tags": [
       "philosophy",
       "language"
-    ]
+    ],
+    "translations": {
+      "en": "Whereof one cannot speak, thereof one must be silent. - Ludwig Wittgenstein",
+      "fr": "Sur ce dont on ne peut parler, on doit se taire. - Ludwig Wittgenstein"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Ludwig Wittgenstein, Tractatus 7 — https://en.wikiquote.org/wiki/Ludwig_Wittgenstein",
+      "fr": "Wikiquote (fr), page Ludwig Wittgenstein; Tractatus logico-philosophicus 7, trad. Christiane Chauviré et Sabine Plaud, Flammarion, 2022, p. 228 — https://fr.wikiquote.org/wiki/Ludwig_Wittgenstein"
+    }
   },
   {
     "text": "Die Grenzen meiner Sprache bedeuten die Grenzen meiner Welt. - Ludwig Wittgenstein",
@@ -279,7 +459,17 @@
     "tags": [
       "philosophy",
       "language"
-    ]
+    ],
+    "translations": {
+      "it": "I limiti del mio linguaggio significano i limiti del mio mondo. - Ludwig Wittgenstein",
+      "en": "The limits of my language mean the limits of my world. - Ludwig Wittgenstein",
+      "fr": "Les frontières de mon langage signifient les frontières de mon monde. - Ludwig Wittgenstein"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Ludwig Wittgenstein, Tractatus 5.6 (page bibliography: a cura di Amedeo G. Conte, Einaudi, 1989) — https://it.wikiquote.org/wiki/Ludwig_Wittgenstein",
+      "en": "Wikiquote (en), page Language (Wittgenstein, Tractatus 5.6) — https://en.wikiquote.org/wiki/Language",
+      "fr": "Wikiquote (fr), page Ludwig Wittgenstein; Carnets 1914-1916 (entry 23.5.15, = Tractatus 5.6), trad. G.-G. Granger, Gallimard, 1997, p. 102 — https://fr.wikiquote.org/wiki/Ludwig_Wittgenstein"
+    }
   },
   {
     "text": "C'est ce que j'exprimerai en disant que l'homme est condamné à être libre. - Jean-Paul Sartre",
@@ -292,7 +482,15 @@
     "tags": [
       "philosophy",
       "freedom"
-    ]
+    ],
+    "translations": {
+      "it": "Situazione che mi pare di poter caratterizzare dicendo che l'uomo è condannato a essere libero. - Jean-Paul Sartre",
+      "en": "That is what I mean when I say that man is condemned to be free. - Jean-Paul Sartre"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Jean-Paul Sartre, L'esistenzialismo è un umanismo (page bibliography lists a translation by 'G.' ...) — https://it.wikiquote.org/wiki/Jean-Paul_Sartre",
+      "en": "Sartre, Existentialism Is a Humanism, translated by Philip Mairet (in Existentialism from Dostoyevsky to Sartre, ed. Walter Kaufmann, Meridian 1989), marxists.org — https://www.marxists.org/reference/archive/sartre/works/exist/sartre.htm"
+    }
   },
   {
     "text": "L'enfer, c'est les Autres. - Jean-Paul Sartre",
@@ -305,7 +503,13 @@
     "tags": [
       "philosophy",
       "literature"
-    ]
+    ],
+    "translations": {
+      "it": "L'inferno sono gli altri. - Jean-Paul Sartre"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Jean-Paul Sartre; from A porte chiuse, cited in Dizionario delle citazioni — https://it.wikiquote.org/wiki/Jean-Paul_Sartre"
+    }
   },
   {
     "text": "Il faut imaginer Sisyphe heureux. - Albert Camus",
@@ -318,7 +522,15 @@
     "tags": [
       "philosophy",
       "life"
-    ]
+    ],
+    "translations": {
+      "it": "Bisogna immaginare Sisifo felice. - Albert Camus",
+      "en": "One must imagine Sisyphus happy. - Albert Camus"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Albert Camus; Il mito di Sisifo, trad. Attilio Borrelli, Bompiani — https://it.wikiquote.org/wiki/Albert_Camus",
+      "en": "Wikiquote (en), page Albert Camus, The Myth of Sisyphus — https://en.wikiquote.org/wiki/Albert_Camus"
+    }
   },
   {
     "text": "L'attention, à son plus haut degré, est la même chose que la prière. Elle suppose la foi et l'amour. - Simone Weil",

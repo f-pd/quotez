@@ -8,9 +8,14 @@
       "fr": "Platon, Apologie de Socrate 38a"
     },
     "translations": {
-      "en": "The unexamined life is not worth living. - Socrates",
-      "it": "Una vita senza ricerca non è degna di essere vissuta. - Socrate",
-      "fr": "Une vie sans examen ne vaut pas la peine d'être vécue. - Socrate"
+      "it": "Una vita che non dia luogo ad esame non merita d'esser vissuta. - Socrate",
+      "en": "The unexamined life is not worth living for a human being. - Socrates",
+      "fr": "une vie sans examen n’est pas une vie - Socrate"
+    },
+    "translation_sources": {
+      "it": "Emidio Martini, Platone, Apologia di Socrate, Paravia 1934, cap. XXVIII, p. 48 (via Wikiquote it) — https://it.wikiquote.org/wiki/Platone#Apologia_di_Socrate",
+      "en": "Wikiquote (en), page Apology (Plato), 38a (main rendering, no translator named; variants by G. M. A. Grube, W. H. D. Rouse, Jowett on same page) — https://en.wikiquote.org/wiki/Apology_(Plato)",
+      "fr": "Victor Cousin, Œuvres de Platon, Rey et Gravier 1846, tome I (Wikisource fr) — https://fr.wikisource.org/wiki/Apologie_de_Socrate_(trad._Cousin)/Dialogue"
     }
   },
   {
@@ -22,9 +27,14 @@
       "fr": "Aristote, Politique V, 4, 1303b29"
     },
     "translations": {
-      "en": "The beginning is said to be half of the whole. - Aristotle",
-      "it": "Si dice che il principio sia la metà del tutto. - Aristotele",
-      "fr": "On dit que le commencement est la moitié du tout. - Aristote"
+      "en": "as the proverb says — \"Well begun is half done\" - Aristotle",
+      "fr": "le proverbe est bien sage : « Chose commencée est à demi faite. » - Aristote",
+      "it": "il principio si dice essere la metà del tutto - Aristotele"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Politics (Aristotle), Book V, 1303b.19-30 (no translator named for this entry; Jowett's wording) — https://en.wikiquote.org/wiki/Politics_(Aristotle)",
+      "fr": "Jules Barthélemy-Saint-Hilaire, Aristote, La Politique, Ladrange 1874, livre VIII (= Bekker V), ch. III, § 2 (Wikisource fr) — https://fr.wikisource.org/wiki/La_Politique/Livre_VIII",
+      "it": "Bernardo Segni (XVI sec.), Aristotele, Trattato dei governi (Politica), libro ottavo, cap. IV (Wikisource it) — https://it.wikisource.org/wiki/Trattato_dei_governi/Libro_ottavo/IV"
     }
   },
   {
@@ -36,9 +46,14 @@
       "fr": "Aristote, Métaphysique I (A), 1, 980a21"
     },
     "translations": {
+      "it": "Tutti gli uomini per natura tendono al sapere. - Aristotele",
       "en": "All men by nature desire to know. - Aristotle",
-      "it": "Tutti gli uomini per natura desiderano sapere. - Aristotele",
-      "fr": "Tous les hommes désirent naturellement savoir. - Aristote"
+      "fr": "Tous les hommes ont un désir naturel de savoir - Aristote"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Aristotele, Metafisica I, 1, 980a 21; page bibliography: Aristotele. Volume primo (Dell'anima, Metafisica), trad. Renato Laurenti, Antonio Russo, Mondadori 2008 — https://it.wikiquote.org/wiki/Aristotele#Metafisica",
+      "en": "W. D. Ross, Metaphysics (1908), Book I, 980a21 (via Wikiquote en, linking en.wikisource Metaphysics (Ross, 1908)) — https://en.wikiquote.org/wiki/Aristotle#Metaphysics",
+      "fr": "Victor Cousin, De la Métaphysique d’Aristote, Ladrange 1838, livre I, ch. 1 (Wikisource fr) — https://fr.wikisource.org/wiki/Premier_livre_de_la_M%C3%A9taphysique_(trad._Cousin)"
     }
   },
   {
@@ -50,9 +65,14 @@
       "fr": "Pensées pour moi-même X, 16"
     },
     "translations": {
-      "en": "Waste no more time arguing what a good man should be. Be one. - Marcus Aurelius",
-      "it": "Non perdere altro tempo a discutere su come debba essere un uomo buono: sii tale. - Marco Aurelio",
-      "fr": "Ne discute plus du tout sur ce que doit être l'homme de bien, mais sois-le. - Marc Aurèle"
+      "en": "Put an end once for all to this discussion of what a good man should be, and be one. - Marcus Aurelius",
+      "fr": "Il n’est plus temps de discuter sur les conditions que l’homme de bien doit remplir ; il s’agit uniquement d’être homme de bien. - Marc Aurèle",
+      "it": "Non è più tempo di discutere intorno a ciò che dev’essere l’uomo dabbene, ma di cominciare ad esserlo di fatto. - Marco Aurelio"
+    },
+    "translation_sources": {
+      "en": "C. R. Haines, Meditations, Loeb Classical Library 1916, X.16 (via Wikiquote en) — https://en.wikiquote.org/wiki/Marcus_Aurelius",
+      "fr": "Jules Barthélemy-Saint-Hilaire, Pensées pour moi-même, Germer-Baillière 1876, X, 16 (Wikisource fr) — https://fr.wikisource.org/wiki/Pens%C3%A9es_pour_moi-m%C3%AAme/Livre_X",
+      "it": "Umberto Moricca, Marco Aurelio, I Ricordi, Chiantore, Torino 1923, X, 16 (Wikisource it) — https://it.wikisource.org/wiki/I_Ricordi/Libro_X"
     }
   },
   {
@@ -64,9 +84,14 @@
       "fr": "Pensées pour moi-même V, 16"
     },
     "translations": {
-      "en": "Such as are your habitual thoughts, such also will be the character of your mind; for the soul is dyed by the thoughts. - Marcus Aurelius",
-      "it": "Quali sono i tuoi pensieri abituali, tale sarà la tua mente: l'anima infatti si tinge dei pensieri. - Marco Aurelio",
-      "fr": "Telles sont tes pensées habituelles, tel sera ton esprit ; car l'âme se teint de ses pensées. - Marc Aurèle"
+      "en": "The things you think about determine the quality of your mind. Your soul takes on the color of your thoughts. - Marcus Aurelius",
+      "fr": "Telles seront les pensées que tu nourriras habituellement, tel aussi sera ton esprit ; car l’âme prend la couleur et la teinte des pensées qu’elle entretient. - Marc Aurèle",
+      "it": "Quali saranno i tuoi pensieri abituali, tale sarà la tua mente; l’anima infatti rimane come tinta dalle idee che riceve. - Marco Aurelio"
+    },
+    "translation_sources": {
+      "en": "Gregory Hays, Meditations (Modern Library 2002), V, 16 (via Wikiquote en) — https://en.wikiquote.org/wiki/Marcus_Aurelius",
+      "fr": "Jules Barthélemy-Saint-Hilaire, Pensées pour moi-même, Germer-Baillière 1876, V, 16 (Wikisource fr) — https://fr.wikisource.org/wiki/Pens%C3%A9es_pour_moi-m%C3%AAme/Livre_V",
+      "it": "Umberto Moricca, Marco Aurelio, I Ricordi, Chiantore, Torino 1923, V, 16 (Wikisource it) — https://it.wikisource.org/wiki/I_Ricordi/Libro_V"
     }
   },
   {
@@ -78,9 +103,14 @@
       "fr": "De brevitate vitae 1, 3"
     },
     "translations": {
-      "en": "It is not that we have a short time to live, but that we waste a lot of it. - Seneca",
-      "it": "Non è che abbiamo poco tempo, ma che ne perdiamo molto. - Seneca",
-      "fr": "Ce n'est pas que nous ayons peu de temps, c'est que nous en perdons beaucoup. - Sénèque"
+      "it": "Non abbiamo poco tempo, ma ne abbiamo perduto molto. - Seneca",
+      "en": "It is not that we have a short space of time, but that we waste much of it. - Seneca",
+      "fr": "Non : la nature ne nous donne pas trop peu : c’est nous qui perdons beaucoup trop. - Sénèque"
+    },
+    "translation_sources": {
+      "it": "Alfonso Traina, La brevità della vita, BUR 1993, p. 41 (via Wikiquote it) — https://it.wikiquote.org/wiki/Lucio_Anneo_Seneca#De_brevitate_vitae",
+      "en": "John W. Basore, On the Shortness of Life, ch. 1 (via Wikiquote en) — https://en.wikiquote.org/wiki/Seneca_the_Younger",
+      "fr": "Joseph Baillard, Œuvres complètes de Sénèque le Philosophe (Hachette), De la brièveté de la vie, ch. 1 (Wikisource fr) — https://fr.wikisource.org/wiki/De_la_bri%C3%A8vet%C3%A9_de_la_vie/Traduction_Baillard"
     }
   },
   {
@@ -92,9 +122,12 @@
       "fr": "Epistulae morales ad Lucilium 1, 3"
     },
     "translations": {
-      "en": "Everything, Lucilius, belongs to others; time alone is ours. - Seneca",
-      "it": "Tutto, Lucilio, ci è estraneo; solo il tempo è nostro. - Seneca",
-      "fr": "Tout, Lucilius, nous est étranger ; le temps seul est à nous. - Sénèque"
+      "en": "Nothing, Lucilius, is ours, except time. - Seneca",
+      "fr": "Cher Lucilius, tout le reste est d’emprunt, le temps seul est notre bien. - Sénèque"
+    },
+    "translation_sources": {
+      "en": "Richard Mott Gummere, Moral Letters to Lucilius, Loeb 1917, Letter 1, §3 (Wikisource en) — https://en.wikisource.org/wiki/Moral_letters_to_Lucilius/Letter_1",
+      "fr": "Joseph Baillard, Sénèque, Œuvres complètes, tome II (Hachette), Lettre 1 (Wikisource fr) — https://fr.wikisource.org/wiki/Lettres_%C3%A0_Lucilius/Lettre_1"
     }
   },
   {
@@ -106,9 +139,14 @@
       "fr": "fr. 22 B 91 Diels-Kranz (dans Plutarque, De E apud Delphos 392b)"
     },
     "translations": {
-      "en": "It is not possible to step twice into the same river. - Heraclitus",
-      "it": "Non è possibile discendere due volte nello stesso fiume. - Eraclito",
-      "fr": "On ne peut pas entrer deux fois dans le même fleuve. - Héraclite"
+      "it": "Non si può discendere due volte nel medesimo fiume - Eraclito",
+      "en": "You cannot step twice into the same river. - Heraclitus",
+      "fr": "On ne peut pas descendre deux fois dans le même fleuve. - Héraclite"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Eraclito, fr. 91a (page bibliography: Francesco Fronterotta, Frammenti, BUR 2013 / Angelo Tonelli, Feltrinelli 1993) — https://it.wikiquote.org/wiki/Eraclito#Sulla_natura",
+      "en": "Wikiquote (en), page Heraclitus, Fragment 91 (Plutarch, On the EI at Delphi); no translator named — https://en.wikiquote.org/wiki/Heraclitus",
+      "fr": "Abel Jeannière, Héraclite. Traduction et Commentaire des Fragments, Aubier Montaigne 1985, p. 116 (via Wikiquote fr) — https://fr.wikiquote.org/wiki/H%C3%A9raclite_d%27%C3%89ph%C3%A8se"
     }
   },
   {
@@ -120,9 +158,14 @@
       "fr": "Tao Te King (道德經), chapitre 64"
     },
     "translations": {
-      "en": "A journey of a thousand li begins beneath one's feet. - Laozi",
-      "it": "Un viaggio di mille li comincia sotto i propri piedi. - Laozi",
-      "fr": "Un voyage de mille li commence sous ses pieds. - Lao Tseu"
+      "it": "Un viaggio di mille miglia comincia da sotto i piedi. - Laozi",
+      "en": "A journey of a thousand li starts with a single step. - Laozi",
+      "fr": "un voyage de mille lis a commencé par un pas ! - Lao Tseu"
+    },
+    "translation_sources": {
+      "it": "Girolamo Mancuso, Il libro del Tao, Newton 1995, cap. 64 (via Wikiquote it) — https://it.wikiquote.org/wiki/Laozi",
+      "en": "Wikiquote (en), page Laozi, chapter 64; no translator named — https://en.wikiquote.org/wiki/Laozi",
+      "fr": "Stanislas Julien, Le Livre de la Voie et de la Vertu (Tao Te King), 1842, ch. 64 (Wikisource fr) — https://fr.wikisource.org/wiki/Tao_Te_King_(Stanislas_Julien,_sans_notes)"
     }
   },
   {
@@ -134,8 +177,12 @@
       "fr": "Codex Forster III, f. 14r"
     },
     "translations": {
-      "en": "Wisdom is the daughter of experience. - Leonardo da Vinci",
-      "fr": "La sagesse est fille de l'expérience. - Léonard de Vinci"
+      "fr": "La sagesse est fille de l’expérience. - Léonard de Vinci",
+      "en": "Wisdom is the daughter of experience. - Leonardo da Vinci"
+    },
+    "translation_sources": {
+      "fr": "Louise Servicen (texte établi par Edward MacCurdy), Léonard de Vinci, Carnets, Gallimard 2019, p. 132 (via Wikiquote fr) — https://fr.wikiquote.org/wiki/L%C3%A9onard_de_Vinci",
+      "en": "Jean Paul Richter, The Notebooks of Leonardo da Vinci (1883), XIX Philosophical Maxims (via Wikiquote en) — https://en.wikiquote.org/wiki/Leonardo_da_Vinci"
     }
   },
   {
@@ -147,8 +194,12 @@
       "fr": "Inferno, chant I, 1-2"
     },
     "translations": {
-      "en": "Midway upon the journey of our life I found myself within a forest dark. - Dante Alighieri",
-      "fr": "Au milieu du chemin de notre vie, je me retrouvai par une forêt obscure. - Dante Alighieri"
+      "en": "Midway upon the journey of our life I found myself within a forest dark - Dante Alighieri",
+      "fr": "Au milieu du chemin de notre vie je me retrouvai par une forêt obscure - Dante Alighieri"
+    },
+    "translation_sources": {
+      "en": "Henry Wadsworth Longfellow, Inferno I, 1-2 (via Wikiquote en) — https://en.wikiquote.org/wiki/Divine_Comedy",
+      "fr": "Jacqueline Risset, La Divine Comédie : L'Enfer, GF-Flammarion 1992, chant I, v. 1-2 (via Wikiquote fr) — https://fr.wikiquote.org/wiki/Dante_Alighieri"
     }
   },
   {
@@ -161,7 +212,11 @@
     },
     "translations": {
       "en": "I think, therefore I am. - René Descartes",
-      "it": "Penso, dunque sono. - René Descartes"
+      "it": "io penso, dunque io sono - René Descartes"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page René Descartes, Discourse on the Method; no translator named — https://en.wikiquote.org/wiki/Ren%C3%A9_Descartes",
+      "it": "Adolfo Levi, Cartesio, Discorso sul metodo, Loffredo, Napoli 1937, parte IV, p. 57 (via Wikiquote it) — https://it.wikiquote.org/wiki/Cartesio#Discorso_sul_metodo"
     }
   },
   {
@@ -173,8 +228,12 @@
       "fr": "« What Life Means to Einstein », entretien avec G. S. Viereck, The Saturday Evening Post, 26 octobre 1929"
     },
     "translations": {
-      "it": "L'immaginazione è più importante della conoscenza. - Albert Einstein",
-      "fr": "L'imagination est plus importante que le savoir. - Albert Einstein"
+      "fr": "L'imagination est plus importante que le savoir. - Albert Einstein",
+      "it": "L'immaginazione è più importante della conoscenza. - Albert Einstein"
+    },
+    "translation_sources": {
+      "fr": "Wikiquote (fr), page Albert Einstein (no translator named; source cited: Viereck, Saturday Evening Post, 26 Oct 1929, p. 17) — https://fr.wikiquote.org/wiki/Albert_Einstein",
+      "it": "Wikiquote (it), page Albert Einstein (no translator named) — https://it.wikiquote.org/wiki/Albert_Einstein"
     }
   },
   {
@@ -186,8 +245,12 @@
       "fr": "Hamlet, acte I, scène 3, vers 78 (Polonius)"
     },
     "translations": {
-      "it": "Sopra ogni cosa, sii fedele a te stesso. - William Shakespeare",
-      "fr": "Avant tout, sois fidèle à toi-même. - William Shakespeare"
+      "fr": "Avant tout, sois loyal envers toi-même - William Shakespeare",
+      "it": "Ma a questo sopratutto bada: sii sincero con te stesso - William Shakespeare"
+    },
+    "translation_sources": {
+      "fr": "François-Victor Hugo, Shakespeare, Œuvres complètes, Pagnerre 1865, tome I, Hamlet I, 3 (Wikisource fr) — https://fr.wikisource.org/wiki/Le_second_Hamlet_(trad._Hugo)",
+      "it": "Carlo Rusconi, Teatro completo di Shakspeare, UTET, Torino 1858, Amleto I, 3 (Wikisource it) — https://it.wikisource.org/wiki/Amleto/Atto_primo"
     }
   },
   {
@@ -197,10 +260,6 @@
       "en": "The Fellowship of the Ring, book I, chapter 10 \"Strider\"",
       "it": "The Fellowship of the Ring, libro I, capitolo 10 \"Strider\"",
       "fr": "The Fellowship of the Ring, livre I, chapitre 10 « Strider »"
-    },
-    "translations": {
-      "it": "Non tutti quelli che vagano sono perduti. - J. R. R. Tolkien",
-      "fr": "Tous ceux qui errent ne sont pas perdus. - J. R. R. Tolkien"
     }
   }
 ]

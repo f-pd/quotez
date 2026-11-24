@@ -10,7 +10,15 @@
     "tags": [
       "feminism",
       "freedom"
-    ]
+    ],
+    "translations": {
+      "it": "Vorrei che le donne avessero potere non sugli uomini, ma su loro stesse. - Mary Wollstonecraft",
+      "fr": "Je voudrois leur voir de l’empire non sur les hommes, mais sur elles-mêmes. - Mary Wollstonecraft"
+    },
+    "translation_sources": {
+      "it": "Il libro del femminismo, trad. Martina Dominici, Gribaudo, 2019, p. 34 (via Wikiquote it) — https://it.wikiquote.org/wiki/Mary_Wollstonecraft",
+      "fr": "Défense des droits des femmes, Paris, Buisson / Lyon, Bruyset, 1792, ch. IV (anonymous contemporary translation, Wikisource) — https://fr.wikisource.org/wiki/D%C3%A9fense_des_droits_des_femmes/04"
+    }
   },
   {
     "text": "La femme a le droit de monter sur l'échafaud ; elle doit avoir également celui de monter à la Tribune. - Olympe de Gouges",
@@ -23,7 +31,15 @@
     "tags": [
       "feminism",
       "equality"
-    ]
+    ],
+    "translations": {
+      "it": "la donna ha il diritto di salire sul patibolo; allo stesso modo, deve avere anche quello di salire sulla Tribuna - Olympe de Gouges",
+      "en": "woman has the right to mount the scaffold; she must equally have the right to mount the rostrum - Olympe de Gouges"
+    },
+    "translation_sources": {
+      "it": "Dichiarazione dei diritti della donna e della cittadina, art. X, trad. Simonetta Micale (via Wikiquote it) — https://it.wikiquote.org/wiki/Olympe_de_Gouges",
+      "en": "Women in Revolutionary Paris 1789-1795, ed./trans. Darline Gay Levy, Harriet B. Applewhite, Mary D. Johnson, University of Illinois Press, 1979, pp. 89-96 — https://pages.uoregon.edu/dluebke/301ModernEurope/GougesRightsofWomen.pdf"
+    }
   },
   {
     "text": "On ne naît pas femme : on le devient. - Simone de Beauvoir",
@@ -36,7 +52,15 @@
     "tags": [
       "feminism",
       "philosophy"
-    ]
+    ],
+    "translations": {
+      "it": "Donne non si nasce, lo si diventa. - Simone de Beauvoir",
+      "en": "One is not born, but rather becomes, a woman. - Simone de Beauvoir"
+    },
+    "translation_sources": {
+      "it": "Il secondo sesso, trad. Roberto Cantini e Mario Andreose, il Saggiatore, Milano, 2008 (via Wikiquote it) — https://it.wikiquote.org/wiki/Simone_de_Beauvoir",
+      "en": "The Second Sex, trans. H. M. Parshley (1953; Vintage 1972), Bk. 2, Pt. 4, Ch. 1, p. 267 (via Wikiquote en) — https://en.wikiquote.org/wiki/Simone_de_Beauvoir"
+    }
   },
   {
     "text": "a woman must have money and a room of her own if she is to write fiction. - Virginia Woolf",
@@ -49,7 +73,15 @@
     "tags": [
       "feminism",
       "literature"
-    ]
+    ],
+    "translations": {
+      "it": "Una donna, se vuole scrivere romanzi, deve avere soldi e una stanza per sé, una stanza propria. - Virginia Woolf",
+      "fr": "Il est indispensable qu'une femme possède quelque argent et une chambre à soi si elle veut écrire une oeuvre de fiction. - Virginia Woolf"
+    },
+    "translation_sources": {
+      "it": "Una stanza tutta per sé, trad. J. Rodolfo Wilcock e Livio Bacchi Wilcock, Feltrinelli, 2013 (via Wikiquote it) — https://it.wikiquote.org/wiki/Virginia_Woolf",
+      "fr": "Une chambre à soi, trad. Clara Malraux, 10/18, 1996, p. 8 (via Wikiquote fr) — https://fr.wikiquote.org/wiki/Virginia_Woolf"
+    }
   },
   {
     "text": "For the master's tools will never dismantle the master's house. - Audre Lorde",
@@ -62,7 +94,15 @@
     "tags": [
       "feminism",
       "civil-rights"
-    ]
+    ],
+    "translations": {
+      "it": "Gli strumenti del padrone non smantelleranno mai la casa del padrone. - Audre Lorde",
+      "fr": "On ne démolira jamais la maison du maître avec les outils du maître. - Audre Lorde"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Audre Lorde — https://it.wikiquote.org/wiki/Audre_Lorde",
+      "fr": "Sister Outsider, éd. Mamalis, 2018, p. 119 (via Wikiquote fr) — https://fr.wikiquote.org/wiki/Audre_Lorde"
+    }
   },
   {
     "text": "Pies, ¿para qué los quiero si tengo alas pa' volar? - Frida Kahlo",
@@ -75,6 +115,12 @@
     "tags": [
       "feminism",
       "art"
-    ]
+    ],
+    "translations": {
+      "en": "Feet, what do I need them for\nIf I have wings to fly. - Frida Kahlo"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Frida Kahlo (diary, 1953; reproduced in Hayden Herrera, Frida, 1983, p. 415) — https://en.wikiquote.org/wiki/Frida_Kahlo"
+    }
   }
 ]

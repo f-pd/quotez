@@ -10,7 +10,15 @@
     "tags": [
       "anarchism",
       "property"
-    ]
+    ],
+    "translations": {
+      "it": "La proprietà è un furto. - Pierre-Joseph Proudhon",
+      "en": "Property is robbery! - Pierre-Joseph Proudhon"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Pierre-Joseph Proudhon, section 'Che cos'è la proprietà?' — https://it.wikiquote.org/wiki/Pierre-Joseph_Proudhon",
+      "en": "What is Property?, trans. Benjamin R. Tucker (1890), ch. I (via Wikiquote en) — https://en.wikiquote.org/wiki/Pierre-Joseph_Proudhon"
+    }
   },
   {
     "text": "Si Dieu est, l'homme est esclave ; or l'homme peut, doit être libre, donc Dieu n'existe pas. - Mikhaïl Bakounine",
@@ -24,7 +32,15 @@
       "anarchism",
       "freedom",
       "religion"
-    ]
+    ],
+    "translations": {
+      "it": "Se Dio è, l'uomo è schiavo; ora, l'uomo può e deve essere libero: dunque Dio non esiste. - Michail Bakunin",
+      "en": "If God is, man is a slave; now, man can and must be free; then, God does not exist. - Mikhail Bakunin"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Michail Bakunin, section 'Dio e lo Stato' (bibliography lists translations by Giuseppe Rose, RL 1974, and Paolina Bissolati, 1949; quote not tied to one) — https://it.wikiquote.org/wiki/Michail_Bakunin",
+      "en": "God and the State, trans. Benjamin R. Tucker (1883), ch. II (marxists.org) — https://www.marxists.org/reference/archive/bakunin/works/godstate/ch02.htm"
+    }
   },
   {
     "text": "\"Don't compete! — competition is always injurious to the species, and you have plenty of resources to avoid it!\" That is the tendency of nature, not always realized in full, but always present. - Peter Kropotkin",
@@ -37,7 +53,15 @@
     "tags": [
       "anarchism",
       "solidarity"
-    ]
+    ],
+    "translations": {
+      "fr": "« Pas de compétition ! La compétition est toujours nuisible à l’espèce et il y a de nombreux moyens de l’éviter ! » Telle est la tendance de la nature, non pas toujours pleinement réalisée, mais toujours présente. - Pierre Kropotkine",
+      "it": "«Niente competizione! La competizione è sempre nociva alla specie e vi sono numerosi mezzi per evitarla!». Tale è la tendenza della natura, non sempre pienamente realizzata, ma sempre presente. - Pëtr Kropotkin"
+    },
+    "translation_sources": {
+      "fr": "L'Entr'aide, un facteur de l'évolution, trad. Louise Guieysse-Bréal, Hachette, 1906 (Wikisource) — https://fr.wikisource.org/wiki/L%E2%80%99Entraide,_un_facteur_de_l%E2%80%99%C3%A9volution/Chapitre_II",
+      "it": "Il mutuo appoggio fattore dell'evoluzione, trad. Camillo Berneri, Libreria Internazionale di Avanguardia, Bologna, 1950 (Liber Liber e-book) — https://liberliber.eu/mediateca/libri/k/kropotkin/il_mutuo_appoggio/pdf/kropotkin_il_mutuo_appoggio.pdf"
+    }
   },
   {
     "text": "Anarchism, then, really stands for the liberation of the human mind from the dominion of religion; the liberation of the human body from the dominion of property; liberation from the shackles and restraint of government. - Emma Goldman",
@@ -64,7 +88,15 @@
       "anarchism",
       "disobedience",
       "justice"
-    ]
+    ],
+    "translations": {
+      "it": "Sotto un governo che imprigiona chiunque ingiustamente, il vero posto per un uomo giusto è la prigione. - Henry David Thoreau",
+      "fr": "Sous un gouvernement qui emprisonne injustement, c'est en prison que l'homme juste est à sa place. - Henry David Thoreau"
+    },
+    "translation_sources": {
+      "it": "La disobbedienza civile, a cura di Franco Meli, trad. Laura Gentili, SE, Milano, 1992, p. 29 (via Wikiquote it) — https://it.wikiquote.org/wiki/Henry_David_Thoreau",
+      "fr": "La désobéissance civile, trad. Jacques Mailhos, Gallmeister (Totem), 2017, p. 20 (via Wikiquote fr) — https://fr.wikiquote.org/wiki/Henry_David_Thoreau"
+    }
   },
   {
     "text": "Soyez résolus de ne servir plus, et vous voilà libres. - Étienne de La Boétie",
@@ -78,7 +110,15 @@
       "anarchism",
       "freedom",
       "disobedience"
-    ]
+    ],
+    "translations": {
+      "it": "Siate decisi a non servire più, ed eccovi liberi. - Étienne de La Boétie",
+      "en": "Resolve to serve no more, and you are at once freed. - Étienne de La Boétie"
+    },
+    "translation_sources": {
+      "it": "Discorso sulla servitù volontaria, trad. Vincenzo Papa, Edizioni Immanenza, Napoli, 2014, p. 36 (via Wikiquote it) — https://it.wikiquote.org/wiki/%C3%89tienne_de_La_Bo%C3%A9tie",
+      "en": "Anti-Dictator (Discourse on Voluntary Servitude), trans. Harry Kurz, 1942 (via Wikiquote en) — https://en.wikiquote.org/wiki/%C3%89tienne_de_La_Bo%C3%A9tie"
+    }
   },
   {
     "text": "Puisqu'il semble que tout cœur qui bat pour la liberté n'a droit qu'à un peu de plomb, j'en réclame une part, moi ! - Louise Michel",
@@ -120,7 +160,13 @@
       "anarchism",
       "literature",
       "hope"
-    ]
+    ],
+    "translations": {
+      "it": "Viviamo nel capitalismo, e il suo potere sembra assoluto… ma attenzione, lo sembrava anche il diritto divino dei re. Gli esseri umani possono resistere e sfidare ogni potere umano. - Ursula K. Le Guin"
+    },
+    "translation_sources": {
+      "it": "Fantascienza.com, 'Ursula Le Guin, ecco lo storico discorso al National Book Award', 24 Nov 2014 (full speech in Italian, translator NOT named) — https://www.fantascienza.com/19495/ursula-le-guin-ecco-lo-storico-discorso-al-national-book-award"
+    }
   },
   {
     "text": "Disobedience, in the eyes of any one who has read history, is man's original virtue. It is through disobedience that progress has been made, through disobedience and through rebellion. - Oscar Wilde",
@@ -134,6 +180,14 @@
       "anarchism",
       "disobedience",
       "socialism"
-    ]
+    ],
+    "translations": {
+      "it": "La disobbedienza, agli occhi di chiunque abbia letto la storia, è la virtù originale dell’uomo. È attraverso la disobbedienza che il progresso si è realizzato, attraverso la disobbedienza e la ribellione. - Oscar Wilde",
+      "fr": "Aux yeux de quiconque a lu l’histoire, la désobéissance est une vertu primordiale de l’homme. C’est par la désobéissance que s’est accompli le progrès, par la désobéissance et la révolte. - Oscar Wilde"
+    },
+    "translation_sources": {
+      "it": "L'anima dell'uomo sotto il socialismo, trad. Marco Vignolo Gargini (blog publication, 2014) — https://marteau7927.wordpress.com/2014/06/30/oscar-wilde-lanima-delluomo-sotto-il-socialismo-ii/",
+      "fr": "L'Âme humaine sous le régime socialiste, in Le Portrait de Monsieur W. H., trad. Albert Savine, Stock, 1906 (Wikisource) — https://fr.wikisource.org/wiki/Le_Portrait_de_Monsieur_W._H._(recueil)/L%E2%80%99%C3%82me_humaine_sous_le_r%C3%A9gime_socialiste"
+    }
   }
 ]

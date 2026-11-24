@@ -12,7 +12,14 @@
       "class-struggle"
     ],
     "translations": {
-      "en": "The history of all hitherto existing society is the history of class struggles. - Karl Marx, Friedrich Engels"
+      "en": "The history of all hitherto existing society is the history of class struggles. - Karl Marx, Friedrich Engels",
+      "it": "L'istoria dell'umanità non è stata che l'istoria della lotta di classe. - Karl Marx, Friedrich Engels",
+      "fr": "L’histoire de toute société jusqu’à nos jours n’a été que l’histoire de luttes de classes. - Karl Marx, Friedrich Engels"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page The Communist Manifesto; tr. Samuel Moore (1888), Section I — https://en.wikiquote.org/wiki/The_Communist_Manifesto",
+      "it": "Wikiquote (it), page Manifesto del Partito Comunista; tr. Pietro Gori (Flaminio Fantuzzi, Milano, 1891), also on it.wikisource — https://it.wikiquote.org/wiki/Manifesto_del_Partito_Comunista",
+      "fr": "Wikiquote (fr), page Karl Marx; tr. Laura Lafargue, Manifeste du Parti communiste, Champ libre, 1983, p. 28 — https://fr.wikiquote.org/wiki/Karl_Marx"
     }
   },
   {
@@ -28,7 +35,14 @@
       "class-struggle"
     ],
     "translations": {
-      "en": "The proletarians have nothing to lose but their chains. They have a world to win. Working Men of All Countries, Unite! - Karl Marx, Friedrich Engels"
+      "en": "The proletarians have nothing to lose but their chains. They have a world to win. WORKING MEN OF ALL COUNTRIES, UNITE! - Karl Marx, Friedrich Engels",
+      "it": "I proletarii non hanno nulla a perdere, all'infuori delle loro catene: essi hanno un mondo da guadagnare. Proletari di tutti i paesi unitevi! - Karl Marx, Friedrich Engels",
+      "fr": "Les prolétaires n'ont rien à y perdre que leurs chaînes. Ils ont un monde à gagner. Prolétaires de tous les pays, unissez-vous ! - Karl Marx, Friedrich Engels"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page The Communist Manifesto; tr. Samuel Moore (1888), Section IV, last paragraph — https://en.wikiquote.org/wiki/The_Communist_Manifesto",
+      "it": "Wikiquote (it), page Manifesto del Partito Comunista; tr. Pietro Gori (1891) — https://it.wikiquote.org/wiki/Manifesto_del_Partito_Comunista",
+      "fr": "Wikiquote (fr), page Karl Marx; tr. Émile Bottigelli, Manifeste du Parti communiste, Flammarion GF, 1998, p. 119 — https://fr.wikiquote.org/wiki/Karl_Marx"
     }
   },
   {
@@ -42,7 +56,17 @@
     "tags": [
       "marxism",
       "philosophy"
-    ]
+    ],
+    "translations": {
+      "en": "The philosophers have only interpreted the world, in various ways. The point, however, is to change it. - Karl Marx",
+      "it": "I filosofi hanno solo interpretato il mondo in modi diversi; si tratta però di mutarlo. - Karl Marx",
+      "fr": "Les philosophes n'ont fait qu'interpréter le monde de diverses manières ; ce qui importe, c'est de le transformer. - Karl Marx"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Karl Marx; Theses on Feuerbach, Thesis 11, Marx Engels Selected Works vol. I, p. 15 — https://en.wikiquote.org/wiki/Karl_Marx",
+      "it": "Wikiquote (it), page Karl Marx; tr. Palmiro Togliatti, appendix to Engels, Ludwig Feuerbach..., Editori Riuniti, 1950 (also marxists.org/italiano/marx-engels/1845/3/tesi-f.htm) — https://it.wikiquote.org/wiki/Karl_Marx",
+      "fr": "Wikiquote (fr), page Karl Marx; tr. Maximilien Rubel, Œuvres III (Philosophie), Gallimard, Pléiade, 1982, p. 1033 — https://fr.wikiquote.org/wiki/Karl_Marx"
+    }
   },
   {
     "text": "Die Religion ist der Seufzer der bedrängten Kreatur, das Gemüt einer herzlosen Welt, wie sie der Geist geistloser Zustände ist. Sie ist das Opium des Volkes. - Karl Marx",
@@ -54,7 +78,17 @@
     },
     "tags": [
       "marxism"
-    ]
+    ],
+    "translations": {
+      "en": "Religion is the sigh of the oppressed creature, the heart of a heartless world, and the soul of soulless conditions. It is the opium of the people. - Karl Marx",
+      "it": "La religione è il sospiro della creatura oppressa, il sentimento di un mondo senza cuore, così come è lo spirito di una condizione senza spirito. Essa è l'oppio del popolo. - Karl Marx",
+      "fr": "La religion est le soupir de la créature accablée, l'âme d'un monde sans cœur, de même qu'elle est l'esprit d'un état de choses où il n'est point d'esprit. Elle est l’opium du peuple. - Karl Marx"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Karl Marx; A Contribution to the Critique of Hegel's Philosophy of Right, Introduction — https://en.wikiquote.org/wiki/Karl_Marx",
+      "it": "Wikiquote (it), page Karl Marx; text as on marxists.org/italiano/marx-engels/1844/2/criticahegel.htm — https://it.wikiquote.org/wiki/Karl_Marx",
+      "fr": "Wikiquote (fr), page Karl Marx; tr. Jules Molitor, in Marx, Œuvres III (Philosophie), Gallimard, Pléiade, 1982, p. 383 — https://fr.wikiquote.org/wiki/Karl_Marx"
+    }
   },
   {
     "text": "Die Menschen machen ihre eigene Geschichte, aber sie machen sie nicht aus freien Stücken, nicht unter selbstgewählten, sondern unter unmittelbar vorgefundenen, gegebenen und überlieferten Umständen. - Karl Marx",
@@ -67,7 +101,17 @@
     "tags": [
       "marxism",
       "history"
-    ]
+    ],
+    "translations": {
+      "en": "Men make their own history, but they do not make it as they please; they do not make it under self-selected circumstances, but under circumstances existing already, given and transmitted from the past. - Karl Marx",
+      "it": "Gli uomini fanno la propria storia, ma non la fanno in modo arbitrario, in circostanze scelte da loro stessi, bensì nelle circostanze che essi trovano immediatamente davanti a sé, determinate dai fatti e dalla tradizione. - Karl Marx",
+      "fr": "Les hommes font leur propre histoire, mais ils ne la font pas arbitrairement, dans les conditions choisies par eux, mais dans des conditions directement données et héritées du passé. - Karl Marx"
+    },
+    "translation_sources": {
+      "en": "Marxists Internet Archive, The Eighteenth Brumaire of Louis Bonaparte, ch. I (same text on Wikiquote (en), page Karl Marx) — https://www.marxists.org/archive/marx/works/1852/18th-brumaire/ch01.htm",
+      "it": "Wikiquote (it), page Karl Marx; tr. Palmiro Togliatti, Il 18 brumaio di Luigi Bonaparte, Editori Riuniti (also marxists.org/italiano/marx-engels/1852/brumaio/cap1.htm) — https://it.wikiquote.org/wiki/Karl_Marx",
+      "fr": "Marxists Internet Archive (français), Le 18 brumaire de L. Bonaparte, ch. I (Éditions sociales text) — https://www.marxists.org/francais/marx/works/1851/12/brum3.htm"
+    }
   },
   {
     "text": "Hegel bemerkte irgendwo, daß alle großen weltgeschichtlichen Tatsachen und Personen sich sozusagen zweimal ereignen. Er hat vergessen, hinzuzufügen: das eine Mal als Tragödie, das andere Mal als Farce. - Karl Marx",
@@ -80,7 +124,17 @@
     "tags": [
       "marxism",
       "history"
-    ]
+    ],
+    "translations": {
+      "en": "Hegel remarks somewhere that all great world-historic facts and personages appear, so to speak, twice. He forgot to add: the first time as tragedy, the second time as farce. - Karl Marx",
+      "it": "Hegel nota in un passo delle sue opere che tutti i grandi fatti e i grandi personaggi della storia universale si presentano, per cosí dire, due volte. Ha dimenticato di aggiungere: la prima volta come tragedia, la seconda volta come farsa. - Karl Marx",
+      "fr": "Hegel fait remarquer quelque part que, dans l'histoire universelle, les grands faits et les grands personnages se produisent, pour ainsi dire, deux fois. Il a oublié d'ajouter : la première fois comme tragédie, la seconde comme farce. - Karl Marx"
+    },
+    "translation_sources": {
+      "en": "Marxists Internet Archive, The Eighteenth Brumaire of Louis Bonaparte, ch. I — https://www.marxists.org/archive/marx/works/1852/18th-brumaire/ch01.htm",
+      "it": "Wikiquote (it), page Karl Marx; tr. Palmiro Togliatti, Il 18 brumaio di Luigi Bonaparte, Editori Riuniti, 2001, p. 45 — https://it.wikiquote.org/wiki/Karl_Marx",
+      "fr": "Wikiquote (fr), page Karl Marx; tr. Léon Rémy et Jules Molitor, Le 18 brumaire de Louis Bonaparte, La Table Ronde, 2001 — https://fr.wikiquote.org/wiki/Karl_Marx"
+    }
   },
   {
     "text": "Jeder nach seinen Fähigkeiten, jedem nach seinen Bedürfnissen! - Karl Marx",
@@ -92,7 +146,17 @@
     },
     "tags": [
       "marxism"
-    ]
+    ],
+    "translations": {
+      "en": "From each according to his abilities, to each according to his needs! - Karl Marx",
+      "it": "Da ognuno secondo le proprie capacità, a ognuno secondo i propri bisogni. - Karl Marx",
+      "fr": "De chacun selon ses capacités, à chacun selon ses besoins ! - Karl Marx"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Karl Marx; Critique of the Gotha Program (1875) — https://en.wikiquote.org/wiki/Karl_Marx",
+      "it": "Wikiquote (it), page Karl Marx, section Critica al programma di Gotha (no translator named) — https://it.wikiquote.org/wiki/Karl_Marx",
+      "fr": "Marxists Internet Archive (français), Critique du programme de Gotha (Éditions sociales) — https://marxists.org/francais/marx/works/1875/05/GOTHA.pdf"
+    }
   },
   {
     "text": "Es ist nicht das Bewußtsein der Menschen, das ihr Sein, sondern umgekehrt ihr gesellschaftliches Sein, das ihr Bewußtsein bestimmt. - Karl Marx",
@@ -105,7 +169,17 @@
     "tags": [
       "marxism",
       "philosophy"
-    ]
+    ],
+    "translations": {
+      "en": "It is not the consciousness of men that determines their being, but, on the contrary, their social being that determines their consciousness. - Karl Marx",
+      "it": "Non è la coscienza degli uomini che determina il loro essere, ma è, al contrario, il loro essere sociale che determina la loro coscienza. - Karl Marx",
+      "fr": "Ce n'est pas la conscience des hommes qui détermine leur existence, c'est au contraire leur existence sociale qui détermine leur conscience. - Karl Marx"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Karl Marx; Preface to A Contribution to the Critique of Political Economy (1859) — https://en.wikiquote.org/wiki/Karl_Marx",
+      "it": "Marxists Internet Archive (italiano), Per la critica dell'economia politica, Prefazione (Editori Riuniti edition) — https://www.marxists.org/italiano/marx-engels/1859/criticaep/prefazione.htm",
+      "fr": "Wikiquote (fr), page Karl Marx; tr. Maximilien Rubel et Louis Evrard, Critique de l'Économie politique, Avant-propos, Gallimard, Pléiade, 1965, p. 272 — https://fr.wikiquote.org/wiki/Karl_Marx"
+    }
   },
   {
     "text": "Das Kapital ist verstorbne Arbeit, die sich nur vampyrmäßig belebt durch Einsaugung lebendiger Arbeit, und um so mehr lebt, je mehr sie davon einsaugt. - Karl Marx",
@@ -118,7 +192,17 @@
     "tags": [
       "marxism",
       "work"
-    ]
+    ],
+    "translations": {
+      "en": "Capital is dead labor, that vampire-like, only lives by sucking living labor, and lives the more, the more labor it sucks. - Karl Marx",
+      "it": "Il capitale è lavoro morto, che si ravviva, come un vampiro, soltanto succhiando lavoro vivo e più vive quanto più ne succhia. - Karl Marx",
+      "fr": "Le capital est du travail mort, qui ne s'anime qu'en suçant tel un vampire du travail vivant, et qui est d'autant plus vivant qu'il en suce davantage. - Karl Marx"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Karl Marx; Capital vol. I, ch. 10, section 1, p. 257 — https://en.wikiquote.org/wiki/Karl_Marx",
+      "it": "tr. Delio Cantimori, Il Capitale, Libro I, Editori Riuniti (wording as quoted by pcint.org and many other sources; attributed to Cantimori ed. by lacittafutura.it) — http://pcint.org/02_IlC/156/156_disastri-idrogeologici.htm",
+      "fr": "Wikiquote (fr), page Karl Marx; Le Capital, livre I, PUF (tr. under Jean-Pierre Lefebvre), ch. VIII, p. 259 — https://fr.wikiquote.org/wiki/Karl_Marx"
+    }
   },
   {
     "text": "Без революционной теории не может быть и революционного движения. - Владимир Ленин",
@@ -130,7 +214,17 @@
     },
     "tags": [
       "marxism"
-    ]
+    ],
+    "translations": {
+      "en": "Without revolutionary theory there can be no revolutionary movement. - Vladimir Lenin",
+      "it": "Senza teoria rivoluzionaria non vi può essere movimento rivoluzionario. - Lenin",
+      "fr": "Sans théorie révolutionnaire, pas de mouvement révolutionnaire. - Lénine"
+    },
+    "translation_sources": {
+      "en": "Marxists Internet Archive, Lenin, What Is to Be Done?, ch. I, D (Lenin Collected Works, Progress Publishers) — https://www.marxists.org/archive/lenin/works/1901/witbd/i.htm",
+      "it": "Wikiquote (it), page Lenin (cited from dizionari.corriere.it) — https://it.wikiquote.org/wiki/Lenin",
+      "fr": "Marxists Internet Archive (français), Lénine, Que faire ?, I.d (Éditions sociales; Politzer cites Éditions sociales 1947, p. 26) — https://www.marxists.org/francais/lenin/works/1902/02/19020200e.htm"
+    }
   },
   {
     "text": "Freiheit ist immer Freiheit der Andersdenkenden. - Rosa Luxemburg",
@@ -143,7 +237,17 @@
     "tags": [
       "marxism",
       "freedom"
-    ]
+    ],
+    "translations": {
+      "en": "Freedom is always the freedom of dissenters. - Rosa Luxemburg",
+      "it": "La libertà è sempre soltanto la libertà di chi pensa diversamente. - Rosa Luxemburg",
+      "fr": "La liberté, c'est toujours la liberté de celui qui ne pense pas comme vous. - Rosa Luxemburg"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Rosa Luxemburg; Die russische Revolution (1920), p. 109 / Gesammelte Werke vol. 4, p. 359, note 3 — https://en.wikiquote.org/wiki/Rosa_Luxemburg",
+      "it": "Wikiquote (it), page Rosa Luxemburg; La rivoluzione russa, in Scritti politici, ed. Lelio Basso, Editori Riuniti, 1970, p. 589 — https://it.wikiquote.org/wiki/Rosa_Luxemburg",
+      "fr": "Wikiquote (fr), page Rosa Luxemburg; tr. Gilbert Badia, Lettres et textes choisis, Le Temps des Cerises, 2006, p. 98 — https://fr.wikiquote.org/wiki/Rosa_Luxemburg"
+    }
   },
   {
     "text": "Die Revolution wird sich morgen schon »rasselnd wieder in die Höh' richten« und zu eurem Schrecken mit Posaunenklang verkünden: Ich war, ich bin, ich werde sein! - Rosa Luxemburg",
@@ -156,7 +260,15 @@
     "tags": [
       "marxism",
       "revolution"
-    ]
+    ],
+    "translations": {
+      "en": "Tomorrow the revolution will already 'raise itself with a rattle' and announce with fanfare, to your terror: I was, I am, I will be! - Rosa Luxemburg",
+      "it": "Già domani la rivoluzione si ergerà nuovamente e annuncerà, con vostro profondo orrore, con un suono di squilla: «Ero, sono, sarò!» - Rosa Luxemburg"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Rosa Luxemburg; \"Order reigns in Berlin\", Collected Works 4 — https://en.wikiquote.org/wiki/Rosa_Luxemburg",
+      "it": "Wikiquote (it), page Rosa Luxemburg; as quoted in Peter J. Nettl, Rosa Luxemburg, Il Saggiatore, 1970, II, p. 342 — https://it.wikiquote.org/wiki/Rosa_Luxemburg"
+    }
   },
   {
     "text": "So ist das Leben und so muss man es nehmen, tapfer, unverzagt und lächelnd – trotz alledem. - Rosa Luxemburg",
@@ -169,10 +281,16 @@
     "tags": [
       "marxism",
       "life"
-    ]
+    ],
+    "translations": {
+      "en": "Life is like that, one must take it as it is, [and remain] brave, undaunted, and smiling—in spite of everything. - Rosa Luxemburg"
+    },
+    "translation_sources": {
+      "en": "The Letters of Rosa Luxemburg, Verso, 2011 (tr. George Shriver), letter to Sophie Liebknecht, Breslau, before 24 December 1917; bracketed insertion is the translator's — https://versobooks.com/blogs/news/1910-rosa-luxemburg-a-letter-from-her-prison-cell"
+    }
   },
   {
-    "text": "Odio gli indifferenti. Credo che vivere voglia dire essere partigiani. - Antonio Gramsci",
+    "text": "Odio gli indifferenti. Credo come Federico Hebbel che «vivere vuol dire essere partigiani». - Antonio Gramsci",
     "lang": "it",
     "work": {
       "en": "\"Indifferenti\", La Città futura, 11 February 1917",
@@ -182,10 +300,18 @@
     "tags": [
       "marxism",
       "antifascism"
-    ]
+    ],
+    "translations": {
+      "en": "I hate the indifferent. I believe, as Frederich Hebbel did, that ‘living means being partisan’. - Antonio Gramsci",
+      "fr": "Je hais les indifférents. Comme Friedrich Hebbel, je pense que « vivre, c'est résister ». - Antonio Gramsci"
+    },
+    "translation_sources": {
+      "en": "tr. Giovanni Tiso, Overland literary journal, 18 March 2013 (spelling 'Frederich' as in source) — https://overland.org.au/2013/03/i-hate-the-indifferent",
+      "fr": "Wikiquote (fr), page Antonio Gramsci; tr. Martin Rueff, Pourquoi je hais l'indifférence, Payot et Rivages, 2012, p. 55 — https://fr.wikiquote.org/wiki/Antonio_Gramsci"
+    }
   },
   {
-    "text": "Istruitevi, perché avremo bisogno di tutta la vostra intelligenza. Agitatevi, perché avremo bisogno di tutto il vostro entusiasmo. Organizzatevi, perché avremo bisogno di tutta la vostra forza. - Antonio Gramsci",
+    "text": "Istruitevi, perché avremo bisogno di tutta la nostra intelligenza. Agitatevi, perché avremo bisogno di tutto il nostro entusiasmo. Organizzatevi, perché avremo bisogno di tutta la nostra forza. - Antonio Gramsci",
     "lang": "it",
     "work": {
       "en": "L'Ordine Nuovo, year I, no. 1, 1 May 1919, masthead motto",
@@ -195,7 +321,13 @@
     "tags": [
       "marxism",
       "education"
-    ]
+    ],
+    "translations": {
+      "en": "Educate yourselves, for we will need all our intelligence. Rouse yourselves, for we will need all our enthusiasm. Organize yourselves, for we will need all our strength. - Antonio Gramsci"
+    },
+    "translation_sources": {
+      "en": "Workers of the World (journal), 2023, quoting L'Ordine Nuovo, I, 1, 1 May 1919 — https://workersoftheworld.net/wp-content/uploads/2023/08/WoW_02_09.pdf"
+    }
   },
   {
     "text": "La crisi consiste appunto nel fatto che il vecchio muore e il nuovo non può nascere: in questo interregno si verificano i fenomeni morbosi più svariati. - Antonio Gramsci",
@@ -208,7 +340,15 @@
     "tags": [
       "marxism",
       "history"
-    ]
+    ],
+    "translations": {
+      "en": "The crisis consists precisely in the fact that the old is dying and the new cannot be born; in this interregnum a great variety of morbid symptoms appear. - Antonio Gramsci",
+      "fr": "La crise consiste justement dans le fait que l’ancien meurt et que le nouveau ne peut pas naître : pendant cet interrègne on observe les phénomènes morbides les plus variés. - Antonio Gramsci"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Antonio Gramsci; Selections from the Prison Notebooks, International Publishers, 1971, pp. 275-276 (tr. Quintin Hoare and Geoffrey Nowell Smith) — https://en.wikiquote.org/wiki/Antonio_Gramsci",
+      "fr": "Wikiquote (fr), page Antonio Gramsci; tr. Monique Aymard et Françoise Bouillot, Cahiers de prison I, Gallimard, 1983, p. 283 — https://fr.wikiquote.org/wiki/Antonio_Gramsci"
+    }
   },
   {
     "text": "Es ist niemals ein Dokument der Kultur, ohne zugleich ein solches der Barbarei zu sein. - Walter Benjamin",
@@ -221,7 +361,17 @@
     "tags": [
       "marxism",
       "history"
-    ]
+    ],
+    "translations": {
+      "en": "There is no document of civilization which is not at the same time a document of barbarism. - Walter Benjamin",
+      "it": "Non è mai documento di cultura senza essere, nello stesso tempo, documento di barbarie. - Walter Benjamin",
+      "fr": "Il n’est aucun document de culture qui ne soit aussi document de barbarie. - Walter Benjamin"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Walter Benjamin; Theses on the Philosophy of History, VII (tr. Harry Zohn, Illuminations) — https://en.wikiquote.org/wiki/Walter_Benjamin",
+      "it": "tr. Renato Solmi, Tesi di filosofia della storia, in Angelus Novus. Saggi e frammenti, Einaudi, 1962 (as reproduced by peacelink.it, 1981 edition) — https://liste.peacelink.it/nonviolenza/2026/10/msg00007.html",
+      "fr": "tr. Michael Löwy (Avertissement d'incendie, Éditions de l'Éclat, 2014), based on Maurice de Gandillac's translation; thesis VII — https://fr.anarchistlibraries.net/library/walter-benjamin-theses-sur-le-concept-d-histoire"
+    }
   },
   {
     "text": "Die Tradition der Unterdrückten belehrt uns darüber, daß der »Ausnahmezustand«, in dem wir leben, die Regel ist. - Walter Benjamin",
@@ -234,7 +384,17 @@
     "tags": [
       "marxism",
       "history"
-    ]
+    ],
+    "translations": {
+      "en": "The tradition of the oppressed teaches us that the \"state of emergency\" in which we live is not the exception but the rule. - Walter Benjamin",
+      "it": "La tradizione degli oppressi ci insegna che lo «stato di emergenza» in cui viviamo è la regola. - Walter Benjamin",
+      "fr": "La tradition des opprimés nous enseigne que l’« état d’exception » dans lequel nous vivons est la règle. - Walter Benjamin"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Walter Benjamin; Theses on the Philosophy of History, VIII (tr. Harry Zohn) — https://en.wikiquote.org/wiki/Walter_Benjamin",
+      "it": "tr. Renato Solmi, Angelus Novus, Einaudi, 1962 — https://liste.peacelink.it/nonviolenza/2026/10/msg00007.html",
+      "fr": "tr. Michael Löwy (2014), based on Maurice de Gandillac; thesis VIII — https://fr.anarchistlibraries.net/library/walter-benjamin-theses-sur-le-concept-d-histoire"
+    }
   },
   {
     "text": "The economic anarchy of capitalist society as it exists today is, in my opinion, the real source of the evil. - Albert Einstein",
@@ -247,10 +407,16 @@
     "tags": [
       "marxism",
       "socialism"
-    ]
+    ],
+    "translations": {
+      "fr": "L’anarchie économique de la société capitaliste, telle qu’elle existe aujourd’hui, est, à mon avis, la source réelle du mal. - Albert Einstein"
+    },
+    "translation_sources": {
+      "fr": "Marxists Internet Archive (français), Einstein, Pourquoi le socialisme ? (1949); same text in Contretemps, 2015 — https://www.marxists.org/francais/general/einstein/1949/00/einstein.htm"
+    }
   },
   {
-    "text": "I said then, and I say now, that while there is a lower class, I am in it, and while there is a criminal element, I am of it, and while there is a soul in prison, I am not free. - Eugene V. Debs",
+    "text": "I said then, and I say now, that while there is a lower class, I am in it; and while there is a criminal element, I am of it; and while there is a soul in prison, I am not free. - Eugene V. Debs",
     "lang": "en",
     "work": {
       "en": "Statement to the Federal Court, Cleveland, Ohio, upon conviction under the Sedition Act, 18 September 1918",
@@ -301,7 +467,15 @@
       "marxism",
       "revolution",
       "love"
-    ]
+    ],
+    "translations": {
+      "en": "At the risk of seeming ridiculous, let me say that the true revolutionary is guided by a great feeling of love. - Ernesto \"Che\" Guevara",
+      "it": "Lasciami dire, a rischio di sembrare ridicolo, che il vero rivoluzionario è guidato da grandi sentimenti d'amore. - Ernesto Che Guevara"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Che Guevara; Socialism and Man in Cuba (1965) — https://en.wikiquote.org/wiki/Che_Guevara",
+      "it": "Wikiquote (it), page Che Guevara; from Scritti, discorsi e diari di guerriglia, 1959-1967 — https://it.wikiquote.org/wiki/Che_Guevara"
+    }
   },
   {
     "text": "Tienen la fuerza, podrán avasallarnos, pero no se detienen los procesos sociales ni con el crimen ni con la fuerza. La historia es nuestra y la hacen los pueblos. - Salvador Allende",
@@ -315,7 +489,17 @@
       "marxism",
       "antifascism",
       "history"
-    ]
+    ],
+    "translations": {
+      "en": "They have force and will be able to dominate us, but social processes can be arrested by neither crime nor force. History is ours, and people make history. - Salvador Allende",
+      "it": "Hanno la forza, potranno sottometterci, ma i processi sociali non si fermano né con il crimine né con la forza. La storia è nostra e la fanno i popoli. - Salvador Allende",
+      "fr": "Ils ont la force, ils pourront nous soumettre, mais les mouvements sociaux ne se maîtrisent ni par le crime, ni par la force. L’histoire nous appartient, ce sont les peuples qui la font. - Salvador Allende"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Salvador Allende; last speech, 11 September 1973 — https://en.wikiquote.org/wiki/Salvador_Allende",
+      "it": "Wikiquote (it), page Salvador Allende, section Ultimo discorso (two consecutive entries joined; no translator named) — https://it.wikiquote.org/wiki/Salvador_Allende",
+      "fr": "Le Monde diplomatique, Manière de voir no. 118 (2011), extract from Salvador Allende, Contre la tyrannie, Seuil, Paris, 2010 — https://www.monde-diplomatique.fr/mav/118/A/47131"
+    }
   },
   {
     "text": "Sigan ustedes sabiendo que, mucho más temprano que tarde, de nuevo se abrirán las grandes alamedas por donde pase el hombre libre, para construir una sociedad mejor. - Salvador Allende",
@@ -329,7 +513,17 @@
       "marxism",
       "antifascism",
       "freedom"
-    ]
+    ],
+    "translations": {
+      "en": "Keep in mind that, much sooner than later, great avenues will again be opened, through which will pass the free man, to construct a better society. - Salvador Allende",
+      "it": "Sappiate che, più prima che poi, si apriranno di nuovo i grandi viali per i quali passerà l'uomo libero, per costruire una società migliore. - Salvador Allende",
+      "fr": "N’oubliez jamais que bientôt s’ouvriront à nouveau les larges avenues qu’empruntera l’homme libre pour bâtir une société meilleure. - Salvador Allende"
+    },
+    "translation_sources": {
+      "en": "Wikiquote (en), page Salvador Allende; last speech, 11 September 1973 — https://en.wikiquote.org/wiki/Salvador_Allende",
+      "it": "Wikiquote (it), page Salvador Allende, section Ultimo discorso (no translator named) — https://it.wikiquote.org/wiki/Salvador_Allende",
+      "fr": "Le Monde diplomatique, Manière de voir no. 118 (2011), extract from Salvador Allende, Contre la tyrannie, Seuil, 2010 — https://www.monde-diplomatique.fr/mav/118/A/47131"
+    }
   },
   {
     "text": "Toujours votre société violente et chaotique, même quand elle veut la paix, même quand elle est à l'état d'apparent repos, porte en elle la guerre, comme la nuée dormante porte l'orage. - Jean Jaurès",
@@ -357,7 +551,17 @@
       "marxism",
       "anticolonialism",
       "freedom"
-    ]
+    ],
+    "translations": {
+      "it": "Non vi è nulla di più prezioso dell'indipendenza e della libertà. - Ho Chi Minh",
+      "en": "Nothing is more precious than independence and freedom. - Ho Chi Minh",
+      "fr": "Rien n'est plus précieux que l'indépendance et la liberté - Hô Chi Minh"
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Ho Chi Minh; as quoted in 'Il messaggio di Ho Chi Minh', La Stampa, 25 May 1968 — https://it.wikiquote.org/wiki/Ho_Chi_Minh",
+      "en": "Wikiquote (en), page Ho Chí Minh — https://en.wikiquote.org/wiki/Ho_Ch%C3%AD_Minh",
+      "fr": "Hô Chi Minh, Écrits et combats (Prefasse), heading of the appeal of 17 July 1966; same wording in UN document A/34/553 (French) — https://www.prefasse.org/ho-chi-minh-ecrits-et-combats/"
+    }
   },
   {
     "text": "其實地上本沒有路，走的人多了，也便成了路。 - 魯迅",
@@ -371,6 +575,12 @@
       "marxism",
       "literature",
       "hope"
-    ]
+    ],
+    "translations": {
+      "en": "For actually the earth had no roads to begin with, but when many men pass one way, a road is made. - Lu Xun"
+    },
+    "translation_sources": {
+      "en": "tr. Yang Hsien-yi and Gladys Yang, Selected Stories of Lu Hsun, Foreign Languages Press, Peking (Marxists Internet Archive) — https://www.marxists.org/archive/lu-xun/1921/01/x01.htm"
+    }
   }
 ]

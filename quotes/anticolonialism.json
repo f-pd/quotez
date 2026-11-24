@@ -9,7 +9,15 @@
     },
     "tags": [
       "anticolonialism"
-    ]
+    ],
+    "translations": {
+      "en": "A civilization that proves incapable of solving the problems it creates is a decadent civilization. - Aimé Césaire",
+      "it": "Una civiltà che si dimostra incapace di risolvere i problemi causati dal proprio funzionamento è una civiltà decadente. - Aimé Césaire"
+    },
+    "translation_sources": {
+      "en": "Discourse on Colonialism, trans. Joan Pinkham, Monthly Review Press (1972/2000) — https://archive.org/stream/DiscourseOnColonialismAimeCesaire/Discourse%20on%20colonialism%20-%20Aime%20Cesaire_djvu.txt",
+      "it": "Discorso sul colonialismo, a cura di Miguel Mellino, ombre corte, Verona, 2010, p. 45 (as quoted in M. Tolomelli, Storicamente, 2016) — https://storicamente.org/tolomelli-dall-anticolonialismo-all-anti-imperialismo"
+    }
   },
   {
     "text": "Chaque génération doit, dans une relative opacité, découvrir sa mission, la remplir ou la trahir. - Frantz Fanon",
@@ -21,7 +29,15 @@
     },
     "tags": [
       "anticolonialism"
-    ]
+    ],
+    "translations": {
+      "en": "Each generation must out of relative obscurity discover its mission, fulfill it, or betray it. - Frantz Fanon",
+      "it": "Ogni generazione deve, in relativa opacità, scoprire la sua missione, adempierla o tradirla. - Frantz Fanon"
+    },
+    "translation_sources": {
+      "en": "The Wretched of the Earth, trans. Constance Farrington, Grove Press (1963), ch. 4 — https://archive.org/stream/TheWretchedOfTheEarthFrantzFanon/The%20wretched%20of%20the%20Earth%20-%20The%20Wretched%20of%20the%20Earth_djvu.txt",
+      "it": "I dannati della terra, trad. Carlo Cignetti, Einaudi, Torino, 1962 — https://psicologiadimassadelfascismo.wordpress.com/wp-content/uploads/2017/10/fanon-i-dannati-della-terra.pdf"
+    }
   },
   {
     "text": "I have cherished the ideal of a democratic and free society in which all persons live together in harmony and with equal opportunities. It is an ideal which I hope to live for and to achieve. But if needs be, it is an ideal for which I am prepared to die. - Nelson Mandela",
@@ -35,7 +51,15 @@
       "anticolonialism",
       "freedom",
       "civil-rights"
-    ]
+    ],
+    "translations": {
+      "fr": "J'ai chéri l'idéal d'une société libre et démocratique dans laquelle tout le monde vivrait ensemble en harmonie et avec des chances égales. C'est un idéal pour lequel j'espère vivre et que j'espère accomplir. Mais si nécessaire, c'est un idéal pour lequel je suis prêt à mourir. - Nelson Mandela",
+      "it": "Ho accarezzato l’ideale di una società democratica e libera in cui tutte le persone vivano insieme in armonia e con pari opportunità. È un ideale per il quale spero di vivere e che spero di raggiungere. Ma, se sarà necessario, è un ideale per il quale sono pronto a morire. - Nelson Mandela"
+    },
+    "translation_sources": {
+      "fr": "Le Monde, 'Mandela : les discours entrés dans l'Histoire', 6 Dec 2013 (translator NOT named) — https://www.lemonde.fr/afrique/article/2013/12/06/mandela-les-discours-entres-dans-l-histoire_3526530_3212.html",
+      "it": "Mandela Forum (Firenze), page '20 Aprile 1964: Processo di Rivonia' (translator NOT named) — https://www.mandelaforum.it/eventi/20-aprile-1964-processo-di-rivonia-mandela-pronuncia-il-suo-discorso-prima-della-condanna-allergastolo/"
+    }
   },
   {
     "text": "Injustice anywhere is a threat to justice everywhere. - Martin Luther King Jr.",
@@ -49,7 +73,13 @@
       "anticolonialism",
       "justice",
       "civil-rights"
-    ]
+    ],
+    "translations": {
+      "it": "L'ingiustizia in qualsiasi luogo è una minaccia alla giustizia dovunque. - Martin Luther King Jr."
+    },
+    "translation_sources": {
+      "it": "Wikiquote (it), page Martin Luther King; cited in Elena Spagnol, Enciclopedia delle citazioni, Garzanti, 2009 — https://it.wikiquote.org/wiki/Martin_Luther_King"
+    }
   },
   {
     "text": "Power concedes nothing without a demand. It never did and it never will. - Frederick Douglass",
