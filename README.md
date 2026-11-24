@@ -142,7 +142,7 @@ A modern web interface for browsing quotes and managing the service.
 
 - **Public Showcase**: Zen, Rich, and Simple display modes for quotes.
 - **Admin Backoffice**: Full quote CRUD, service status monitoring, and runtime configuration.
-- **Tech Stack**: React SPA powered by Vite, with a Bun-based backend server.
+- **Tech Stack**: Solid SPA (TanStack Solid Router) built with Vite, with a Bun-based backend server.
 
 ### Setup and Run
 
@@ -222,7 +222,7 @@ src/
     └── udp.zig           # UDP QOTD server
 
 website/
-├── src/                  # React SPA source code
+├── src/                  # Solid SPA source code
 ├── server.ts             # Bun HTTP server and API proxy
 ├── Dockerfile            # Website container definition
 └── package.json          # Node/Bun dependencies

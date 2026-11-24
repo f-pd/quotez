@@ -1,11 +1,13 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { Show, createEffect, createMemo, createSignal, on, onCleanup, onMount, type Accessor, type JSX } from 'solid-js';
 
-interface SmoothSwapProps {
+interface SmoothSwapProps<T> {
   /** Changing the key cross-fades from the old content to the new one */
   swapKey: string;
-  children: ReactNode;
+  /** What the content shows; frozen while the old content fades out */
+  value: T;
   /** Fade duration in ms (the height follows a little slower) */
   duration?: number;
+  children: (value: Accessor<T>) => JSX.Element;
 }
 
 /**
@@ -16,45 +18,60 @@ interface SmoothSwapProps {
  * height. JS only measures the height: CSS cannot transition between two
  * arbitrary auto heights in every browser yet.
  */
-export function SmoothSwap({ swapKey, children, duration = 280 }: SmoothSwapProps) {
-  const [shownKey, setShownKey] = useState(swapKey);
-  const lastChildren = useRef<ReactNode>(children);
-  const pending = swapKey !== shownKey;
-  if (!pending) lastChildren.current = children;
+export function SmoothSwap<T>(props: SmoothSwapProps<T>) {
+  const duration = () => props.duration ?? 280;
+  const [shownKey, setShownKey] = createSignal(props.swapKey);
+  const pending = () => props.swapKey !== shownKey();
 
-  useEffect(() => {
-    if (!pending) return;
-    const t = setTimeout(() => setShownKey(swapKey), duration);
-    return () => clearTimeout(t);
-  }, [swapKey, pending, duration]);
+  // The value of the shown content: live, except while the old content fades
+  // out, when it keeps the last value it had
+  let last = props.value;
+  const current = createMemo(() => {
+    const value = props.value;
+    if (pending()) return last;
+    last = value;
+    return value;
+  });
 
-  const innerRef = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState<number | undefined>(undefined);
-  useLayoutEffect(() => {
-    const el = innerRef.current;
-    if (!el) return;
-    const update = () => setHeight(el.offsetHeight);
+  createEffect(
+    on(
+      () => props.swapKey,
+      (key) => {
+        if (key === shownKey()) return;
+        const t = setTimeout(() => setShownKey(key), duration());
+        onCleanup(() => clearTimeout(t));
+      },
+    ),
+  );
+
+  let inner!: HTMLDivElement;
+  const [height, setHeight] = createSignal<number | undefined>(undefined);
+  onMount(() => {
+    const update = () => setHeight(inner.offsetHeight);
     update();
     const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+    ro.observe(inner);
+    onCleanup(() => ro.disconnect());
+  });
 
   return (
     <div
-      className="smooth-swap"
-      style={{ height, transition: `height ${Math.round(duration * 1.8)}ms cubic-bezier(0.4, 0, 0.2, 1)` }}
+      class="smooth-swap"
+      style={{
+        height: height() === undefined ? undefined : `${height()}px`,
+        transition: `height ${Math.round(duration() * 1.8)}ms cubic-bezier(0.4, 0, 0.2, 1)`,
+      }}
     >
       <div
-        ref={innerRef}
-        className={`smooth-swap-inner ${pending ? 'out' : ''}`}
-        style={{ transitionDuration: `${duration}ms` }}
+        ref={inner}
+        class={`smooth-swap-inner ${pending() ? 'out' : ''}`}
+        style={{ 'transition-duration': `${duration()}ms` }}
       >
         {/* Keyed so the new content mounts fresh and its CSS enter
             animation (.quote-enter) plays from the start */}
-        <div key={shownKey} className="smooth-swap-content">
-          {pending ? lastChildren.current : children}
-        </div>
+        <Show when={shownKey()} keyed>
+          {(_key) => <div class="smooth-swap-content">{props.children(current)}</div>}
+        </Show>
       </div>
     </div>
   );

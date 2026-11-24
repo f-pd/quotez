@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { onCleanup, onMount } from 'solid-js';
 
 /**
  * Gradient backgrounds drawn pixel by pixel on a canvas, with dithering.
@@ -19,7 +19,7 @@ type Kind = 'rich' | 'zen';
 
 interface DitheredBackdropProps {
   kind: Kind;
-  className: string;
+  class: string;
 }
 
 export type RGB = [number, number, number];
@@ -159,15 +159,12 @@ function paint(canvas: HTMLCanvasElement, kind: Kind) {
   ctx.putImageData(img, 0, 0);
 }
 
-export function DitheredBackdrop({ kind, className }: DitheredBackdropProps) {
-  const ref = useRef<HTMLCanvasElement>(null);
+export function DitheredBackdrop(props: DitheredBackdropProps) {
+  let canvas!: HTMLCanvasElement;
 
-  useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    const sizeKey = () => {
-      return `${canvas.clientWidth}x${canvas.clientHeight}@${window.devicePixelRatio}`;
-    };
+  onMount(() => {
+    const kind = props.kind;
+    const sizeKey = () => `${canvas.clientWidth}x${canvas.clientHeight}@${window.devicePixelRatio}`;
     paint(canvas, kind);
     let last = sizeKey();
 
@@ -180,11 +177,11 @@ export function DitheredBackdrop({ kind, className }: DitheredBackdropProps) {
       timer = setTimeout(() => paint(canvas, kind), 150);
     });
     observer.observe(canvas);
-    return () => {
+    onCleanup(() => {
       observer.disconnect();
       clearTimeout(timer);
-    };
-  }, [kind]);
+    });
+  });
 
-  return <canvas ref={ref} className={className} aria-hidden="true" />;
+  return <canvas ref={canvas} class={props.class} aria-hidden="true" />;
 }

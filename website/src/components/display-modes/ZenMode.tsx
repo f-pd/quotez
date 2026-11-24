@@ -1,96 +1,77 @@
-import type { ReactNode } from 'react';
+import { Match, Show, Switch, type JSX } from 'solid-js';
 import type { ModeLabels } from '../../lib/i18n';
+import { quoteParts } from '../../lib/quote-parts';
 import { SmoothSwap } from '../SmoothSwap';
 import { DitheredBackdrop } from '../DitheredBackdrop';
 import '../../styles/zen.css';
 
-interface ZenModeProps {
+export interface ModeProps {
   quote: string | null;
   loading: boolean;
   error: boolean;
   onNewQuote: () => void;
-  labels?: ModeLabels;
+  labels: ModeLabels;
   /** Source work shown under the author */
   work?: string | null;
   /** Changes on every new quote */
-  quoteId?: number;
+  quoteId: number;
   /** True while the original language is shown instead of the translation */
-  showingOriginal?: boolean;
+  showingOriginal: boolean;
   /** Share button, shown next to "New quote" */
-  share?: ReactNode;
+  share?: () => JSX.Element;
 }
 
-const DEFAULT_LABELS: ModeLabels = { newQuote: 'New Quote', loading: 'Loading...', couldNotLoad: 'Could not load quote', retry: 'Retry' };
-
-export function ZenMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS, work, quoteId = 0, showingOriginal = false, share }: ZenModeProps) {
-  const renderContent = () => {
-    if (loading && !quote) {
-      return <div className="zen-status">{labels.loading}</div>;
-    }
-
-    if (error) {
-      return (
-        <div className="zen-error">
-          <p>{labels.couldNotLoad}</p>
-          <button className="zen-button" onClick={onNewQuote}>{labels.retry}</button>
-        </div>
-      );
-    }
-
-    if (!quote) return null;
-
-    let text = quote;
-    let author = '';
-
-    // The attribution follows the last " - " (seed convention); " — " only
-    // when there is none, since quotes may contain em dashes themselves
-    if (quote.includes(' - ')) {
-      const parts = quote.split(' - ');
-      author = parts.pop() || '';
-      text = parts.join(' - ');
-    } else if (quote.includes(' — ')) {
-      const parts = quote.split(' — ');
-      author = parts.pop() || '';
-      text = parts.join(' — ');
-    }
-
-    return (
-      <SmoothSwap swapKey={`${quoteId}:${showingOriginal}`}>
-        <div className={`zen-quote-wrapper quote-enter ${loading ? 'is-loading' : ''}`}>
-          <div className="zen-quote" data-testid="quote-text">
-            {text}
-          </div>
-          {author && (
-            <div className="zen-author">
-              — {author}
-            </div>
-          )}
-          {work && (
-            <cite className="quote-work zen-work" data-testid="quote-work">
-              {work}
-            </cite>
-          )}
-        </div>
-      </SmoothSwap>
-    );
-  };
-
+export function ZenMode(props: ModeProps) {
   return (
-    <div className="zen-container">
-      <DitheredBackdrop kind="zen" className="zen-bg" />
-      <div className="zen-content">
-        {renderContent()}
-        
-        <div className="quote-actions zen-actions">
+    <div class="zen-container">
+      <DitheredBackdrop kind="zen" class="zen-bg" />
+      <div class="zen-content">
+        <Switch>
+          <Match when={props.loading && !props.quote}>
+            <div class="zen-status">{props.labels.loading}</div>
+          </Match>
+          <Match when={props.error}>
+            <div class="zen-error">
+              <p>{props.labels.couldNotLoad}</p>
+              <button class="zen-button" onClick={() => props.onNewQuote()}>
+                {props.labels.retry}
+              </button>
+            </div>
+          </Match>
+          <Match when={props.quote}>
+            <SmoothSwap
+              swapKey={`${props.quoteId}:${props.showingOriginal}`}
+              value={{ ...quoteParts(props.quote ?? ''), work: props.work, loading: props.loading }}
+            >
+              {(v) => (
+                <div class={`zen-quote-wrapper quote-enter ${v().loading ? 'is-loading' : ''}`}>
+                  <div class="zen-quote" data-testid="quote-text">
+                    {v().text}
+                  </div>
+                  <Show when={v().author}>
+                    <div class="zen-author">— {v().author}</div>
+                  </Show>
+                  <Show when={v().work}>
+                    <cite class="quote-work zen-work" data-testid="quote-work">
+                      {v().work}
+                    </cite>
+                  </Show>
+                </div>
+              )}
+            </SmoothSwap>
+          </Match>
+        </Switch>
+
+        <div class="quote-actions zen-actions">
           <button
-            className="zen-button"
+            class="zen-button"
             data-testid="new-quote-btn"
-            onClick={onNewQuote}
-            disabled={loading}
+            onClick={() => props.onNewQuote()}
+            disabled={props.loading}
           >
-            {labels.newQuote}
+            {props.labels.newQuote}
           </button>
-          {share}
+          {props.share?.()}
         </div>
       </div>
     </div>

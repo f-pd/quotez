@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { For, Show, createResource } from 'solid-js';
 import type { AboutText } from '../lib/about';
 
 /** stats.json as published by CI (see .github/workflows/ci.yml, publish-stats) */
@@ -68,125 +68,110 @@ function formatMemoryLimit(mem: string): string {
 }
 
 /** The "Measured numbers" section of the About page */
-export function AboutStats({ t, locale }: { t: AboutText; locale: string }) {
-  const [stats, setStats] = useState<Stats | null | 'missing'>(null);
-
-  useEffect(() => {
-    let cancelled = false;
+export function AboutStats(props: { t: AboutText; locale: string }) {
+  const [stats] = createResource<Stats | 'missing'>(() =>
     fetch('/stats.json')
       .then((r) => (r.ok ? r.json() : 'missing'))
       .catch(() => 'missing')
-      .then((s) => {
-        if (!cancelled) setStats(s?.updated_at ? (s as Stats) : 'missing');
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+      .then((s) => (s?.updated_at ? (s as Stats) : 'missing')),
+  );
 
-  if (stats === null) return null;
-
-  const num = (n: number) => n.toLocaleString(locale);
+  const num = (n: number) => n.toLocaleString(props.locale);
+  const t = () => props.t;
 
   return (
-    <section className="about-stats" data-testid="about-stats">
-      <h2>{t.numbersTitle}</h2>
-      {stats === 'missing' ? (
-        <p>{t.noData}</p>
-      ) : (
-        <>
-          <p>
-            {t.numbersIntro(
-              new Date(stats.updated_at).toLocaleString(locale, { dateStyle: 'long', timeStyle: 'short' }),
-              stats.commit.slice(0, 7),
+    <Show when={stats()}>
+      {(s) => (
+        <section class="about-stats" data-testid="about-stats">
+          <h2>{t().numbersTitle}</h2>
+          <Show when={s() !== 'missing' ? (s() as Stats) : null} fallback={<p>{t().noData}</p>}>
+            {(st) => (
+              <>
+                <p>
+                  {t().numbersIntro(
+                    new Date(st().updated_at).toLocaleString(props.locale, { dateStyle: 'long', timeStyle: 'short' }),
+                    st().commit.slice(0, 7),
+                  )}
+                </p>
+
+                <Show when={st().image?.registry || st().image?.local}>
+                  <h3>{t().imageTitle}</h3>
+                  <ul>
+                    <For each={st().image?.registry?.platforms ?? []}>
+                      {(p) => <li>{t().imageCompressed(formatBytes(p.compressed_bytes, props.locale), p.platform)}</li>}
+                    </For>
+                    <Show when={st().image?.local}>
+                      {(local) => <li>{t().imageLocal(formatBytes(local().binary_bytes, props.locale))}</li>}
+                    </Show>
+                  </ul>
+                </Show>
+
+                <Show when={st().load_test}>
+                  {(lt) => (
+                    <>
+                      <h3>{t().loadTitle}</h3>
+                      <p>{t().loadIntro(lt().host.cpu, lt().host.cores, lt().criteria.p95_limit_ms, lt().criteria.step_duration)}</p>
+                      <div class="about-table-wrap">
+                        <table class="about-table">
+                          <thead>
+                            <tr>
+                              <th>{t().colLimits}</th>
+                              <th>{t().colHolds}</th>
+                              <th>{t().colSuffers}</th>
+                              <th>{t().colMemory}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <For each={lt().profiles}>
+                              {(p) => (
+                                <tr>
+                                  <td>
+                                    {num(p.cpus)} vCPU · {formatMemoryLimit(p.memory)}
+                                  </td>
+                                  <td>{p.max_healthy_rate > 0 ? t().perSecond(num(p.max_healthy_rate)) : '—'}</td>
+                                  <td>
+                                    <Show when={p.suffering} fallback={t().notReached}>
+                                      {(suf) => (
+                                        <>
+                                          {t().perSecond(num(suf().rate))}
+                                          <span class="about-reason">{t().reason(suf().kind, suf().value)}</span>
+                                        </>
+                                      )}
+                                    </Show>
+                                  </td>
+                                  <td>{p.levels[p.levels.length - 1]?.memory_after ?? '—'}</td>
+                                </tr>
+                              )}
+                            </For>
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  )}
+                </Show>
+
+                <Show when={st().production}>
+                  {(prod) => (
+                    <>
+                      <h3>{t().prodTitle}</h3>
+                      <p>
+                        {t().prod(
+                          prod().target_rate,
+                          Math.round(prod().duration_s),
+                          prod().target,
+                          formatPercent(prod().ok_rate, props.locale),
+                          formatMs(prod().latency_ms.p50, props.locale),
+                          formatMs(prod().latency_ms.p95, props.locale),
+                        )}
+                      </p>
+                    </>
+                  )}
+                </Show>
+              </>
             )}
-          </p>
-
-          {(stats.image?.registry || stats.image?.local) && (
-            <>
-              <h3>{t.imageTitle}</h3>
-              <ul>
-                {stats.image.registry?.platforms.map((p) => (
-                  <li key={p.platform}>{t.imageCompressed(formatBytes(p.compressed_bytes, locale), p.platform)}</li>
-                ))}
-                {stats.image.local && (
-                  <li>
-                    {t.imageLocal(formatBytes(stats.image.local.binary_bytes, locale))}
-                  </li>
-                )}
-              </ul>
-            </>
-          )}
-
-          {stats.load_test && (
-            <>
-              <h3>{t.loadTitle}</h3>
-              <p>
-                {t.loadIntro(
-                  stats.load_test.host.cpu,
-                  stats.load_test.host.cores,
-                  stats.load_test.criteria.p95_limit_ms,
-                  stats.load_test.criteria.step_duration,
-                )}
-              </p>
-              <div className="about-table-wrap">
-                <table className="about-table">
-                  <thead>
-                    <tr>
-                      <th>{t.colLimits}</th>
-                      <th>{t.colHolds}</th>
-                      <th>{t.colSuffers}</th>
-                      <th>{t.colMemory}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stats.load_test.profiles.map((p) => {
-                      const last = p.levels[p.levels.length - 1];
-                      return (
-                        <tr key={p.name}>
-                          <td>
-                            {num(p.cpus)} vCPU · {formatMemoryLimit(p.memory)}
-                          </td>
-                          <td>{p.max_healthy_rate > 0 ? t.perSecond(num(p.max_healthy_rate)) : '—'}</td>
-                          <td>
-                            {p.suffering ? (
-                              <>
-                                {t.perSecond(num(p.suffering.rate))}
-                                <span className="about-reason">
-                                  {t.reason(p.suffering.kind, p.suffering.value)}
-                                </span>
-                              </>
-                            ) : (
-                              t.notReached
-                            )}
-                          </td>
-                          <td>{last?.memory_after ?? '—'}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-
-          {stats.production && (
-            <>
-              <h3>{t.prodTitle}</h3>
-              <p>
-                {t.prod(
-                  stats.production.target_rate,
-                  Math.round(stats.production.duration_s),
-                  stats.production.target,
-                  formatPercent(stats.production.ok_rate, locale),
-                  formatMs(stats.production.latency_ms.p50, locale),
-                  formatMs(stats.production.latency_ms.p95, locale),
-                )}
-              </p>
-            </>
-          )}
-        </>
+          </Show>
+        </section>
       )}
-    </section>
+    </Show>
   );
 }

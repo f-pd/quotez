@@ -1,88 +1,53 @@
-import type { ReactNode } from 'react';
-import type { ModeLabels } from '../../lib/i18n';
+import { Match, Show, Switch } from 'solid-js';
+import { quoteParts } from '../../lib/quote-parts';
+import type { ModeProps } from './ZenMode';
 import '../../styles/simple.css';
 
-interface SimpleModeProps {
-  quote: string | null;
-  loading: boolean;
-  error: boolean;
-  onNewQuote: () => void;
-  labels?: ModeLabels;
-  /** Source work shown under the author */
-  work?: string | null;
-  /** Share button, shown next to "New quote" */
-  share?: ReactNode;
-}
-
-const DEFAULT_LABELS: ModeLabels = { newQuote: 'New Quote', loading: 'Loading...', couldNotLoad: 'Could not load quote', retry: 'Retry' };
-
-export function SimpleMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS, work, share }: SimpleModeProps) {
-  const renderContent = () => {
-    if (loading && !quote) {
-      return <div className="simple-status">{labels.loading}</div>;
-    }
-
-    if (error) {
-      return (
-        <div className="simple-error">
-          <p>{labels.couldNotLoad}</p>
-          <button className="simple-button" onClick={onNewQuote}>{labels.retry}</button>
-        </div>
-      );
-    }
-
-    if (!quote) return null;
-
-    let text = quote;
-    let author = '';
-
-    // The attribution follows the last " - " (seed convention); " — " only
-    // when there is none, since quotes may contain em dashes themselves
-    if (quote.includes(' - ')) {
-      const parts = quote.split(' - ');
-      author = parts.pop() || '';
-      text = parts.join(' - ');
-    } else if (quote.includes(' — ')) {
-      const parts = quote.split(' — ');
-      author = parts.pop() || '';
-      text = parts.join(' — ');
-    }
-
-    return (
-      <div className="simple-quote-wrapper">
-        <div className="simple-quote" data-testid="quote-text">
-          {text}
-        </div>
-        {author && (
-          <div className="simple-author">
-            — {author}
-          </div>
-        )}
-        {work && (
-          <cite className="quote-work simple-work" data-testid="quote-work">
-            {work}
-          </cite>
-        )}
-      </div>
-    );
-  };
-
+export function SimpleMode(props: ModeProps) {
+  const parts = () => quoteParts(props.quote ?? '');
   return (
-    <div className="simple-container">
-      {renderContent()}
-      {(!loading || quote) && !error && (
-        <div className="quote-actions simple-actions">
+    <div class="simple-container">
+      <Switch>
+        <Match when={props.loading && !props.quote}>
+          <div class="simple-status">{props.labels.loading}</div>
+        </Match>
+        <Match when={props.error}>
+          <div class="simple-error">
+            <p>{props.labels.couldNotLoad}</p>
+            <button class="simple-button" onClick={() => props.onNewQuote()}>
+              {props.labels.retry}
+            </button>
+          </div>
+        </Match>
+        <Match when={props.quote}>
+          <div class="simple-quote-wrapper">
+            <div class="simple-quote" data-testid="quote-text">
+              {parts().text}
+            </div>
+            <Show when={parts().author}>
+              <div class="simple-author">— {parts().author}</div>
+            </Show>
+            <Show when={props.work}>
+              <cite class="quote-work simple-work" data-testid="quote-work">
+                {props.work}
+              </cite>
+            </Show>
+          </div>
+        </Match>
+      </Switch>
+      <Show when={(!props.loading || props.quote) && !props.error}>
+        <div class="quote-actions simple-actions">
           <button
-            className="simple-button"
+            class="simple-button"
             data-testid="new-quote-btn"
-            onClick={onNewQuote}
-            disabled={loading}
+            onClick={() => props.onNewQuote()}
+            disabled={props.loading}
           >
-            {labels.newQuote}
+            {props.labels.newQuote}
           </button>
-          {share}
+          {props.share?.()}
         </div>
-      )}
+      </Show>
     </div>
   );
 }

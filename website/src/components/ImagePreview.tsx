@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { Show, createSignal, onCleanup, onMount } from 'solid-js';
+import { Portal } from 'solid-js/web';
 import type { ShareLabels } from '../lib/i18n';
 import { canCopyImage, canShareFile, copyImage, downloadFile, shareFile } from '../lib/quote-image';
 
@@ -19,97 +19,110 @@ type Note = { text: string; tone: 'ok' | 'err' } | null;
  * tap so the browser allows it), download (says the file name and where it
  * goes) and copy to the clipboard. Each button says what happened.
  */
-export function ImagePreview({ file, format, labels, style, onClose }: ImagePreviewProps) {
-  const url = useMemo(() => URL.createObjectURL(file), [file]);
-  const [note, setNote] = useState<Note>(null);
-  const [busy, setBusy] = useState(false);
-  const closeRef = useRef<HTMLButtonElement>(null);
-  const shareable = useMemo(() => canShareFile(file), [file]);
-  const copyable = useMemo(() => canCopyImage(), []);
+export function ImagePreview(props: ImagePreviewProps) {
+  // One preview per file: the parent mounts a new one for every image
+  const file = props.file;
+  const url = URL.createObjectURL(file);
+  const [note, setNote] = createSignal<Note>(null);
+  const [busy, setBusy] = createSignal(false);
+  const shareable = canShareFile(file);
+  const copyable = canCopyImage();
+  let closeButton!: HTMLButtonElement;
 
-  useEffect(() => () => URL.revokeObjectURL(url), [url]);
-
-  useEffect(() => {
-    closeRef.current?.focus();
+  onMount(() => {
+    closeButton.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') props.onClose();
     };
     window.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => {
+    onCleanup(() => {
       window.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
-    };
-  }, [onClose]);
+    });
+  });
+  onCleanup(() => URL.revokeObjectURL(url));
 
   const onShare = async () => {
     setBusy(true);
     const r = await shareFile(file, 'Quotez');
     setBusy(false);
-    if (r === 'failed') setNote({ text: labels.shareFailed, tone: 'err' });
-    else setNote(null);
+    setNote(r === 'failed' ? { text: props.labels.shareFailed, tone: 'err' } : null);
   };
 
   const onDownload = () => {
     downloadFile(file);
-    setNote({ text: labels.savedAs.replace('{name}', file.name), tone: 'ok' });
+    setNote({ text: props.labels.savedAs.replace('{name}', file.name), tone: 'ok' });
   };
 
   const onCopy = async () => {
     setBusy(true);
     const ok = await copyImage(file);
     setBusy(false);
-    setNote(ok ? { text: labels.imageCopied, tone: 'ok' } : { text: labels.copyFailed, tone: 'err' });
+    setNote(ok ? { text: props.labels.imageCopied, tone: 'ok' } : { text: props.labels.copyFailed, tone: 'err' });
   };
 
-  return createPortal(
-    <div
-      className={`image-preview-backdrop image-preview-${style}`}
-      data-testid="image-preview"
-      onPointerDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="image-preview" role="dialog" aria-modal="true" aria-label={`${labels.shareImage} ${format}`}>
-        <div className="image-preview-head">
-          <span className="image-preview-title">
-            {labels.shareImage} <span className="image-preview-format">{format}</span>
-          </span>
-          <button ref={closeRef} type="button" className="image-preview-close" aria-label={labels.close} onClick={onClose}>
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div className="image-preview-frame">
-          <img src={url} alt="" />
-        </div>
-        <div className="image-preview-actions">
-          {shareable && (
-            <button type="button" className="image-preview-btn primary" data-testid="preview-share" disabled={busy} onClick={onShare}>
-              {labels.share}
+  return (
+    <Portal>
+      <div
+        class={`image-preview-backdrop image-preview-${props.style}`}
+        data-testid="image-preview"
+        onPointerDown={(e) => {
+          if (e.target === e.currentTarget) props.onClose();
+        }}
+      >
+        <div class="image-preview" role="dialog" aria-modal="true" aria-label={`${props.labels.shareImage} ${props.format}`}>
+          <div class="image-preview-head">
+            <span class="image-preview-title">
+              {props.labels.shareImage} <span class="image-preview-format">{props.format}</span>
+            </span>
+            <button
+              ref={closeButton}
+              type="button"
+              class="image-preview-close"
+              aria-label={props.labels.close}
+              onClick={() => props.onClose()}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
             </button>
-          )}
-          <button
-            type="button"
-            className={`image-preview-btn ${shareable ? '' : 'primary'}`}
-            data-testid="preview-download"
-            onClick={onDownload}
-          >
-            {labels.downloadImage}
-          </button>
-          {copyable && (
-            <button type="button" className="image-preview-btn" data-testid="preview-copy" disabled={busy} onClick={onCopy}>
-              {labels.copyImage}
+          </div>
+          <div class="image-preview-frame">
+            <img src={url} alt="" />
+          </div>
+          <div class="image-preview-actions">
+            <Show when={shareable}>
+              <button
+                type="button"
+                class="image-preview-btn primary"
+                data-testid="preview-share"
+                disabled={busy()}
+                onClick={onShare}
+              >
+                {props.labels.share}
+              </button>
+            </Show>
+            <button
+              type="button"
+              class={`image-preview-btn ${shareable ? '' : 'primary'}`}
+              data-testid="preview-download"
+              onClick={onDownload}
+            >
+              {props.labels.downloadImage}
             </button>
-          )}
-        </div>
-        <div className={`image-preview-note ${note?.tone ?? ''}`} aria-live="polite" data-testid="preview-note">
-          {note?.text ?? ' '}
+            <Show when={copyable}>
+              <button type="button" class="image-preview-btn" data-testid="preview-copy" disabled={busy()} onClick={onCopy}>
+                {props.labels.copyImage}
+              </button>
+            </Show>
+          </div>
+          <div class={`image-preview-note ${note()?.tone ?? ''}`} aria-live="polite" data-testid="preview-note">
+            {note()?.text ?? '\u00a0'}
+          </div>
         </div>
       </div>
-    </div>,
-    document.body,
+    </Portal>
   );
 }

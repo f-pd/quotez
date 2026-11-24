@@ -43,7 +43,7 @@ FROM oven/bun:1
 
 # OCI labels
 LABEL org.opencontainers.image.title="quotez-web"
-LABEL org.opencontainers.image.description="quotez website server - React SPA with Bun"
+LABEL org.opencontainers.image.description="quotez website server - Solid SPA with Bun"
 LABEL org.opencontainers.image.version="0.1.0"
 LABEL org.opencontainers.image.source="https://github.com/f-pd/quotez"
 LABEL org.opencontainers.image.licenses="GPL-3.0"

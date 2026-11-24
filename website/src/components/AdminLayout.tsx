@@ -1,29 +1,27 @@
-import { useEffect, useState } from 'react';
-import { Link, Outlet, useNavigate } from '@tanstack/react-router';
+import { Show, createSignal, onCleanup } from 'solid-js';
+import { Link, Outlet, useNavigate } from '@tanstack/solid-router';
 import { clearCredentials } from '../lib/auth';
 import { fetchStatus, type Status } from '../lib/api';
 import '../styles/admin.css';
 
 export function AdminLayout() {
   const navigate = useNavigate();
-  const [status, setStatus] = useState<Status | null>(null);
+  const [status, setStatus] = createSignal<Status | null>(null);
 
   // Keep the mode indicators in the sidebar fresh on every page
-  useEffect(() => {
-    let alive = true;
-    const load = () =>
-      fetchStatus()
-        .then((s) => alive && setStatus(s))
-        .catch(() => alive && setStatus(null));
-    load();
-    const t = setInterval(load, 10000);
-    window.addEventListener('quotez:modes-changed', load);
-    return () => {
-      alive = false;
-      clearInterval(t);
-      window.removeEventListener('quotez:modes-changed', load);
-    };
-  }, []);
+  let alive = true;
+  const load = () =>
+    fetchStatus()
+      .then((s) => alive && setStatus(s))
+      .catch(() => alive && setStatus(null));
+  load();
+  const t = setInterval(load, 10000);
+  window.addEventListener('quotez:modes-changed', load);
+  onCleanup(() => {
+    alive = false;
+    clearInterval(t);
+    window.removeEventListener('quotez:modes-changed', load);
+  });
 
   const handleLogout = () => {
     clearCredentials();
@@ -31,36 +29,40 @@ export function AdminLayout() {
   };
 
   return (
-    <div data-testid="admin-layout" className="admin-shell">
-      <aside data-testid="admin-nav" className="admin-nav">
-        <div className="brand">quotez admin</div>
+    <div data-testid="admin-layout" class="admin-shell">
+      <aside data-testid="admin-nav" class="admin-nav">
+        <div class="brand">quotez admin</div>
         <nav>
-          <Link to="/admin" activeProps={{ className: 'active' }} activeOptions={{ exact: true }}>
+          <Link to="/admin" activeProps={{ class: 'active' }} activeOptions={{ exact: true }}>
             Dashboard
           </Link>
-          <Link to="/admin/quotes" activeProps={{ className: 'active' }}>
+          <Link to="/admin/quotes" activeProps={{ class: 'active' }}>
             Quotes
           </Link>
-          <Link to="/admin/logs" activeProps={{ className: 'active' }}>
+          <Link to="/admin/logs" activeProps={{ class: 'active' }}>
             Logs
           </Link>
-          <Link to="/admin/config" activeProps={{ className: 'active' }}>
+          <Link to="/admin/config" activeProps={{ class: 'active' }}>
             Config
           </Link>
         </nav>
-        {status && (
-          <div className="mode-pills">
-            {status.maintenance ? <span className="pill warn">maintenance</span> : <span className="pill ok">live</span>}
-            {status.debug && <span className="pill info">debug</span>}
-          </div>
-        )}
-        <div className="logout" style={{ marginTop: 'auto' }}>
-          <button className="btn sm" onClick={handleLogout}>
+        <Show when={status()}>
+          {(s) => (
+            <div class="mode-pills">
+              {s().maintenance ? <span class="pill warn">maintenance</span> : <span class="pill ok">live</span>}
+              <Show when={s().debug}>
+                <span class="pill info">debug</span>
+              </Show>
+            </div>
+          )}
+        </Show>
+        <div class="logout" style={{ 'margin-top': 'auto' }}>
+          <button class="btn sm" onClick={handleLogout}>
             Logout
           </button>
         </div>
       </aside>
-      <main className="admin-main">
+      <main class="admin-main">
         <Outlet />
       </main>
     </div>

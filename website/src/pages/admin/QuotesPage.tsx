@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { For, Match, Show, Switch, createMemo, createSignal } from 'solid-js';
 import { fetchQuotes, createQuote, updateQuote, deleteQuote, fetchLocales, type Quote } from '../../lib/api';
 import { QOTD_MAX_BYTES, baseLanguage, canonicalLocale, languageName, utf8Bytes } from '../../lib/i18n';
 
@@ -11,19 +11,19 @@ function sourceLabel(source: string | null | undefined): string {
 }
 
 /** Byte size against the RFC 865 limit; over it the text is served on the web only */
-function ByteCount({ text }: { text: string }) {
-  const bytes = utf8Bytes(text);
-  const over = bytes > QOTD_MAX_BYTES;
+function ByteCount(props: { text: string }) {
+  const bytes = () => utf8Bytes(props.text);
+  const over = () => bytes() > QOTD_MAX_BYTES;
   return (
-    <span className="muted small" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-      <span style={over ? { color: 'var(--color-danger, #e5484d)' } : undefined}>
-        {bytes}/{QOTD_MAX_BYTES} bytes
+    <span class="muted small" style={{ display: 'inline-flex', gap: '6px', 'align-items': 'center' }}>
+      <span style={over() ? { color: 'var(--color-danger, #e5484d)' } : undefined}>
+        {bytes()}/{QOTD_MAX_BYTES} bytes
       </span>
-      {over && (
-        <span className="pill warn" title="Longer than the RFC 865 limit: shown on the website, never sent on port 17/8017">
+      <Show when={over()}>
+        <span class="pill warn" title="Longer than the RFC 865 limit: shown on the website, never sent on port 17/8017">
           web only
         </span>
-      )}
+      </Show>
     </span>
   );
 }
@@ -46,33 +46,28 @@ function hasLanguage(q: Quote, lang: string): boolean {
 }
 
 export function AdminQuotesPage() {
-  const [quotes, setQuotes] = useState<Quote[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [quotes, setQuotes] = createSignal<Quote[]>([]);
+  const [loading, setLoading] = createSignal(true);
+  const [error, setError] = createSignal<string | null>(null);
+  const [toast, setToast] = createSignal<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
-  const [formText, setFormText] = useState('');
-  const [formAuthor, setFormAuthor] = useState('');
-  const [formWork, setFormWork] = useState('');
-  const [formLang, setFormLang] = useState('');
-  const [formTranslations, setFormTranslations] = useState<Record<string, string>>({});
-  const [formWorks, setFormWorks] = useState<Record<string, string>>({});
-  const [newTransLang, setNewTransLang] = useState('');
-  const [locales, setLocales] = useState<{ supported: string[]; default: string }>({ supported: ['en', 'it', 'fr'], default: 'en' });
-  const [langFilter, setLangFilter] = useState('all');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = createSignal(false);
+  const [editingQuote, setEditingQuote] = createSignal<Quote | null>(null);
+  const [formText, setFormText] = createSignal('');
+  const [formAuthor, setFormAuthor] = createSignal('');
+  const [formWork, setFormWork] = createSignal('');
+  const [formLang, setFormLang] = createSignal('');
+  const [formTranslations, setFormTranslations] = createSignal<Record<string, string>>({});
+  const [formWorks, setFormWorks] = createSignal<Record<string, string>>({});
+  const [newTransLang, setNewTransLang] = createSignal('');
+  const [locales, setLocales] = createSignal<{ supported: string[]; default: string }>({ supported: ['en', 'it', 'fr'], default: 'en' });
+  const [langFilter, setLangFilter] = createSignal('all');
+  const [isSubmitting, setIsSubmitting] = createSignal(false);
 
-  const [search, setSearch] = useState('');
-  const [sourceFilter, setSourceFilter] = useState('all');
-  const [sortKey, setSortKey] = useState<SortKey>('id');
-  const [sortDesc, setSortDesc] = useState(false);
-
-  useEffect(() => {
-    loadQuotes();
-    fetchLocales().then(setLocales).catch(() => {});
-  }, []);
+  const [search, setSearch] = createSignal('');
+  const [sourceFilter, setSourceFilter] = createSignal('all');
+  const [sortKey, setSortKey] = createSignal<SortKey>('id');
+  const [sortDesc, setSortDesc] = createSignal(false);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
@@ -93,43 +88,47 @@ export function AdminQuotesPage() {
     }
   };
 
-  const sources = useMemo(() => {
-    const set = new Set(quotes.map((q) => sourceLabel(q.source)));
-    return Array.from(set).sort();
-  }, [quotes]);
+  loadQuotes();
+  fetchLocales().then(setLocales).catch(() => {});
 
-  const visible = useMemo(() => {
-    const needle = search.trim().toLowerCase();
-    const list = quotes.filter(
+  const sources = createMemo(() => Array.from(new Set(quotes().map((q) => sourceLabel(q.source)))).sort());
+
+  const visible = createMemo(() => {
+    const needle = search().trim().toLowerCase();
+    const lf = langFilter();
+    const sf = sourceFilter();
+    const list = quotes().filter(
       (q) =>
-        (sourceFilter === 'all' || sourceLabel(q.source) === sourceFilter) &&
-        (langFilter === 'all' ||
-          (langFilter === 'web-only' && webOnlyLangs(q).length > 0) ||
-          (langFilter === 'no-work' && !q.work && Object.keys(q.works ?? {}).length === 0) ||
-          (langFilter.startsWith('has:') && hasLanguage(q, langFilter.slice(4))) ||
-          (langFilter.startsWith('missing:') && !hasLanguage(q, langFilter.slice(8)))) &&
+        (sf === 'all' || sourceLabel(q.source) === sf) &&
+        (lf === 'all' ||
+          (lf === 'web-only' && webOnlyLangs(q).length > 0) ||
+          (lf === 'no-work' && !q.work && Object.keys(q.works ?? {}).length === 0) ||
+          (lf.startsWith('has:') && hasLanguage(q, lf.slice(4))) ||
+          (lf.startsWith('missing:') && !hasLanguage(q, lf.slice(8)))) &&
         (!needle || q.text.toLowerCase().includes(needle)),
     );
+    const key = sortKey();
+    const desc = sortDesc();
     list.sort((a, b) => {
       let cmp = 0;
-      if (sortKey === 'id') cmp = a.id - b.id;
-      else if (sortKey === 'served') cmp = (a.served ?? 0) - (b.served ?? 0);
+      if (key === 'id') cmp = a.id - b.id;
+      else if (key === 'served') cmp = (a.served ?? 0) - (b.served ?? 0);
       else cmp = a.text.localeCompare(b.text);
-      return sortDesc ? -cmp : cmp;
+      return desc ? -cmp : cmp;
     });
     return list;
-  }, [quotes, search, sourceFilter, langFilter, sortKey, sortDesc]);
+  });
 
-  const totalServed = useMemo(() => quotes.reduce((a, q) => a + (q.served ?? 0), 0), [quotes]);
+  const totalServed = createMemo(() => quotes().reduce((a, q) => a + (q.served ?? 0), 0));
 
   const sortBy = (key: SortKey) => {
-    if (sortKey === key) setSortDesc(!sortDesc);
+    if (sortKey() === key) setSortDesc(!sortDesc());
     else {
       setSortKey(key);
       setSortDesc(key === 'served');
     }
   };
-  const arrow = (key: SortKey) => (sortKey === key ? (sortDesc ? ' ↓' : ' ↑') : '');
+  const arrow = (key: SortKey) => (sortKey() === key ? (sortDesc() ? ' ↓' : ' ↑') : '');
 
   const handleAddClick = () => {
     setEditingQuote(null);
@@ -166,55 +165,57 @@ export function AdminQuotesPage() {
     }
   };
 
-  const effectiveLang = formLang || locales.default;
+  const effectiveLang = () => formLang() || locales().default;
   // One translation box per supported locale (except the original language),
   // plus any other language the quote already has
-  const translationLangs = useMemo(() => {
-    const list = locales.supported.filter((l) => baseLanguage(l) !== baseLanguage(effectiveLang));
-    for (const l of Object.keys(formTranslations)) {
-      if (!list.includes(l) && baseLanguage(l) !== baseLanguage(effectiveLang)) list.push(l);
+  const translationLangs = createMemo(() => {
+    const original = baseLanguage(effectiveLang());
+    const list = locales().supported.filter((l) => baseLanguage(l) !== original);
+    for (const l of Object.keys(formTranslations())) {
+      if (!list.includes(l) && baseLanguage(l) !== original) list.push(l);
     }
     return list;
-  }, [locales, effectiveLang, formTranslations]);
-  const langOptions = useMemo(() => {
-    const list = [...locales.supported];
-    if (formLang && !list.includes(formLang)) list.push(formLang);
+  });
+  const langOptions = createMemo(() => {
+    const list = [...locales().supported];
+    if (formLang() && !list.includes(formLang())) list.push(formLang());
     return list;
-  }, [locales, formLang]);
+  });
 
   const addTranslationLang = () => {
-    const tag = canonicalLocale(newTransLang);
+    const tag = canonicalLocale(newTransLang());
     if (!tag) {
       showToast('Invalid language tag (use it, it-IT, pt-BR…)', 'error');
       return;
     }
-    setFormTranslations({ ...formTranslations, [tag]: formTranslations[tag] ?? '' });
+    setFormTranslations({ ...formTranslations(), [tag]: formTranslations()[tag] ?? '' });
     setNewTransLang('');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
-    if (!formText.trim()) return;
+    if (!formText().trim()) return;
     try {
       setIsSubmitting(true);
       const translations: Record<string, string> = {};
-      for (const [lang, text] of Object.entries(formTranslations)) {
-        if (text.trim() && baseLanguage(lang) !== baseLanguage(effectiveLang)) translations[lang] = text.trim();
+      for (const [lang, text] of Object.entries(formTranslations())) {
+        if (text.trim() && baseLanguage(lang) !== baseLanguage(effectiveLang())) translations[lang] = text.trim();
       }
       const works: Record<string, string> = {};
-      for (const [lang, text] of Object.entries(formWorks)) {
+      for (const [lang, text] of Object.entries(formWorks())) {
         if (text.trim()) works[lang] = text.trim();
       }
       const input = {
-        text: formText,
-        author: formAuthor.trim() || null,
-        work: formWork.trim() || null,
+        text: formText(),
+        author: formAuthor().trim() || null,
+        work: formWork().trim() || null,
         works,
-        lang: formLang || null,
+        lang: formLang() || null,
         translations,
       };
-      if (editingQuote) {
-        await updateQuote(editingQuote.id, input);
+      const editing = editingQuote();
+      if (editing) {
+        await updateQuote(editing.id, input);
         showToast('Quote updated', 'success');
       } else {
         await createQuote(input);
@@ -231,260 +232,297 @@ export function AdminQuotesPage() {
 
   return (
     <div>
-      <div className="page-head">
+      <div class="page-head">
         <div>
           <h1>Quotes</h1>
-          <div className="muted small">
-            {quotes.length} quotes · {totalServed} served in the current stats window
+          <div class="muted small">
+            {quotes().length} quotes · {totalServed()} served in the current stats window
           </div>
         </div>
-        <div className="actions">
-          <button className="btn" onClick={() => loadQuotes()}>
+        <div class="actions">
+          <button class="btn" onClick={() => loadQuotes()}>
             Refresh
           </button>
-          <button data-testid="add-quote-btn" className="btn primary" onClick={handleAddClick}>
+          <button data-testid="add-quote-btn" class="btn primary" onClick={handleAddClick}>
             Add quote
           </button>
         </div>
       </div>
 
-      {isFormOpen && (
-        <form className="card" style={{ marginBottom: 'var(--spacing-lg)' }} onSubmit={handleSubmit}>
-          <h2>{editingQuote ? `Edit quote #${editingQuote.id}` : 'New quote'}</h2>
+      <Show when={isFormOpen()}>
+        <form class="card" style={{ 'margin-bottom': 'var(--spacing-lg)' }} onSubmit={handleSubmit}>
+          <h2>{editingQuote() ? `Edit quote #${editingQuote()!.id}` : 'New quote'}</h2>
           <textarea
             data-testid="quote-textarea"
-            className="textarea"
+            class="textarea"
             rows={4}
-            value={formText}
-            onChange={(e) => setFormText(e.target.value)}
+            value={formText()}
+            onInput={(e) => setFormText(e.currentTarget.value)}
             placeholder="Quote text, in its original language"
-            autoFocus
+            autofocus
+            ref={(el) => queueMicrotask(() => el.focus())}
             required
           />
-          <div style={{ display: 'flex', gap: 'var(--spacing-md)', flexWrap: 'wrap', alignItems: 'center', marginTop: 6 }}>
-            <ByteCount text={formText} />
-            <label className="small" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-md)', 'flex-wrap': 'wrap', 'align-items': 'center', 'margin-top': '6px' }}>
+            <ByteCount text={formText()} />
+            <label class="small" style={{ display: 'inline-flex', gap: '6px', 'align-items': 'center' }}>
               Original language
-              <select data-testid="quote-lang" className="select" value={formLang} onChange={(e) => setFormLang(e.target.value)}>
-                <option value="">Default ({languageName(locales.default, 'en')})</option>
-                {langOptions.map((l) => (
-                  <option key={l} value={l}>
-                    {languageName(l, 'en')} ({l})
-                  </option>
-                ))}
+              <select data-testid="quote-lang" class="select" value={formLang()} onChange={(e) => setFormLang(e.currentTarget.value)}>
+                <option value="" selected={formLang() === ''}>
+                  Default ({languageName(locales().default, 'en')})
+                </option>
+                <For each={langOptions()}>
+                  {(l) => (
+                    <option value={l} selected={l === formLang()}>
+                      {languageName(l, 'en')} ({l})
+                    </option>
+                  )}
+                </For>
               </select>
             </label>
             <input
-              className="input"
+              class="input"
               placeholder="Author"
-              value={formAuthor}
-              onChange={(e) => setFormAuthor(e.target.value)}
-              style={{ minWidth: 200 }}
+              value={formAuthor()}
+              onInput={(e) => setFormAuthor(e.currentTarget.value)}
+              style={{ 'min-width': '200px' }}
             />
           </div>
-          <h3 style={{ marginTop: 'var(--spacing-lg)' }}>Source</h3>
-          <div className="muted small" style={{ marginBottom: 6 }}>
+          <h3 style={{ 'margin-top': 'var(--spacing-lg)' }}>Source</h3>
+          <div class="muted small" style={{ 'margin-bottom': '6px' }}>
             Book, speech or work with a precise reference. Keep titles in their original language and write the rest
             (chapter, preface, closing words, dates) in each page language.
           </div>
-          {locales.supported.map((lang) => (
-            <label key={lang} className="small" style={{ display: 'block', marginBottom: 'var(--spacing-sm)' }}>
-              <strong>
-                {languageName(lang, 'en')} <span className="mono muted">{lang}</span>
-              </strong>
-              <input
-                data-testid={`quote-work-${lang}`}
-                className="input"
-                lang={lang}
-                placeholder={lang === 'it' ? 'e.g. Grundlinien der Philosophie des Rechts (1820), Prefazione' : `Source described in ${languageName(lang, 'en')}`}
-                value={formWorks[lang] ?? ''}
-                onChange={(e) => setFormWorks({ ...formWorks, [lang]: e.target.value })}
-                style={{ width: '100%', marginTop: 4 }}
-              />
-            </label>
-          ))}
-          <label className="small" style={{ display: 'block' }}>
-            <strong>Fallback</strong> <span className="muted">for languages without their own description</span>
+          <For each={locales().supported}>
+            {(lang) => (
+              <label class="small" style={{ display: 'block', 'margin-bottom': 'var(--spacing-sm)' }}>
+                <strong>
+                  {languageName(lang, 'en')} <span class="mono muted">{lang}</span>
+                </strong>
+                <input
+                  data-testid={`quote-work-${lang}`}
+                  class="input"
+                  lang={lang}
+                  placeholder={
+                    lang === 'it'
+                      ? 'e.g. Grundlinien der Philosophie des Rechts (1820), Prefazione'
+                      : `Source described in ${languageName(lang, 'en')}`
+                  }
+                  value={formWorks()[lang] ?? ''}
+                  onInput={(e) => setFormWorks({ ...formWorks(), [lang]: e.currentTarget.value })}
+                  style={{ width: '100%', 'margin-top': '4px' }}
+                />
+              </label>
+            )}
+          </For>
+          <label class="small" style={{ display: 'block' }}>
+            <strong>Fallback</strong> <span class="muted">for languages without their own description</span>
             <input
               data-testid="quote-work"
-              className="input"
+              class="input"
               placeholder="e.g. Epistulae morales ad Lucilium 1, 3"
-              value={formWork}
-              onChange={(e) => setFormWork(e.target.value)}
-              style={{ width: '100%', marginTop: 4 }}
+              value={formWork()}
+              onInput={(e) => setFormWork(e.currentTarget.value)}
+              style={{ width: '100%', 'margin-top': '4px' }}
             />
           </label>
 
-          <h3 style={{ marginTop: 'var(--spacing-lg)' }}>Translations</h3>
-          <div className="muted small" style={{ marginBottom: 6 }}>
+          <h3 style={{ 'margin-top': 'var(--spacing-lg)' }}>Translations</h3>
+          <div class="muted small" style={{ 'margin-bottom': '6px' }}>
             A page in another language shows only quotes translated into it, never a different language. Leave a box empty
             to drop that translation.
           </div>
-          {translationLangs.map((lang) => (
-            <div key={lang} style={{ marginBottom: 'var(--spacing-md)' }}>
-              <div className="small" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                <strong>
-                  {languageName(lang, 'en')} <span className="mono muted">{lang}</span>
-                </strong>
-                <ByteCount text={formTranslations[lang] ?? ''} />
+          <For each={translationLangs()}>
+            {(lang) => (
+              <div style={{ 'margin-bottom': 'var(--spacing-md)' }}>
+                <div class="small" style={{ display: 'flex', 'justify-content': 'space-between', 'margin-bottom': '4px' }}>
+                  <strong>
+                    {languageName(lang, 'en')} <span class="mono muted">{lang}</span>
+                  </strong>
+                  <ByteCount text={formTranslations()[lang] ?? ''} />
+                </div>
+                <textarea
+                  data-testid={`translation-${lang}`}
+                  class="textarea"
+                  rows={2}
+                  lang={lang}
+                  value={formTranslations()[lang] ?? ''}
+                  onInput={(e) => setFormTranslations({ ...formTranslations(), [lang]: e.currentTarget.value })}
+                  placeholder={`Translation in ${languageName(lang, 'en')}`}
+                />
               </div>
-              <textarea
-                data-testid={`translation-${lang}`}
-                className="textarea"
-                rows={2}
-                lang={lang}
-                value={formTranslations[lang] ?? ''}
-                onChange={(e) => setFormTranslations({ ...formTranslations, [lang]: e.target.value })}
-                placeholder={`Translation in ${languageName(lang, 'en')}`}
-              />
-            </div>
-          ))}
+            )}
+          </For>
           <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
             <input
-              className="input"
+              class="input"
               placeholder="Other language (e.g. de, pt-BR)"
-              value={newTransLang}
-              onChange={(e) => setNewTransLang(e.target.value)}
+              value={newTransLang()}
+              onInput={(e) => setNewTransLang(e.currentTarget.value)}
             />
-            <button type="button" className="btn sm" onClick={addTranslationLang} disabled={!newTransLang.trim()}>
+            <button type="button" class="btn sm" onClick={addTranslationLang} disabled={!newTransLang().trim()}>
               Add language
             </button>
           </div>
-          {editingQuote?.source && (
-            <div className="muted small" style={{ marginTop: 6 }}>
-              This quote comes from <span className="mono">{editingQuote.source}</span>. The edited version is saved in the
+          <Show when={editingQuote()?.source}>
+            <div class="muted small" style={{ 'margin-top': '6px' }}>
+              This quote comes from <span class="mono">{editingQuote()!.source}</span>. The edited version is saved in the
               API-managed file; the original line stays in its source file and comes back on reload.
             </div>
-          )}
-          <div style={{ display: 'flex', gap: 'var(--spacing-sm)', justifyContent: 'flex-end', marginTop: 'var(--spacing-md)' }}>
-            <button type="button" className="btn" onClick={() => setIsFormOpen(false)}>
+          </Show>
+          <div style={{ display: 'flex', gap: 'var(--spacing-sm)', 'justify-content': 'flex-end', 'margin-top': 'var(--spacing-md)' }}>
+            <button type="button" class="btn" onClick={() => setIsFormOpen(false)}>
               Cancel
             </button>
-            <button type="submit" data-testid="quote-submit" className="btn primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving…' : 'Save'}
+            <button type="submit" data-testid="quote-submit" class="btn primary" disabled={isSubmitting()}>
+              {isSubmitting() ? 'Saving…' : 'Save'}
             </button>
           </div>
         </form>
-      )}
+      </Show>
 
-      <div className="toolbar">
+      <div class="toolbar">
         <input
-          className="input grow"
+          class="input grow"
           type="search"
           placeholder="Search quotes…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={search()}
+          onInput={(e) => setSearch(e.currentTarget.value)}
         />
-        <select className="select" value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}>
+        <select class="select" value={sourceFilter()} onChange={(e) => setSourceFilter(e.currentTarget.value)}>
           <option value="all">All sources</option>
-          {sources.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
+          <For each={sources()}>
+            {(s) => (
+              <option value={s} selected={s === sourceFilter()}>
+                {s}
+              </option>
+            )}
+          </For>
         </select>
-        <select className="select" value={langFilter} onChange={(e) => setLangFilter(e.target.value)}>
+        <select class="select" value={langFilter()} onChange={(e) => setLangFilter(e.currentTarget.value)}>
           <option value="all">All languages</option>
-          {locales.supported.map((l) => (
-            <option key={`has:${l}`} value={`has:${l}`}>
-              In {languageName(l, 'en')}
-            </option>
-          ))}
-          {locales.supported.map((l) => (
-            <option key={`missing:${l}`} value={`missing:${l}`}>
-              Missing {languageName(l, 'en')}
-            </option>
-          ))}
+          <For each={locales().supported}>
+            {(l) => (
+              <option value={`has:${l}`} selected={langFilter() === `has:${l}`}>
+                In {languageName(l, 'en')}
+              </option>
+            )}
+          </For>
+          <For each={locales().supported}>
+            {(l) => (
+              <option value={`missing:${l}`} selected={langFilter() === `missing:${l}`}>
+                Missing {languageName(l, 'en')}
+              </option>
+            )}
+          </For>
           <option value="web-only">Web only (over {QOTD_MAX_BYTES} bytes)</option>
           <option value="no-work">Without source</option>
         </select>
       </div>
 
-      {loading ? (
-        <div className="empty">Loading quotes…</div>
-      ) : error ? (
-        <div className="banner err">{error}</div>
-      ) : quotes.length === 0 ? (
-        <div className="card empty">No quotes yet. Click "Add quote" to create one.</div>
-      ) : visible.length === 0 ? (
-        <div className="card empty">No quotes match your filters.</div>
-      ) : (
-        <div className="card table-wrap" style={{ padding: 0 }}>
-          <table className="data" data-testid="quotes-list">
-            <thead>
-              <tr>
-                <th className="sortable num" onClick={() => sortBy('id')}>
-                  #{arrow('id')}
-                </th>
-                <th className="sortable" onClick={() => sortBy('text')}>
-                  Quote{arrow('text')}
-                </th>
-                <th>Languages</th>
-                <th>Source</th>
-                <th className="sortable num" onClick={() => sortBy('served')}>
-                  Served{arrow('served')}
-                </th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((quote) => (
-                <tr key={quote.id} data-testid={`quote-row-${quote.id}`}>
-                  <td className="num muted">{quote.id}</td>
-                  <td style={{ whiteSpace: 'pre-wrap' }}>
-                    {quote.text}
-                    {quote.author && !quote.text.includes(quote.author) && <span className="muted"> — {quote.author}</span>}
-                    {quote.work ? (
-                      <div className="muted small" style={{ fontStyle: 'italic' }}>
-                        {quote.work}
-                      </div>
-                    ) : (
-                      <div className="small" style={{ color: 'var(--color-danger, #e5484d)' }}>
-                        No source
-                      </div>
-                    )}
-                  </td>
-                  <td>
-                    <span className="pill info" title={quote.lang ? 'Original language' : 'Original language not declared: default assumed'}>
-                      {quote.original_lang ?? locales.default}
-                      {!quote.lang && '*'}
-                    </span>{' '}
-                    {Object.keys(quote.translations ?? {}).map((l) => (
-                      <span key={l} className="pill" title={quote.translations?.[l]}>
-                        {l}
-                      </span>
-                    ))}{' '}
-                    {webOnlyLangs(quote).length > 0 && (
-                      <span
-                        className="pill warn"
-                        title={`Over ${QOTD_MAX_BYTES} bytes, served on the website only: ${webOnlyLangs(quote).join(', ')}`}
-                      >
-                        web only: {webOnlyLangs(quote).join(', ')}
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <span className="pill" title={quote.source ?? 'Added through the API'}>
-                      {sourceLabel(quote.source)}
-                    </span>
-                  </td>
-                  <td className="num">{quote.served ?? 0}</td>
-                  <td className="actions">
-                    <button className="btn sm" onClick={() => handleEditClick(quote)}>
-                      Edit
-                    </button>{' '}
-                    <button className="btn sm danger" onClick={() => handleDeleteClick(quote)}>
-                      Delete
-                    </button>
-                  </td>
+      <Switch>
+        <Match when={loading()}>
+          <div class="empty">Loading quotes…</div>
+        </Match>
+        <Match when={error()}>
+          <div class="banner err">{error()}</div>
+        </Match>
+        <Match when={quotes().length === 0}>
+          <div class="card empty">No quotes yet. Click "Add quote" to create one.</div>
+        </Match>
+        <Match when={visible().length === 0}>
+          <div class="card empty">No quotes match your filters.</div>
+        </Match>
+        <Match when={true}>
+          <div class="card table-wrap" style={{ padding: 0 }}>
+            <table class="data" data-testid="quotes-list">
+              <thead>
+                <tr>
+                  <th class="sortable num" onClick={() => sortBy('id')}>
+                    #{arrow('id')}
+                  </th>
+                  <th class="sortable" onClick={() => sortBy('text')}>
+                    Quote{arrow('text')}
+                  </th>
+                  <th>Languages</th>
+                  <th>Source</th>
+                  <th class="sortable num" onClick={() => sortBy('served')}>
+                    Served{arrow('served')}
+                  </th>
+                  <th />
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                <For each={visible()}>
+                  {(quote) => (
+                    <tr data-testid={`quote-row-${quote.id}`}>
+                      <td class="num muted">{quote.id}</td>
+                      <td style={{ 'white-space': 'pre-wrap' }}>
+                        {quote.text}
+                        <Show when={quote.author && !quote.text.includes(quote.author)}>
+                          <span class="muted"> — {quote.author}</span>
+                        </Show>
+                        <Show
+                          when={quote.work}
+                          fallback={
+                            <div class="small" style={{ color: 'var(--color-danger, #e5484d)' }}>
+                              No source
+                            </div>
+                          }
+                        >
+                          <div class="muted small" style={{ 'font-style': 'italic' }}>
+                            {quote.work}
+                          </div>
+                        </Show>
+                      </td>
+                      <td>
+                        <span
+                          class="pill info"
+                          title={quote.lang ? 'Original language' : 'Original language not declared: default assumed'}
+                        >
+                          {quote.original_lang ?? locales().default}
+                          {!quote.lang && '*'}
+                        </span>{' '}
+                        <For each={Object.keys(quote.translations ?? {})}>
+                          {(l) => (
+                            <span class="pill" title={quote.translations?.[l]}>
+                              {l}
+                            </span>
+                          )}
+                        </For>{' '}
+                        <Show when={webOnlyLangs(quote).length > 0}>
+                          <span
+                            class="pill warn"
+                            title={`Over ${QOTD_MAX_BYTES} bytes, served on the website only: ${webOnlyLangs(quote).join(', ')}`}
+                          >
+                            web only: {webOnlyLangs(quote).join(', ')}
+                          </span>
+                        </Show>
+                      </td>
+                      <td>
+                        <span class="pill" title={quote.source ?? 'Added through the API'}>
+                          {sourceLabel(quote.source)}
+                        </span>
+                      </td>
+                      <td class="num">{quote.served ?? 0}</td>
+                      <td class="actions">
+                        <button class="btn sm" onClick={() => handleEditClick(quote)}>
+                          Edit
+                        </button>{' '}
+                        <button class="btn sm danger" onClick={() => handleDeleteClick(quote)}>
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
+          </div>
+        </Match>
+      </Switch>
 
-      {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}
+      <Show when={toast()}>{(t) => <div class={`toast ${t().type}`}>{t().message}</div>}</Show>
     </div>
   );
 }
