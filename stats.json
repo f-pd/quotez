@@ -1,31 +1,31 @@
 {
-  "updated_at": "2026-11-24T17:25:14Z",
-  "commit": "04f213d98b02bcf82fe28c3a19e57aa34385b5be",
+  "updated_at": "2026-11-24T17:32:03Z",
+  "commit": "e8b9a77ae5ffad454e1bffa405011b06d9d77c5c",
   "image": {
     "local": {
       "platform": "linux/amd64",
-      "uncompressed_bytes": 269888,
-      "binary_bytes": 588776
+      "uncompressed_bytes": 270819,
+      "binary_bytes": 590744
     },
     "registry": {
       "platforms": [
         {
           "platform": "linux/amd64",
-          "compressed_bytes": 265404
+          "compressed_bytes": 266346
         },
         {
           "platform": "linux/arm64",
-          "compressed_bytes": 288219
+          "compressed_bytes": 288957
         }
       ]
     }
   },
   "load_test": {
-    "generated_at": "2026-11-24T17:24:56Z",
-    "commit": "04f213d98b02bcf82fe28c3a19e57aa34385b5be",
+    "generated_at": "2026-11-24T17:31:48Z",
+    "commit": "e8b9a77ae5ffad454e1bffa405011b06d9d77c5c",
     "protocol": "QOTD over TCP (RFC 865)",
     "host": {
-      "cpu": "AMD EPYC 9V74 80-Core Processor",
+      "cpu": "AMD EPYC 7763 64-Core Processor",
       "cores": 4
     },
     "criteria": {
@@ -43,7 +43,7 @@
         "suffering": {
           "rate": 2000,
           "kind": "latency",
-          "value": 53
+          "value": 2118
         },
         "levels": [
           {
@@ -53,244 +53,31 @@
             "dropped": 0,
             "ok_rate": 1,
             "latency_ms": {
-              "avg": 0.4308,
-              "p50": 0,
-              "p95": 1,
-              "p99": 1,
-              "max": 4
-            },
-            "duration_s": 10,
-            "memory_after": "1.945MiB",
-            "server_alive": true
-          },
-          {
-            "target_rate": 500,
-            "achieved_rate": 500,
-            "iterations": 5001,
-            "dropped": 0,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 0.28674265146970607,
-              "p50": 0,
-              "p95": 1,
-              "p99": 1,
-              "max": 3
-            },
-            "duration_s": 10,
-            "memory_after": "1.461MiB",
-            "server_alive": true
-          },
-          {
-            "target_rate": 1000,
-            "achieved_rate": 1000,
-            "iterations": 10001,
-            "dropped": 0,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 0.6287371262873712,
+              "avg": 0.5392,
               "p50": 1,
-              "p95": 1,
-              "p99": 1,
-              "max": 5
-            },
-            "duration_s": 10,
-            "memory_after": "1.98MiB",
-            "server_alive": true
-          },
-          {
-            "target_rate": 2000,
-            "achieved_rate": 1915.9,
-            "iterations": 20002,
-            "dropped": 0,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 16.723027697230275,
-              "p50": 4,
-              "p95": 53,
-              "p99": 65,
-              "max": 1113
-            },
-            "duration_s": 10.4,
-            "memory_after": "1.992MiB",
-            "server_alive": true
-          }
-        ]
-      },
-      {
-        "name": "small",
-        "cpus": 0.25,
-        "memory": "64m",
-        "max_healthy_rate": 4000,
-        "suffering": {
-          "rate": 6000,
-          "kind": "latency",
-          "value": 1072
-        },
-        "levels": [
-          {
-            "target_rate": 250,
-            "achieved_rate": 250.1,
-            "iterations": 2501,
-            "dropped": 0,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 0.4190323870451819,
-              "p50": 0,
               "p95": 1,
               "p99": 1,
               "max": 2
             },
             "duration_s": 10,
-            "memory_after": "1.562MiB",
+            "memory_after": "1.5MiB",
             "server_alive": true
           },
           {
             "target_rate": 500,
             "achieved_rate": 500,
-            "iterations": 5000,
-            "dropped": 0,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 0.3238,
-              "p50": 0,
-              "p95": 1,
-              "p99": 1,
-              "max": 3
-            },
-            "duration_s": 10,
-            "memory_after": "1.414MiB",
-            "server_alive": true
-          },
-          {
-            "target_rate": 1000,
-            "achieved_rate": 1000,
-            "iterations": 10001,
-            "dropped": 0,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 0.6238376162383762,
-              "p50": 1,
-              "p95": 1,
-              "p99": 1,
-              "max": 4
-            },
-            "duration_s": 10,
-            "memory_after": "1.754MiB",
-            "server_alive": true
-          },
-          {
-            "target_rate": 2000,
-            "achieved_rate": 1999.7,
-            "iterations": 19999,
-            "dropped": 0,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 0.615980799039952,
-              "p50": 1,
-              "p95": 1,
-              "p99": 1,
-              "max": 5
-            },
-            "duration_s": 10,
-            "memory_after": "1.191MiB",
-            "server_alive": true
-          },
-          {
-            "target_rate": 3000,
-            "achieved_rate": 2999.8,
-            "iterations": 30001,
-            "dropped": 0,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 0.40868637712076267,
-              "p50": 0,
-              "p95": 1,
-              "p99": 2,
-              "max": 9
-            },
-            "duration_s": 10,
-            "memory_after": "1.402MiB",
-            "server_alive": true
-          },
-          {
-            "target_rate": 4000,
-            "achieved_rate": 3998.6,
-            "iterations": 40002,
-            "dropped": 0,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 2.558847057647118,
-              "p50": 1,
-              "p95": 16,
-              "p99": 22,
-              "max": 33
-            },
-            "duration_s": 10,
-            "memory_after": "1.281MiB",
-            "server_alive": true
-          },
-          {
-            "target_rate": 6000,
-            "achieved_rate": 4763.2,
-            "iterations": 52406,
-            "dropped": 7595,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 234.19301225050566,
-              "p50": 9,
-              "p95": 1072,
-              "p99": 2065,
-              "max": 2269
-            },
-            "duration_s": 11,
-            "memory_after": "1.414MiB",
-            "server_alive": true
-          }
-        ]
-      },
-      {
-        "name": "medium",
-        "cpus": 0.5,
-        "memory": "128m",
-        "max_healthy_rate": 8000,
-        "suffering": {
-          "rate": 10000,
-          "kind": "latency",
-          "value": 169
-        },
-        "levels": [
-          {
-            "target_rate": 250,
-            "achieved_rate": 250.1,
-            "iterations": 2501,
-            "dropped": 0,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 0.39984006397441024,
-              "p50": 0,
-              "p95": 1,
-              "p99": 1,
-              "max": 3
-            },
-            "duration_s": 10,
-            "memory_after": "1.496MiB",
-            "server_alive": true
-          },
-          {
-            "target_rate": 500,
-            "achieved_rate": 500.1,
             "iterations": 5001,
             "dropped": 0,
             "ok_rate": 1,
             "latency_ms": {
-              "avg": 0.27834433113377327,
-              "p50": 0,
+              "avg": 0.5472905418916216,
+              "p50": 1,
               "p95": 1,
               "p99": 1,
               "max": 4
             },
             "duration_s": 10,
-            "memory_after": "1.586MiB",
+            "memory_after": "1.949MiB",
             "server_alive": true
           },
           {
@@ -300,116 +87,295 @@
             "dropped": 0,
             "ok_rate": 1,
             "latency_ms": {
-              "avg": 0.276972302769723,
-              "p50": 0,
+              "avg": 1.8893110688931107,
+              "p50": 1,
+              "p95": 10,
+              "p99": 18,
+              "max": 32
+            },
+            "duration_s": 10,
+            "memory_after": "1.672MiB",
+            "server_alive": true
+          },
+          {
+            "target_rate": 2000,
+            "achieved_rate": 1597.7,
+            "iterations": 17680,
+            "dropped": 2321,
+            "ok_rate": 1,
+            "latency_ms": {
+              "avg": 491.6243778280543,
+              "p50": 83,
+              "p95": 2118.0499999999993,
+              "p99": 2258.4199999999983,
+              "max": 3547
+            },
+            "duration_s": 11.1,
+            "memory_after": "1.906MiB",
+            "server_alive": true
+          }
+        ]
+      },
+      {
+        "name": "small",
+        "cpus": 0.25,
+        "memory": "64m",
+        "max_healthy_rate": 3000,
+        "suffering": {
+          "rate": 4000,
+          "kind": "latency",
+          "value": 1049
+        },
+        "levels": [
+          {
+            "target_rate": 250,
+            "achieved_rate": 250.1,
+            "iterations": 2501,
+            "dropped": 0,
+            "ok_rate": 1,
+            "latency_ms": {
+              "avg": 0.5717712914834067,
+              "p50": 1,
+              "p95": 1,
+              "p99": 1,
+              "max": 3
+            },
+            "duration_s": 10,
+            "memory_after": "1.66MiB",
+            "server_alive": true
+          },
+          {
+            "target_rate": 500,
+            "achieved_rate": 500,
+            "iterations": 5001,
+            "dropped": 0,
+            "ok_rate": 1,
+            "latency_ms": {
+              "avg": 0.5570885822835433,
+              "p50": 1,
+              "p95": 1,
+              "p99": 1,
+              "max": 5
+            },
+            "duration_s": 10,
+            "memory_after": "1.559MiB",
+            "server_alive": true
+          },
+          {
+            "target_rate": 1000,
+            "achieved_rate": 1000,
+            "iterations": 10001,
+            "dropped": 0,
+            "ok_rate": 1,
+            "latency_ms": {
+              "avg": 0.7331266873312668,
+              "p50": 1,
+              "p95": 1,
+              "p99": 1,
+              "max": 5
+            },
+            "duration_s": 10,
+            "memory_after": "1.344MiB",
+            "server_alive": true
+          },
+          {
+            "target_rate": 2000,
+            "achieved_rate": 1999.9,
+            "iterations": 20001,
+            "dropped": 0,
+            "ok_rate": 1,
+            "latency_ms": {
+              "avg": 0.616019199040048,
+              "p50": 1,
+              "p95": 1,
+              "p99": 2,
+              "max": 8
+            },
+            "duration_s": 10,
+            "memory_after": "1.543MiB",
+            "server_alive": true
+          },
+          {
+            "target_rate": 3000,
+            "achieved_rate": 2999.8,
+            "iterations": 30001,
+            "dropped": 0,
+            "ok_rate": 1,
+            "latency_ms": {
+              "avg": 5.604179860671311,
+              "p50": 1,
+              "p95": 28,
+              "p99": 35,
+              "max": 44
+            },
+            "duration_s": 10,
+            "memory_after": "1.316MiB",
+            "server_alive": true
+          },
+          {
+            "target_rate": 4000,
+            "achieved_rate": 3429.8,
+            "iterations": 37802,
+            "dropped": 2198,
+            "ok_rate": 1,
+            "latency_ms": {
+              "avg": 166.36635627744565,
+              "p50": 11,
+              "p95": 1049,
+              "p99": 2044,
+              "max": 2067
+            },
+            "duration_s": 11,
+            "memory_after": "1.367MiB",
+            "server_alive": true
+          }
+        ]
+      },
+      {
+        "name": "medium",
+        "cpus": 0.5,
+        "memory": "128m",
+        "max_healthy_rate": 6000,
+        "suffering": {
+          "rate": 8000,
+          "kind": "latency",
+          "value": 223
+        },
+        "levels": [
+          {
+            "target_rate": 250,
+            "achieved_rate": 250.1,
+            "iterations": 2501,
+            "dropped": 0,
+            "ok_rate": 1,
+            "latency_ms": {
+              "avg": 0.5105957616953218,
+              "p50": 1,
+              "p95": 1,
+              "p99": 1,
+              "max": 2
+            },
+            "duration_s": 10,
+            "memory_after": "1.551MiB",
+            "server_alive": true
+          },
+          {
+            "target_rate": 500,
+            "achieved_rate": 500,
+            "iterations": 5000,
+            "dropped": 0,
+            "ok_rate": 1,
+            "latency_ms": {
+              "avg": 0.5342,
+              "p50": 1,
+              "p95": 1,
+              "p99": 1,
+              "max": 3
+            },
+            "duration_s": 10,
+            "memory_after": "1.523MiB",
+            "server_alive": true
+          },
+          {
+            "target_rate": 1000,
+            "achieved_rate": 999.9,
+            "iterations": 10000,
+            "dropped": 0,
+            "ok_rate": 1,
+            "latency_ms": {
+              "avg": 0.6443,
+              "p50": 1,
               "p95": 1,
               "p99": 1,
               "max": 4
             },
             "duration_s": 10,
-            "memory_after": "1.422MiB",
+            "memory_after": "1.637MiB",
             "server_alive": true
           },
           {
             "target_rate": 2000,
-            "achieved_rate": 1999.7,
-            "iterations": 19998,
+            "achieved_rate": 1999.9,
+            "iterations": 20001,
             "dropped": 0,
             "ok_rate": 1,
             "latency_ms": {
-              "avg": 0.5044004400440044,
-              "p50": 0,
+              "avg": 0.5350732463376832,
+              "p50": 1,
               "p95": 1,
-              "p99": 1,
-              "max": 6
+              "p99": 2,
+              "max": 8
             },
             "duration_s": 10,
-            "memory_after": "1.438MiB",
+            "memory_after": "1.434MiB",
             "server_alive": true
           },
           {
             "target_rate": 3000,
-            "achieved_rate": 2999.9,
+            "achieved_rate": 2999.8,
             "iterations": 30001,
             "dropped": 0,
             "ok_rate": 1,
             "latency_ms": {
-              "avg": 0.40381987267091096,
-              "p50": 0,
+              "avg": 0.6724442518582714,
+              "p50": 1,
               "p95": 1,
-              "p99": 2,
-              "max": 5
+              "p99": 4,
+              "max": 11
             },
             "duration_s": 10,
-            "memory_after": "1.633MiB",
+            "memory_after": "1.66MiB",
             "server_alive": true
           },
           {
             "target_rate": 4000,
-            "achieved_rate": 3999.7,
+            "achieved_rate": 3999.6,
             "iterations": 40001,
             "dropped": 0,
             "ok_rate": 1,
             "latency_ms": {
-              "avg": 0.5210869728256794,
-              "p50": 0,
-              "p95": 1,
-              "p99": 4,
-              "max": 15
+              "avg": 1.0039999000025,
+              "p50": 1,
+              "p95": 3,
+              "p99": 8,
+              "max": 19
             },
             "duration_s": 10,
-            "memory_after": "1.574MiB",
+            "memory_after": "1.848MiB",
             "server_alive": true
           },
           {
             "target_rate": 6000,
-            "achieved_rate": 5999.3,
+            "achieved_rate": 5999.2,
             "iterations": 60001,
             "dropped": 0,
             "ok_rate": 1,
             "latency_ms": {
-              "avg": 2.2151130814486426,
-              "p50": 1,
-              "p95": 10,
-              "p99": 33,
-              "max": 110
+              "avg": 8.74553757437376,
+              "p50": 3,
+              "p95": 33,
+              "p99": 55,
+              "max": 149
             },
             "duration_s": 10,
-            "memory_after": "1.535MiB",
+            "memory_after": "1.492MiB",
             "server_alive": true
           },
           {
             "target_rate": 8000,
-            "achieved_rate": 7998.8,
-            "iterations": 80000,
-            "dropped": 0,
+            "achieved_rate": 5934.4,
+            "iterations": 65744,
+            "dropped": 14269,
             "ok_rate": 1,
             "latency_ms": {
-              "avg": 10.9781375,
-              "p50": 2,
-              "p95": 47,
-              "p99": 72,
-              "max": 133
+              "avg": 128.8749847894865,
+              "p50": 76,
+              "p95": 223,
+              "p99": 1156,
+              "max": 2261
             },
-            "duration_s": 10,
-            "memory_after": "1.539MiB",
-            "server_alive": true
-          },
-          {
-            "target_rate": 10000,
-            "achieved_rate": 7965,
-            "iterations": 87916,
-            "dropped": 12012,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 95.55505255016152,
-              "p50": 63,
-              "p95": 169,
-              "p99": 1105,
-              "max": 2166
-            },
-            "duration_s": 11,
-            "memory_after": "1.316MiB",
+            "duration_s": 11.1,
+            "memory_after": "1.328MiB",
             "server_alive": true
           }
         ]
@@ -422,7 +388,7 @@
         "suffering": {
           "rate": 8000,
           "kind": "latency",
-          "value": 56
+          "value": 215
         },
         "levels": [
           {
@@ -432,48 +398,48 @@
             "dropped": 0,
             "ok_rate": 1,
             "latency_ms": {
-              "avg": 0.39744102359056377,
+              "avg": 0.47421031587365053,
               "p50": 0,
               "p95": 1,
               "p99": 1,
-              "max": 3
+              "max": 2
             },
             "duration_s": 10,
-            "memory_after": "1.621MiB",
+            "memory_after": "1.574MiB",
             "server_alive": true
           },
           {
             "target_rate": 500,
-            "achieved_rate": 500.1,
+            "achieved_rate": 500,
             "iterations": 5001,
             "dropped": 0,
             "ok_rate": 1,
             "latency_ms": {
-              "avg": 0.28154369126174766,
-              "p50": 0,
-              "p95": 1,
-              "p99": 1,
-              "max": 3
-            },
-            "duration_s": 10,
-            "memory_after": "1.246MiB",
-            "server_alive": true
-          },
-          {
-            "target_rate": 1000,
-            "achieved_rate": 999.9,
-            "iterations": 10000,
-            "dropped": 0,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 0.3613,
-              "p50": 0,
+              "avg": 0.531493701259748,
+              "p50": 1,
               "p95": 1,
               "p99": 1,
               "max": 4
             },
             "duration_s": 10,
-            "memory_after": "1.301MiB",
+            "memory_after": "1.672MiB",
+            "server_alive": true
+          },
+          {
+            "target_rate": 1000,
+            "achieved_rate": 1000,
+            "iterations": 10000,
+            "dropped": 0,
+            "ok_rate": 1,
+            "latency_ms": {
+              "avg": 0.5468,
+              "p50": 1,
+              "p95": 1,
+              "p99": 1,
+              "max": 3
+            },
+            "duration_s": 10,
+            "memory_after": "1.602MiB",
             "server_alive": true
           },
           {
@@ -483,82 +449,82 @@
             "dropped": 0,
             "ok_rate": 1,
             "latency_ms": {
-              "avg": 0.5637718114094296,
+              "avg": 0.5378731063446828,
               "p50": 1,
               "p95": 1,
-              "p99": 1,
-              "max": 5
+              "p99": 2,
+              "max": 12
+            },
+            "duration_s": 10,
+            "memory_after": "1.418MiB",
+            "server_alive": true
+          },
+          {
+            "target_rate": 3000,
+            "achieved_rate": 2999.8,
+            "iterations": 30001,
+            "dropped": 0,
+            "ok_rate": 1,
+            "latency_ms": {
+              "avg": 0.7498416719442685,
+              "p50": 1,
+              "p95": 1,
+              "p99": 4,
+              "max": 17
+            },
+            "duration_s": 10,
+            "memory_after": "1.496MiB",
+            "server_alive": true
+          },
+          {
+            "target_rate": 4000,
+            "achieved_rate": 3999.5,
+            "iterations": 40002,
+            "dropped": 0,
+            "ok_rate": 1,
+            "latency_ms": {
+              "avg": 1.6182940852957353,
+              "p50": 1,
+              "p95": 6,
+              "p99": 16,
+              "max": 61
             },
             "duration_s": 10,
             "memory_after": "1.477MiB",
             "server_alive": true
           },
           {
-            "target_rate": 3000,
-            "achieved_rate": 2999.9,
-            "iterations": 30001,
-            "dropped": 0,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 0.4223192560247992,
-              "p50": 0,
-              "p95": 1,
-              "p99": 2,
-              "max": 9
-            },
-            "duration_s": 10,
-            "memory_after": "1.645MiB",
-            "server_alive": true
-          },
-          {
-            "target_rate": 4000,
-            "achieved_rate": 3999.7,
-            "iterations": 40001,
-            "dropped": 0,
-            "ok_rate": 1,
-            "latency_ms": {
-              "avg": 0.49838754031149224,
-              "p50": 0,
-              "p95": 1,
-              "p99": 4,
-              "max": 12
-            },
-            "duration_s": 10,
-            "memory_after": "1.703MiB",
-            "server_alive": true
-          },
-          {
             "target_rate": 6000,
-            "achieved_rate": 5999.3,
+            "achieved_rate": 5986.7,
             "iterations": 60001,
             "dropped": 0,
             "ok_rate": 1,
             "latency_ms": {
-              "avg": 1.6760387326877886,
-              "p50": 1,
-              "p95": 8,
-              "p99": 21,
-              "max": 55
+              "avg": 10.076632056132398,
+              "p50": 4,
+              "p95": 35,
+              "p99": 50,
+              "max": 93
             },
             "duration_s": 10,
-            "memory_after": "1.426MiB",
+            "memory_after": "1.301MiB",
             "server_alive": true
           },
           {
             "target_rate": 8000,
-            "achieved_rate": 7847.4,
-            "iterations": 79990,
-            "dropped": 38,
+            "achieved_rate": 5545.4,
+            "iterations": 61530,
+            "dropped": 18468,
             "ok_rate": 1,
             "latency_ms": {
-              "avg": 15.324678084760595,
-              "p50": 3,
-              "p95": 56,
-              "p99": 87,
-              "max": 1088
+              "avg": 129.99070372176175,
+              "p50": 110,
+              "p95": 215,
+              "p99": 1139,
+              "max": 1306
             },
-            "duration_s": 10.2,
-            "memory_after": "1.582MiB",
+            "duration_s": 11.1,
+            "memory_after": "1.23MiB",
             "server_alive": true
           }
         ]
@@ -566,8 +532,8 @@
     ]
   },
   "production": {
-    "measured_at": "2026-11-24T17:21:04Z",
-    "commit": "04f213d98b02bcf82fe28c3a19e57aa34385b5be",
+    "measured_at": "2026-11-24T17:28:16Z",
+    "commit": "e8b9a77ae5ffad454e1bffa405011b06d9d77c5c",
     "target": "q.v.fulgid.us:17",
     "from": "GitHub Actions runner",
     "target_rate": 10,
@@ -576,11 +542,11 @@
     "dropped": 0,
     "ok_rate": 1,
     "latency_ms": {
-      "avg": 95.0797342192691,
-      "p50": 74,
-      "p95": 217,
-      "p99": 317,
-      "max": 339
+      "avg": 93.37873754152824,
+      "p50": 83,
+      "p95": 198,
+      "p99": 239,
+      "max": 338
     },
     "duration_s": 30.1
   }
