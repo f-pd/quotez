@@ -24,10 +24,12 @@ their source, as allowed by the right of quotation.
 
 ## Translations
 
-The English translation of the *Manifesto of the Communist Party* is Samuel
-Moore's (1888, public domain), as noted in the `work` field. Every other
-translation into English, Italian and French is an original translation made
-for Quotez, kept as close to the original as possible.
+Quotez never makes its own translations. Every translation comes from an
+existing source (Wikiquote in the target language, Wikisource, or a published
+translation with a named translator), recorded per quote in the
+`translation_sources` field of the JSON files. When no existing translation is
+found for a language, the quote has no version in that language and is not
+served in that locale.
 
 ## Blocked authors
 
