@@ -178,7 +178,7 @@ function cached(key: string, make: () => Promise<Uint8Array | null>): Promise<Ui
 }
 
 function pngResponse(png: Uint8Array): Response {
-  return new Response(png, {
+  return new Response(png as Uint8Array<ArrayBuffer>, {
     headers: {
       "Content-Type": "image/png",
       "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
