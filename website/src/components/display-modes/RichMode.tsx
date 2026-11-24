@@ -22,35 +22,43 @@ const DEFAULT_LABELS: ModeLabels = { newQuote: 'New Quote', loading: 'Loading...
 export function RichMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS, work, quoteId = 0, showingOriginal = false }: RichModeProps) {
   const [visible, setVisible] = useState(false);
   const [quoteCount, setQuoteCount] = useState(0);
-  const [typed, setTyped] = useState(0);
 
   useEffect(() => {
-    if (quote && !loading && !error) {
+    // The card fades in once; later quotes swap inside it (SmoothSwap)
+    if (quote && !error) {
       setQuoteCount(prev => prev + 1);
       const timer = setTimeout(() => setVisible(true), 50);
       return () => clearTimeout(timer);
-    } else {
-      setVisible(false);
     }
-  }, [quote, loading, error]);
+    if (error) setVisible(false);
+  }, [quote, error]);
 
   // Typewriter effect that reveals characters one by one, so long quotes
   // wrap onto several lines instead of being clipped on a single line.
+  // The count belongs to one text: a new text starts at 0 on its very first
+  // render (no flash of the whole text), and loading the next quote leaves
+  // the current one untouched while it fades out.
+  const [typing, setTyping] = useState<{ text: string | null; n: number }>({ text: null, n: 0 });
+  const typed = typing.text === quote ? typing.n : 0;
   const lastQuoteId = useRef(quoteId);
   useEffect(() => {
-    setTyped(0);
-    if (!quote || loading || error) return;
+    if (!quote || error) return;
     // Switching translation/original: wait for the old text to fade out
     const delay = lastQuoteId.current === quoteId ? 280 : 0;
     lastQuoteId.current = quoteId;
     const total = quote.length;
     const step = Math.max(10, Math.min(40, 2000 / Math.max(total, 1)));
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let n = 0;
     let timer: ReturnType<typeof setInterval> | undefined;
     const start = setTimeout(() => {
+      if (reduced) {
+        setTyping({ text: quote, n: total });
+        return;
+      }
       timer = setInterval(() => {
         n += 1;
-        setTyped(n);
+        setTyping({ text: quote, n });
         if (n >= total) clearInterval(timer);
       }, step);
     }, delay);
@@ -58,7 +66,9 @@ export function RichMode({ quote, loading, error, onNewQuote, labels = DEFAULT_L
       clearTimeout(start);
       if (timer) clearInterval(timer);
     };
-  }, [quote, loading, error]);
+    // quoteId is read through the ref; a new id always comes with a new text
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quote, error]);
 
   const renderContent = () => {
     if (loading && !quote) {
@@ -97,22 +107,21 @@ export function RichMode({ quote, loading, error, onNewQuote, labels = DEFAULT_L
           Quote #{quoteId || quoteCount}
         </div>
         <SmoothSwap swapKey={`${quoteId}:${showingOriginal}`}>
-        <div className="rich-quote-wrapper">
+        <div className={`rich-quote-wrapper ${loading ? 'is-loading' : ''}`}>
           <div className="rich-quote" data-testid="quote-text" aria-label={text}>
             <span aria-hidden="true">{text.slice(0, typed)}</span>
             <span className={`rich-caret ${typed >= text.length ? 'done' : ''}`} aria-hidden="true" />
             <span className="rich-quote-rest" aria-hidden="true">{text.slice(typed)}</span>
           </div>
-          {author && (
-            <div className={`rich-author ${visible ? 'visible' : ''}`}>
-              — {author}
-            </div>
-          )}
-          {work && (
-            <cite className="quote-work rich-work" data-testid="quote-work">
-              {work}
-            </cite>
-          )}
+          {/* Author and source appear together once the text is typed */}
+          <div className={`rich-meta ${quote.length > 0 && typed >= quote.length ? 'shown' : ''}`}>
+            {author && <div className="rich-author">— {author}</div>}
+            {work && (
+              <cite className="quote-work rich-work" data-testid="quote-work">
+                {work}
+              </cite>
+            )}
+          </div>
         </div>
         </SmoothSwap>
         <button 

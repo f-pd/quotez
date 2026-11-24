@@ -100,15 +100,36 @@
   font-size: 1.2rem;
   color: var(--color-accent);
   font-style: italic;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
-.rich-author.visible {
+/* Author and source: hidden while the text is typed, then they rise in one
+   after the other. Space stays reserved, so nothing below them moves. */
+.rich-meta > * {
+  opacity: 0;
+  transform: translateY(8px);
+  filter: blur(3px);
+  transition:
+    opacity 450ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 450ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    filter 450ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.rich-meta.shown > * {
   opacity: 1;
-  transform: translateY(0);
-  transition-delay: 2s;
+  transform: none;
+  filter: none;
+}
+
+.rich-meta.shown > :nth-child(2) {
+  transition-delay: 120ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rich-meta > * {
+    transition: none;
+    transform: none;
+    filter: none;
+  }
 }
 
 .rich-button {

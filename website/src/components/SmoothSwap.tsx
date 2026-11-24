@@ -11,8 +11,10 @@ interface SmoothSwapProps {
 /**
  * Cross-fades between contents and animates the height, so switching a quote
  * between translation and original never jumps. While the old content fades
- * out it stays on screen unchanged; then the new one fades in while the box
- * grows or shrinks to its height.
+ * out (CSS transition on .out) it stays on screen unchanged; then the new one
+ * mounts and its CSS keyframes play while the box grows or shrinks to its
+ * height. JS only measures the height: CSS cannot transition between two
+ * arbitrary auto heights in every browser yet.
  */
 export function SmoothSwap({ swapKey, children, duration = 280 }: SmoothSwapProps) {
   const [shownKey, setShownKey] = useState(swapKey);
@@ -48,7 +50,11 @@ export function SmoothSwap({ swapKey, children, duration = 280 }: SmoothSwapProp
         className={`smooth-swap-inner ${pending ? 'out' : ''}`}
         style={{ transitionDuration: `${duration}ms` }}
       >
-        {pending ? lastChildren.current : children}
+        {/* Keyed so the new content mounts fresh and its CSS enter
+            animation (.quote-enter) plays from the start */}
+        <div key={shownKey} className="smooth-swap-content">
+          {pending ? lastChildren.current : children}
+        </div>
       </div>
     </div>
   );
