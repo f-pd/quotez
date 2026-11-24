@@ -1,0 +1,78 @@
+name: Website
+
+# End-to-end tests of the website (public pages and backoffice) and a
+# before/after comparison with main: screenshots and bundle size.
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: website-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.17.0
+      - uses: oven-sh/setup-bun@v2
+      - name: Build service and website
+        run: |
+          zig build
+          cd website && bun install && bun run typecheck && bun run build
+      - name: Install Chromium
+        run: cd website && npx playwright install --with-deps chromium
+      - name: Run end-to-end tests
+        run: cd website && bun run test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-report
+          path: |
+            website/playwright-report
+            website/test-results
+          retention-days: 7
+
+  compare:
+    name: Compare with main (screenshots, bundle size)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.17.0
+      - uses: oven-sh/setup-bun@v2
+      - name: Build service
+        run: |
+          zig build
+          cd website && bun install && npx playwright install --with-deps chromium
+      - name: Pick the base
+        id: base
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          # On main, the previous push; elsewhere, main
+          if [ "$GITHUB_REF" = refs/heads/main ] && [ -n "$BEFORE" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            echo "ref=$BEFORE" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=origin/main" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Screenshots and bundle size against ${{ steps.base.outputs.ref }}
+        run: cd website && bash e2e/compare.sh "${{ steps.base.outputs.ref }}"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: visual-diff
+          path: website/test-results
+          retention-days: 7

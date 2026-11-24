@@ -41,3 +41,8 @@ quotez.toml.local
 /dump_*.zig
 /run_*.zig
 /perf-*.txt
+
+# Website end-to-end tests
+website/test-results/
+website/playwright-report/
+website/e2e/.snapshots/

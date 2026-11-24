@@ -85,7 +85,8 @@ export async function getQuote(host: string, port: number): Promise<string> {
           );
         },
 
-        connectError(socket, error) {
+        connectError(socket, err) {
+          const error = err as Error & { code?: string };
           // Failed to establish connection
           clearTimeout(socketData.timeoutId);
           
