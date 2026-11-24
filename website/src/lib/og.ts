@@ -57,18 +57,19 @@ const COLORS = {
   accent: '#7c6af7',
 };
 
-/** The opening quote mark of the site icon (public/favicon.svg) */
-const MARK = 'M2 17C2 10 6 5.5 12.5 3.5l1.2 2.3C9.8 7.5 8.2 9.6 8 11.2A6 6 0 1 1 2 17z';
-const MARK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 29 23"><g fill="${'#7c6af7'}"><path d="${MARK}"/><path transform="translate(15 0)" d="${MARK}"/></g></svg>`;
+/** The opening quote mark of the site icon (public/favicon.svg): the
+ *  Libre Baskerville Bold glyph (SIL Open Font License) */
+const MARK = 'M37.2 14L37.2 14L40.1 18.2Q36.5 21 34.6 23.8Q32.6 26.7 32.6 29.2L32.6 29.2Q33 29 33.7 29Q34.3 28.9 34.8 28.9L34.8 28.9Q37.1 28.9 38.7 30.8Q40.2 32.6 40.2 35.3L40.2 35.3Q40.2 38.6 38 40.8Q35.8 43 32.5 43L32.5 43Q29.1 43 27.1 40.4Q25 37.9 25 33.6L25 33.6Q25 30.2 26.4 26.8Q27.8 23.5 30.5 20.3Q33.2 17 37.2 14ZM16.6 14L16.6 14L19.5 18.2Q15.9 21 14 23.8Q12 26.7 12 29.2L12 29.2Q12.4 29 13.1 29Q13.7 28.9 14.2 28.9L14.2 28.9Q16.5 28.9 18.1 30.8Q19.6 32.6 19.6 35.3L19.6 35.3Q19.6 38.6 17.4 40.8Q15.2 43 11.9 43L11.9 43Q8.5 43 6.5 40.4Q4.4 37.9 4.4 33.6L4.4 33.6Q4.4 30.2 5.8 26.8Q7.2 23.5 9.9 20.3Q12.6 17 16.6 14Z ';
+const MARK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="4.40 14.00 35.8 29"><path fill="#8b7bff" d="${MARK}"/></svg>`;
 
 function quoteMark(): Node {
   return {
     type: 'img',
     props: {
       src: `data:image/svg+xml;base64,${Buffer.from(MARK_SVG).toString('base64')}`,
-      width: 72,
+      width: 70,
       height: 57,
-      style: { width: 72, height: 57, marginBottom: 8 },
+      style: { width: 70, height: 57, marginBottom: 12 },
     },
   };
 }
