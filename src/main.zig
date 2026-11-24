@@ -238,35 +238,31 @@ fn runEventLoop(
         .http_fd = if (http) |h| h.socket else null,
     });
 
-    // Set up poll file descriptors (conditionally include HTTP)
+    // Poll set: listening sockets first, then TCP connections still waiting
+    // for their optional request line (see TcpServer.acceptPending)
     const http_enabled = http != null;
     const num_fds: usize = if (http_enabled) 3 else 2;
-    var poll_fds_array: [3]std.posix.pollfd = undefined;
+    var poll_fds_array: [3 + tcp_server.TcpServer.max_pending]std.posix.pollfd = undefined;
 
-    poll_fds_array[0] = .{
-        .fd = tcp.socket,
-        .events = std.posix.POLL.IN,
-        .revents = 0,
-    };
-    poll_fds_array[1] = .{
-        .fd = udp.socket,
-        .events = std.posix.POLL.IN,
-        .revents = 0,
-    };
+    poll_fds_array[0] = .{ .fd = tcp.socket, .events = std.posix.POLL.IN, .revents = 0 };
+    poll_fds_array[1] = .{ .fd = udp.socket, .events = std.posix.POLL.IN, .revents = 0 };
     if (http_enabled) {
-        poll_fds_array[2] = .{
-            .fd = http.?.socket,
-            .events = std.posix.POLL.IN,
-            .revents = 0,
-        };
+        poll_fds_array[2] = .{ .fd = http.?.socket, .events = std.posix.POLL.IN, .revents = 0 };
     }
 
-    const poll_fds = poll_fds_array[0..num_fds];
+    const watch_interval_ns: i128 = std.time.ns_per_s;
+    var next_watch_ns: i128 = app_io.nowNs() + watch_interval_ns;
 
     // Event loop
     while (!shutdown_requested.load(.seq_cst)) {
-        // Wait for events on either socket (timeout: 1000ms to check shutdown flag periodically)
-        const ready = std.posix.poll(poll_fds, 1000) catch |err| {
+        for (poll_fds_array[0..num_fds]) |*fd| fd.revents = 0;
+        const parked = tcp.pendingPollFds(poll_fds_array[num_fds..]);
+        const poll_fds = poll_fds_array[0 .. num_fds + parked];
+
+        // Wake for new events, the next TCP request deadline, or at least
+        // once a second to check the shutdown flag and the quote files
+        const timeout: i32 = @min(1000, tcp.pendingTimeoutMs() orelse 1000);
+        _ = std.posix.poll(poll_fds, timeout) catch |err| {
             // Interrupted by signal is expected during shutdown
             if (err == error.SignalInterrupt) {
                 if (shutdown_requested.load(.seq_cst)) {
@@ -278,24 +274,14 @@ fn runEventLoop(
             return err;
         };
 
-        if (ready == 0) {
-            // Poll timeout - check for file changes
-            if (try file_watcher.check()) {
-                log.info("hot_reload_triggered", .{});
-                try store.build(cfg.directories);
-                try sel.reset(store.count());
-                runtime.state.reloads += 1;
-                log.info("hot_reload_complete", .{ .quotes = store.count() });
-            }
-            continue;
-        }
-
-        // Check TCP socket
+        // New TCP connections wait for their request line; answer those
+        // that sent it (or ran out of time)
         if (poll_fds[0].revents & std.posix.POLL.IN != 0) {
-            tcp.acceptAndServe() catch |err| {
+            tcp.acceptPending() catch |err| {
                 log.warn("tcp_serve_error", .{ .err = @errorName(err) });
             };
         }
+        tcp.servePending();
 
         // Check UDP socket
         if (poll_fds[1].revents & std.posix.POLL.IN != 0) {
@@ -325,11 +311,17 @@ fn runEventLoop(
             return error.HttpSocketError;
         }
 
-        // Reset revents for next iteration
-        poll_fds[0].revents = 0;
-        poll_fds[1].revents = 0;
-        if (http_enabled) {
-            poll_fds[2].revents = 0;
+        // Check for file changes about once a second
+        const now = app_io.nowNs();
+        if (now >= next_watch_ns) {
+            next_watch_ns = now + watch_interval_ns;
+            if (try file_watcher.check()) {
+                log.info("hot_reload_triggered", .{});
+                try store.build(cfg.directories);
+                try sel.reset(store.count());
+                runtime.state.reloads += 1;
+                log.info("hot_reload_complete", .{ .quotes = store.count() });
+            }
         }
     }
 }

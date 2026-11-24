@@ -69,6 +69,11 @@ test "PERF: TCP response time < 10ms" {
 
         try net.connect(client_socket, @ptrCast(&server_addr), @sizeOf(std.posix.sockaddr.in));
 
+        // An empty request line is a complete plain request: no waiting.
+        // (A client that sends nothing waits TcpServer.request_wait_ms for an
+        // optional request line, checked in the next test.)
+        _ = try net.send(client_socket, "\n", 0);
+
         // Server handles
         _ = try server.acceptAndServe();
 
@@ -90,6 +95,40 @@ test "PERF: TCP response time < 10ms" {
 
     // Verify < 10ms average
     try std.testing.expect(avg_ms < 10.0);
+}
+
+test "PERF: silent TCP client is answered right after the request wait" {
+    const allocator = std.testing.allocator;
+    const port: u16 = 21020;
+
+    var store = QuoteStore.init(allocator);
+    defer store.deinit();
+    try store.addQuote("Silent client quote");
+
+    var sel = try Selector.init(allocator, SelectionMode.random, store.count());
+    defer sel.deinit();
+
+    var server = try TcpServer.init(allocator, "127.0.0.1", port, &store, &sel);
+    defer server.deinit();
+
+    const wait_ms: f64 = @floatFromInt(TcpServer.request_wait_ms);
+    for (0..3) |_| {
+        const start = nowNs();
+        const server_addr = std.posix.sockaddr.in{
+            .family = std.posix.AF.INET,
+            .port = std.mem.nativeToBig(u16, port),
+            .addr = @bitCast([4]u8{ 127, 0, 0, 1 }),
+        };
+        const client_socket = try net.socket(server_addr.family, posix.SOCK.STREAM, posix.IPPROTO.TCP);
+        defer net.close(client_socket);
+        try net.connect(client_socket, @ptrCast(&server_addr), @sizeOf(std.posix.sockaddr.in));
+        _ = try server.acceptAndServe();
+        var buf: [256]u8 = undefined;
+        const n = try net.recv(client_socket, &buf, 0);
+        try std.testing.expectEqualStrings("Silent client quote\n", buf[0..n]);
+        const ms = @as(f64, @floatFromInt(nowNs() - start)) / 1_000_000.0;
+        try std.testing.expect(ms >= wait_ms - 1 and ms < wait_ms + 50);
+    }
 }
 
 test "PERF: UDP response time < 10ms" {

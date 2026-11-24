@@ -312,4 +312,61 @@ test "backoffice: languages, translations and the QOTD locale extension" {
     try testing.expectEqualStrings("No quotes available in fr\n", try qotdAsk(&tcp, "fr", &qbuf));
     const plain = try qotdAsk(&tcp, "", &qbuf);
     try testing.expect(plain.len > 0 and plain[plain.len - 1] == '\n');
+
+    // Event loop path: the request line may arrive well after the handshake
+    // (Docker port proxy, slow links). It must still be honoured, never
+    // answered in the original language, and other clients must not wait.
+    for (0..5) |_| {
+        const late = try connectTo(I18N_TCP_PORT);
+        defer posix_net.close(late);
+        const silent = try connectTo(I18N_TCP_PORT);
+        defer posix_net.close(silent);
+        const quick = try connectTo(I18N_TCP_PORT);
+        defer posix_net.close(quick);
+        _ = try posix_net.send(quick, "fr\n", 0);
+        try waitForAccept(&tcp, 3);
+
+        // "fr\n" is complete: answered at once, the others keep waiting
+        tcp.servePending();
+        try testing.expectEqualStrings("No quotes available in fr\n", try readAll(quick, &qbuf));
+        try testing.expectEqual(@as(usize, 2), tcp.pending_len);
+
+        sleepMs(80);
+        _ = try posix_net.send(late, "it-IT\n", 0);
+        try pumpUntil(&tcp, 1);
+        try testing.expectEqualStrings("Fatti non foste a viver come bruti\n", try readAll(late, &qbuf));
+
+        // A client that sends nothing gets the plain RFC 865 reply after the wait
+        try pumpUntil(&tcp, 0);
+        const rfc = try readAll(silent, &qbuf);
+        try testing.expect(rfc.len > 0 and rfc[rfc.len - 1] == '\n');
+    }
+}
+
+fn sleepMs(ms: i64) void {
+    var fds = [_]std.posix.pollfd{};
+    _ = std.posix.poll(&fds, @intCast(ms)) catch {};
+}
+
+/// Accept connections like the event loop until `n` are parked
+fn waitForAccept(tcp: *tcp_server.TcpServer, n: usize) !void {
+    for (0..100) |_| {
+        try tcp.acceptPending();
+        if (tcp.pending_len >= n) return;
+        sleepMs(1);
+    }
+    return error.TestUnexpectedResult;
+}
+
+/// Run the event loop's TCP part until at most `left` connections wait
+fn pumpUntil(tcp: *tcp_server.TcpServer, left: usize) !void {
+    const limit = tcp_server.TcpServer.request_wait_ms * 3;
+    var waited: i64 = 0;
+    while (tcp.pending_len > left) : (waited += 5) {
+        if (waited > limit) return error.TestUnexpectedResult;
+        var fds: [tcp_server.TcpServer.max_pending]std.posix.pollfd = undefined;
+        const n = tcp.pendingPollFds(&fds);
+        _ = std.posix.poll(fds[0..n], 5) catch {};
+        tcp.servePending();
+    }
 }
