@@ -7,6 +7,8 @@
 //!   GET /locales       supported quote languages
 //!   GET /:locale/quote, /:locale/n/:num
 //!                      same, in one language (BCP 47: /it, /it-IT, /fr)
+//!   GET /quote/:id, /:locale/quote/:id
+//!                      one specific quote by its stable id (shared links)
 //!
 //! /quote and /n accept `?tag=a,b` (all listed tags must match, the parameter
 //! may repeat) and `?author=name` (case-insensitive substring). Every route
@@ -24,6 +26,16 @@ const runtime = @import("../runtime.zig");
 
 /// Hard cap for /n/:num, larger values are clamped
 pub const max_quotes_per_request: usize = 50;
+
+/// Length of a quote id: the first bytes of the content hash, in hex. It
+/// stays the same across restarts and reloads as long as the text does.
+pub const id_len: usize = 10;
+
+/// Stable public id of `q` (lowercase hex)
+pub fn quoteId(q: *const quote_store.Quote) [id_len]u8 {
+    const hex = std.fmt.bytesToHex(q.hash[0 .. id_len / 2].*, .lower);
+    return hex;
+}
 
 /// Maximum number of tags accepted in one filter
 const max_filter_tags = 8;
@@ -47,6 +59,8 @@ pub const help_text =
     \\  /n/:num           :num distinct random quotes (1-50, larger is clamped)
     \\  /:locale/quote    one random quote in that language, e.g. /it/quote
     \\  /:locale/n/:num   :num quotes in that language, e.g. /it-IT/n/5
+    \\  /quote/:id        one specific quote by its id (the "id" in JSON replies)
+    \\  /:locale/quote/:id  that quote in that language (404 when it has none)
     \\  /locales          supported languages and the default one
     \\  /tags             all tags with the number of quotes carrying them
     \\  /health           liveness probe
@@ -191,7 +205,7 @@ pub fn handle(
     if (path.len > 1) {
         if (std.mem.indexOfScalarPos(u8, path, 1, '/')) |slash| {
             const rest = path[slash..];
-            const is_quote_route = std.mem.eql(u8, rest, "/quote") or std.mem.eql(u8, rest, "/n") or std.mem.startsWith(u8, rest, "/n/");
+            const is_quote_route = std.mem.eql(u8, rest, "/quote") or std.mem.startsWith(u8, rest, "/quote/") or std.mem.eql(u8, rest, "/n") or std.mem.startsWith(u8, rest, "/n/");
             var probe: [i18n.max_tag_len]u8 = undefined;
             // "api" is a valid ISO 639-3 code but belongs to the admin API
             const seg = path[1..slash];
@@ -202,11 +216,13 @@ pub fn handle(
         }
     }
 
-    const Route = enum { help, quote, n, tags, locales };
+    const Route = enum { help, quote, by_id, n, tags, locales };
     const route: Route = if (std.mem.eql(u8, path, "/help"))
         .help
     else if (std.mem.eql(u8, path, "/quote"))
         .quote
+    else if (std.mem.startsWith(u8, path, "/quote/"))
+        .by_id
     else if (std.mem.eql(u8, path, "/n") or std.mem.startsWith(u8, path, "/n/"))
         .n
     else if (std.mem.eql(u8, path, "/tags"))
@@ -231,6 +247,26 @@ pub fn handle(
         },
         .tags => return try tagsResponse(allocator, store, format),
         .locales => return try localesResponse(allocator, format),
+        .by_id => {
+            var locale_buf: [i18n.max_tag_len]u8 = undefined;
+            var locale: ?[]const u8 = null;
+            if (prefix_locale) |raw| locale = i18n.canonicalize(raw, &locale_buf);
+            if (locale) |loc| {
+                if (!i18n.isSupported(runtime.state.locales, loc)) {
+                    return try errorResponse(allocator, format, 404, "Not Found", "Unsupported locale, see /locales");
+                }
+            }
+            const wanted = path["/quote/".len..];
+            const idx = findById(store, wanted) orelse
+                return try errorResponse(allocator, format, 404, "Not Found", "No quote with this id");
+            const q = store.getQuote(idx).?;
+            if (locale) |loc| {
+                if (q.resolve(loc, runtime.state.default_locale) == null) {
+                    return try errorResponse(allocator, format, 404, "Not Found", "This quote is not available in this language");
+                }
+            }
+            return try quotesResponse(allocator, store, &.{idx}, format, true, 1, 1, locale);
+        },
         .quote, .n => {
             var requested: usize = 1;
             if (route == .n) {
@@ -300,6 +336,16 @@ pub fn handle(
             return try quotesResponse(allocator, store, matching.items[0..k], format, route == .quote, requested, matching.items.len, filter.locale);
         },
     }
+}
+
+/// Index of the quote whose id is `wanted` (case-insensitive hex)
+fn findById(store: *const quote_store.QuoteStore, wanted: []const u8) ?usize {
+    if (wanted.len != id_len) return null;
+    for (store.quotes.items, 0..) |*q, i| {
+        const id = quoteId(q);
+        if (std.ascii.eqlIgnoreCase(&id, wanted)) return i;
+    }
+    return null;
 }
 
 fn detectFormat(query: []const u8, request: []const u8) Format {
@@ -374,7 +420,9 @@ fn chooseText(q: *const quote_store.Quote, locale: ?[]const u8) quote_store.Reso
 
 fn appendQuoteJson(buf: *std.ArrayList(u8), allocator: std.mem.Allocator, q: *const quote_store.Quote, locale: ?[]const u8) !void {
     const chosen = chooseText(q, locale);
-    try buf.appendSlice(allocator, "{\"text\":");
+    try buf.appendSlice(allocator, "{\"id\":\"");
+    try buf.appendSlice(allocator, &quoteId(q));
+    try buf.appendSlice(allocator, "\",\"text\":");
     try appendJsonString(buf, allocator, chosen.text);
     try buf.appendSlice(allocator, ",\"lang\":");
     try appendJsonString(buf, allocator, chosen.lang);
@@ -391,6 +439,13 @@ fn appendQuoteJson(buf: *std.ArrayList(u8), allocator: std.mem.Allocator, q: *co
     for (q.tags, 0..) |t, i| {
         if (i > 0) try buf.append(allocator, ',');
         try appendJsonString(buf, allocator, t);
+    }
+    // Every language the quote exists in: original first, then translations
+    try buf.appendSlice(allocator, "],\"langs\":[");
+    try appendJsonString(buf, allocator, q.lang orelse runtime.state.default_locale);
+    for (q.translations) |t| {
+        try buf.append(allocator, ',');
+        try appendJsonString(buf, allocator, t.lang);
     }
     try buf.appendSlice(allocator, "]}");
 }
@@ -657,7 +712,7 @@ test "public routes - json format" {
     defer one.deinit(std.testing.allocator);
     try std.testing.expectEqualStrings("application/json", one.content_type);
     try std.testing.expectEqualStrings(
-        "{\"text\":\"Luck is preparation.\",\"lang\":\"en\",\"original_lang\":\"en\",\"translated\":false,\"work\":null,\"author\":\"Seneca\",\"tags\":[\"philosophy\",\"stoic\"]}",
+        "{\"id\":\"68ad0a405a\",\"text\":\"Luck is preparation.\",\"lang\":\"en\",\"original_lang\":\"en\",\"translated\":false,\"work\":null,\"author\":\"Seneca\",\"tags\":[\"philosophy\",\"stoic\"],\"langs\":[\"en\"]}",
         one.body,
     );
 
@@ -737,10 +792,47 @@ test "public routes - locale prefix never serves another language" {
     // ?lang= works like the prefix
     const fr = (try testHandle(&store, "GET", "/quote?lang=fr&format=json", "")).?;
     defer fr.deinit(std.testing.allocator);
-    try std.testing.expectEqualStrings(
-        "{\"text\":\"Vous n'avez pas été faits pour vivre comme des brutes\",\"lang\":\"fr\",\"original_lang\":\"it\",\"translated\":true,\"original\":\"Fatti non foste a viver come bruti\",\"work\":null,\"author\":\"Dante\",\"tags\":[]}",
-        fr.body,
+    const dante_id = quoteId(&store.quotes.items[0]);
+    const expected = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{{\"id\":\"{s}\",\"text\":\"Vous n'avez pas été faits pour vivre comme des brutes\",\"lang\":\"fr\",\"original_lang\":\"it\",\"translated\":true,\"original\":\"Fatti non foste a viver come bruti\",\"work\":null,\"author\":\"Dante\",\"tags\":[],\"langs\":[\"it\",\"en\",\"fr\"]}}",
+        .{&dante_id},
     );
+    defer std.testing.allocator.free(expected);
+    try std.testing.expectEqualStrings(expected, fr.body);
+}
+
+test "public routes - quote by id" {
+    var store = try localeStore(std.testing.allocator);
+    defer store.deinit();
+    const dante_id = quoteId(&store.quotes.items[0]);
+    var target_buf: [64]u8 = undefined;
+
+    // Same id across store rebuilds: it only depends on the text
+    var again = try localeStore(std.testing.allocator);
+    defer again.deinit();
+    try std.testing.expectEqualStrings(&dante_id, &quoteId(&again.quotes.items[0]));
+
+    const en = (try testHandle(&store, "GET", try std.fmt.bufPrint(&target_buf, "/en/quote/{s}", .{&dante_id}), "")).?;
+    defer en.deinit(std.testing.allocator);
+    try std.testing.expectEqual(@as(u16, 200), en.status);
+    try std.testing.expectEqualStrings("You were not made to live as brutes - Dante\n", en.body);
+
+    const json = (try testHandle(&store, "GET", try std.fmt.bufPrint(&target_buf, "/it/quote/{s}?format=json", .{&dante_id}), "")).?;
+    defer json.deinit(std.testing.allocator);
+    try std.testing.expect(std.mem.indexOf(u8, json.body, "\"text\":\"Fatti non foste") != null);
+
+    // Carpe diem has no French version: 404, never another language
+    const carpe_id = quoteId(&store.quotes.items[2]);
+    const fr = (try testHandle(&store, "GET", try std.fmt.bufPrint(&target_buf, "/fr/quote/{s}", .{&carpe_id}), "")).?;
+    defer fr.deinit(std.testing.allocator);
+    try std.testing.expectEqual(@as(u16, 404), fr.status);
+
+    for ([_][]const u8{ "/quote/0000000000", "/quote/abc", "/it/quote/zzzzzzzzzz" }) |t| {
+        const r = (try testHandle(&store, "GET", t, "")).?;
+        defer r.deinit(std.testing.allocator);
+        try std.testing.expectEqual(@as(u16, 404), r.status);
+    }
 }
 
 test "public routes - the source is described in the page language" {
