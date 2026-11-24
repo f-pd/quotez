@@ -1,5 +1,6 @@
 import type { ModeLabels } from '../../lib/i18n';
 import { SmoothSwap } from '../SmoothSwap';
+import { DitheredBackdrop } from '../DitheredBackdrop';
 import '../../styles/zen.css';
 
 interface ZenModeProps {
@@ -73,7 +74,7 @@ export function ZenMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LA
 
   return (
     <div className="zen-container">
-      <div className="zen-bg" />
+      <DitheredBackdrop kind="zen" className="zen-bg" />
       <div className="zen-content">
         {renderContent()}
         

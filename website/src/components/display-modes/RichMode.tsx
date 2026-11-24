@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ModeLabels } from '../../lib/i18n';
 import { SmoothSwap } from '../SmoothSwap';
+import { DitheredBackdrop } from '../DitheredBackdrop';
 import '../../styles/rich.css';
 
 interface RichModeProps {
@@ -138,7 +139,7 @@ export function RichMode({ quote, loading, error, onNewQuote, labels = DEFAULT_L
 
   return (
     <div className="rich-container">
-      <div className="rich-bg" />
+      <DitheredBackdrop kind="rich" className="rich-bg" />
       {renderContent()}
     </div>
   );

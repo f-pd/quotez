@@ -10,22 +10,27 @@
   color: var(--color-text);
 }
 
+/*
+ * Dithered linear gradient, drawn by DitheredBackdrop (no banding). The
+ * canvas is four screens wide and drifts sideways like the former
+ * background-position animation; the grain moves with it, never on its own.
+ */
 .zen-bg {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 400%;
+  height: 100%;
   z-index: -1;
-  background: linear-gradient(135deg, #1a0a2e, #0a1a2e, #0a2e1a);
-  background-size: 400% 400%;
+  pointer-events: none;
+  will-change: transform, filter;
   animation: gradient-shift 20s ease infinite, hue-rotate 30s linear infinite;
 }
 
 @keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% { transform: translateX(0); }
+  50% { transform: translateX(-75%); }
+  100% { transform: translateX(0); }
 }
 
 @keyframes hue-rotate {
