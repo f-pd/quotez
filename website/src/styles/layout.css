@@ -1,0 +1,164 @@
+/*
+ * Quote page layout: one column exactly as tall as the screen (100dvh, so
+ * mobile browser bars do not push it over), with header, quote and footer
+ * in the normal flow. The display modes fill the middle row; their animated
+ * backgrounds are fixed to the viewport, so they still cover the whole page.
+ * Loaded after the mode styles: the rules here win over their full-screen
+ * sizing.
+ */
+.quote-display-container {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.qd-header,
+.qd-footer {
+  flex: none;
+  position: relative;
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.qd-header {
+  justify-content: center;
+}
+
+.qd-header .mode-selector {
+  position: static;
+  padding: 0;
+  gap: var(--spacing-sm);
+  flex: 1;
+}
+
+.qd-header .locale-selector {
+  position: static;
+  flex: none;
+}
+
+.qd-footer {
+  justify-content: space-between;
+  min-height: 3.25rem;
+}
+
+.qd-footer .about-link {
+  position: static;
+  flex: none;
+}
+
+.qd-footer .original-toggle {
+  position: static;
+  transform: none;
+  margin-left: auto;
+  min-width: 0;
+  max-width: 75%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Middle row: the quote takes whatever height is left. If a text is still
+   too tall it scrolls inside this row, never the page. */
+.qd-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.qd-main > .zen-container,
+.qd-main > .rich-container,
+.qd-main > .simple-container {
+  min-height: 100%;
+  flex: 1 0 auto;
+  overflow: visible;
+}
+
+/* The mode backgrounds are absolute inside their containers; fixed to the
+   viewport they also cover the header and the footer. */
+.qd-main .zen-bg,
+.qd-main .rich-bg {
+  position: fixed;
+}
+
+.qd-main .rich-bg {
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+}
+
+.qd-main .zen-bg {
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* Type scale: fluid with the viewport, smaller for long texts */
+.qd-main .zen-quote {
+  font-size: clamp(1.35rem, 1rem + 2.4vw, 3rem);
+  overflow-wrap: anywhere;
+}
+.qd-main.qd-long .zen-quote {
+  font-size: clamp(1.1rem, 0.85rem + 1.6vw, 2.2rem);
+}
+.qd-main.qd-xlong .zen-quote {
+  font-size: clamp(0.95rem, 0.8rem + 1vw, 1.6rem);
+}
+
+.qd-main .rich-quote {
+  font-size: clamp(1.15rem, 0.9rem + 2vw, 2rem);
+}
+.qd-main.qd-long .rich-quote {
+  font-size: clamp(1rem, 0.8rem + 1.2vw, 1.6rem);
+}
+.qd-main.qd-xlong .rich-quote {
+  font-size: clamp(0.9rem, 0.75rem + 0.8vw, 1.3rem);
+}
+
+.qd-main .simple-quote {
+  font-size: clamp(1rem, 0.9rem + 0.6vw, 1.2rem);
+  overflow-wrap: anywhere;
+}
+.qd-main.qd-long .simple-quote,
+.qd-main.qd-xlong .simple-quote {
+  font-size: clamp(0.9rem, 0.8rem + 0.5vw, 1.1rem);
+}
+
+@media (max-width: 600px) {
+  .qd-main .zen-container,
+  .qd-main .rich-container,
+  .qd-main .simple-container {
+    padding: var(--spacing-md);
+  }
+
+  .qd-main .zen-content {
+    gap: var(--spacing-lg);
+  }
+
+  .qd-main .rich-card {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+
+  .qd-main .rich-quote-wrapper,
+  .qd-main .simple-quote-wrapper {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .qd-header .mode-btn,
+  .qd-header .locale-selector select {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+
+  .qd-header .mode-selector {
+    justify-content: flex-start;
+  }
+}

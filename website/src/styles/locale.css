@@ -56,16 +56,6 @@
   white-space: nowrap;
 }
 
-@media (max-width: 600px) {
-  .locale-selector {
-    top: auto;
-    bottom: var(--spacing-md);
-    right: var(--spacing-md);
-  }
-  .original-toggle {
-    bottom: calc(var(--spacing-lg) + 2.5rem);
-  }
-}
 
 .quote-work {
   display: block;

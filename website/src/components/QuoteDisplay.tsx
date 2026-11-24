@@ -17,6 +17,7 @@ import {
 import { aboutFor } from '../lib/about';
 import '../styles/locale.css';
 import '../styles/about.css';
+import '../styles/layout.css';
 
 export type DisplayMode = 'zen' | 'rich' | 'simple';
 
@@ -155,39 +156,51 @@ export function QuoteDisplay({ urlLocale, onLocaleChange }: QuoteDisplayProps) {
     }
   };
 
+  // Long texts get a smaller type scale so they fit the screen without scrolling
+  const length = shown ? Array.from(shown).length : 0;
+  const sizeClass = length > 320 ? 'qd-xlong' : length > 160 ? 'qd-long' : '';
+
+  // Header, quote and footer stay in the normal flow of a full-height column:
+  // nothing is fixed on top of the quote, whatever its length or the screen.
   return (
     <div className="quote-display-container">
-      <ModeSelector mode={mode} onModeChange={handleModeChange} />
-      {locales && locale && (
-        <LocaleSelector
-          locales={locales.supported}
-          value={matchSupported(locale, locales.supported) ?? locale}
-          label={labels.language}
-          onChange={handleLocaleChange}
-        />
-      )}
-      {renderMode()}
-      <Link
-        className="about-link"
-        data-testid="about-link"
-        {...(urlLocale
-          ? { to: '/$locale/about' as const, params: { locale: urlLocale } }
-          : { to: '/about' as const })}
-      >
-        {aboutFor(uiLocale).link}
-      </Link>
-      {quote?.translated && quote.original && !loading && (
-        <button
-          className="original-toggle"
-          data-testid="original-toggle"
-          onClick={() => setShowOriginal(!showOriginal)}
-          lang={showOriginal ? uiLocale : quote.original_lang}
+      <header className="qd-header">
+        <ModeSelector mode={mode} onModeChange={handleModeChange} />
+        {locales && locale && (
+          <LocaleSelector
+            locales={locales.supported}
+            value={matchSupported(locale, locales.supported) ?? locale}
+            label={labels.language}
+            onChange={handleLocaleChange}
+          />
+        )}
+      </header>
+      <div className={`qd-main ${sizeClass}`} data-testid="quote-main">
+        {renderMode()}
+      </div>
+      <footer className="qd-footer">
+        <Link
+          className="about-link"
+          data-testid="about-link"
+          {...(urlLocale
+            ? { to: '/$locale/about' as const, params: { locale: urlLocale } }
+            : { to: '/about' as const })}
         >
-          {showOriginal
-            ? labels.showTranslation(languageName(quote.lang, uiLocale))
-            : labels.showOriginal(languageName(quote.original_lang, uiLocale))}
-        </button>
-      )}
+          {aboutFor(uiLocale).link}
+        </Link>
+        {quote?.translated && quote.original && !loading && (
+          <button
+            className="original-toggle"
+            data-testid="original-toggle"
+            onClick={() => setShowOriginal(!showOriginal)}
+            lang={showOriginal ? uiLocale : quote.original_lang}
+          >
+            {showOriginal
+              ? labels.showTranslation(languageName(quote.lang, uiLocale))
+              : labels.showOriginal(languageName(quote.original_lang, uiLocale))}
+          </button>
+        )}
+      </footer>
     </div>
   );
 }
