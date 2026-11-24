@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ZenMode } from './display-modes/ZenMode';
 import { RichMode } from './display-modes/RichMode';
 import { SimpleMode } from './display-modes/SimpleMode';
+import { Link } from '@tanstack/react-router';
 import { ModeSelector } from './ModeSelector';
 import { LocaleSelector } from './LocaleSelector';
 import {
@@ -13,7 +14,9 @@ import {
   type LocalesInfo,
   type LocalizedQuote,
 } from '../lib/i18n';
+import { aboutFor } from '../lib/about';
 import '../styles/locale.css';
+import '../styles/about.css';
 
 export type DisplayMode = 'zen' | 'rich' | 'simple';
 
@@ -159,6 +162,15 @@ export function QuoteDisplay({ urlLocale, onLocaleChange }: QuoteDisplayProps) {
         />
       )}
       {renderMode()}
+      <Link
+        className="about-link"
+        data-testid="about-link"
+        {...(urlLocale
+          ? { to: '/$locale/about' as const, params: { locale: urlLocale } }
+          : { to: '/about' as const })}
+      >
+        {aboutFor(uiLocale).link}
+      </Link>
       {quote?.translated && quote.original && !loading && (
         <button
           className="original-toggle"

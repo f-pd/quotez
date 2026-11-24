@@ -2,6 +2,7 @@ import { createRouter, createRoute, createRootRoute, redirect } from '@tanstack/
 import { PublicLayout } from './components/PublicLayout';
 import { AdminLayout } from './components/AdminLayout';
 import { PublicPage } from './routes/public';
+import { AboutPage } from './routes/about';
 import { AdminPage } from './pages/admin/DashboardPage';
 import { AdminQuotesPage } from './pages/admin/QuotesPage';
 import { AdminConfigPage } from './pages/admin/ConfigPage';
@@ -28,6 +29,19 @@ const localeRoute = createRoute({
   getParentRoute: () => publicLayoutRoute,
   path: '/$locale',
   component: PublicPage,
+});
+
+// What this server is: /about, and /it/about, /it-IT/about, /fr/about...
+const aboutRoute = createRoute({
+  getParentRoute: () => publicLayoutRoute,
+  path: '/about',
+  component: AboutPage,
+});
+
+const localeAboutRoute = createRoute({
+  getParentRoute: () => publicLayoutRoute,
+  path: '/$locale/about',
+  component: AboutPage,
 });
 
 const loginRoute = createRoute({
@@ -77,7 +91,7 @@ const adminLogsRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
-  publicLayoutRoute.addChildren([indexRoute, localeRoute]),
+  publicLayoutRoute.addChildren([indexRoute, localeRoute, aboutRoute, localeAboutRoute]),
   loginRoute,
   adminLayoutRoute.addChildren([adminIndexRoute, adminQuotesRoute, adminLogsRoute, adminConfigRoute]),
 ]);
