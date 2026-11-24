@@ -293,6 +293,34 @@ fn freeTranslations(allocator: std.mem.Allocator, list: []const Translation) voi
     allocator.free(list);
 }
 
+/// Seed quotes shipped before 2026-11-24 with a wrong original language
+/// (English for Greek, Latin and Chinese authors) or apocryphal text. The seed
+/// file now carries the real originals with these as translations; copies of
+/// the old lines saved elsewhere (e.g. the API-managed file, which stores every
+/// quote) are skipped so they do not come back as English-original quotes.
+pub const retired_seed_texts = [_][]const u8{
+    "The unexamined life is not worth living. - Socrates",
+    "Well begun is half done. - Aristotle",
+    "Knowing yourself is the beginning of all wisdom. - Aristotle",
+    "Waste no more time arguing what a good man should be. Be one. - Marcus Aurelius",
+    "The happiness of your life depends upon the quality of your thoughts. - Marcus Aurelius",
+    "It is not that we have a short time to live, but that we waste a lot of it. - Seneca",
+    "Luck is what happens when preparation meets opportunity. - Seneca",
+    "No man ever steps in the same river twice. - Heraclitus",
+    "The journey of a thousand miles begins with one step. - Lao Tzu",
+    "Simplicity is the ultimate sophistication. - Leonardo da Vinci",
+    "I think, therefore I am. - René Descartes",
+    "Be the change that you wish to see in the world. - Mahatma Gandhi",
+};
+
+/// True when `content` is one of `retired_seed_texts`
+pub fn isRetiredSeed(content: []const u8) bool {
+    for (retired_seed_texts) |t| {
+        if (std.mem.eql(u8, t, content)) return true;
+    }
+    return false;
+}
+
 /// Language from a file name suffix: "seneca.it.txt" -> "it", "x.pt_BR.json" -> "pt-BR".
 /// Only ISO 639-1 languages with an optional 2-letter region are accepted,
 /// so names like "quotes.v2.txt" or "best.of.txt" never become languages.
@@ -481,6 +509,12 @@ pub const QuoteStore = struct {
             };
 
             self.metadata.total_quotes_loaded += 1;
+
+            if (isRetiredSeed(quote.content)) {
+                self.log.info("retired_seed_skipped", .{ .path = path });
+                quote.deinit(self.allocator);
+                continue;
+            }
 
             // Check for duplicate: keep the first copy but merge its metadata,
             // so tags survive whatever order files are walked in
@@ -805,6 +839,41 @@ test "quote resolve: exact, plain language, never another language" {
     defer plain.deinit(allocator);
     try std.testing.expectEqualStrings("en", plain.resolve("en-US", "en").?.lang);
     try std.testing.expect(plain.resolve("it", "en") == null);
+}
+
+test "quote store skips retired seed lines and keeps the real originals" {
+    const allocator = std.testing.allocator;
+    const io = std.testing.io;
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+    // An API-managed file saved before the fix: the old English line as an original
+    try tmp.dir.writeFile(io, .{
+        .sub_path = "api-managed.json",
+        .data =
+        \\{"quotes":[{"text":"Well begun is half done. - Aristotle","lang":"en"},{"text":"Kept"}]}
+        ,
+    });
+    try tmp.dir.writeFile(io, .{
+        .sub_path = "seed.json",
+        .data =
+        \\[{"text":"ἡ δ᾽ ἀρχὴ λέγεται ἥμισυ εἶναι παντός. - Ἀριστοτέλης","lang":"grc","translations":{"en":"The beginning is said to be half of the whole. - Aristotle"}}]
+        ,
+    });
+
+    var path_buf: [4096]u8 = undefined;
+    const tmp_path_len = try tmp.dir.realPath(io, &path_buf);
+    const dirs = [_][]const u8{path_buf[0..tmp_path_len]};
+
+    var store = QuoteStore.init(allocator);
+    defer store.deinit();
+    try store.build(&dirs);
+
+    try std.testing.expectEqual(@as(usize, 2), store.count());
+    for (store.quotes.items) |q| {
+        try std.testing.expect(!std.mem.startsWith(u8, q.content, "Well begun"));
+        if (q.lang) |l| try std.testing.expectEqualStrings("grc", l);
+    }
 }
 
 test "fileLanguage" {

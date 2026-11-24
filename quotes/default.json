@@ -1,82 +1,91 @@
 [
   {
-    "text": "The unexamined life is not worth living. - Socrates",
-    "lang": "en",
+    "text": "ὁ δὲ ἀνεξέταστος βίος οὐ βιωτὸς ἀνθρώπῳ. - Σωκράτης",
+    "lang": "grc",
     "translations": {
+      "en": "The unexamined life is not worth living. - Socrates",
       "it": "Una vita senza ricerca non è degna di essere vissuta. - Socrate",
       "fr": "Une vie sans examen ne vaut pas la peine d'être vécue. - Socrate"
     }
   },
   {
-    "text": "Well begun is half done. - Aristotle",
-    "lang": "en",
+    "text": "ἡ δ᾽ ἀρχὴ λέγεται ἥμισυ εἶναι παντός. - Ἀριστοτέλης",
+    "lang": "grc",
     "translations": {
-      "it": "Chi ben comincia è a metà dell'opera. - Aristotele",
-      "fr": "Bien commencé est à moitié fait. - Aristote"
+      "en": "The beginning is said to be half of the whole. - Aristotle",
+      "it": "Si dice che il principio sia la metà del tutto. - Aristotele",
+      "fr": "On dit que le commencement est la moitié du tout. - Aristote"
     }
   },
   {
-    "text": "Knowing yourself is the beginning of all wisdom. - Aristotle",
-    "lang": "en",
+    "text": "Πάντες ἄνθρωποι τοῦ εἰδέναι ὀρέγονται φύσει. - Ἀριστοτέλης",
+    "lang": "grc",
     "translations": {
-      "it": "Conoscere se stessi è l'inizio di ogni saggezza. - Aristotele",
-      "fr": "Se connaître soi-même est le début de toute sagesse. - Aristote"
+      "en": "All men by nature desire to know. - Aristotle",
+      "it": "Tutti gli uomini per natura desiderano sapere. - Aristotele",
+      "fr": "Tous les hommes désirent naturellement savoir. - Aristote"
     }
   },
   {
-    "text": "Waste no more time arguing what a good man should be. Be one. - Marcus Aurelius",
-    "lang": "en",
+    "text": "Μηκέτι ὅλως περὶ τοῦ οἷόν τινα εἶναι τὸν ἀγαθὸν ἄνδρα διαλέγεσθαι, ἀλλὰ εἶναι τοιοῦτον. - Μάρκος Αὐρήλιος",
+    "lang": "grc",
     "translations": {
-      "it": "Non perdere altro tempo a discutere su come debba essere un uomo buono. Sii uno. - Marco Aurelio",
-      "fr": "Ne perds plus de temps à discuter de ce que doit être un homme de bien. Sois-en un. - Marc Aurèle"
+      "en": "Waste no more time arguing what a good man should be. Be one. - Marcus Aurelius",
+      "it": "Non perdere altro tempo a discutere su come debba essere un uomo buono: sii tale. - Marco Aurelio",
+      "fr": "Ne discute plus du tout sur ce que doit être l'homme de bien, mais sois-le. - Marc Aurèle"
     }
   },
   {
-    "text": "The happiness of your life depends upon the quality of your thoughts. - Marcus Aurelius",
-    "lang": "en",
+    "text": "Ὁποῖα ἂν πολλάκις φαντασθῇς, τοιαύτη σοι ἔσται ἡ διάνοια· βάπτεται γὰρ ὑπὸ τῶν φαντασιῶν ἡ ψυχή. - Μάρκος Αὐρήλιος",
+    "lang": "grc",
     "translations": {
-      "it": "La felicità della tua vita dipende dalla qualità dei tuoi pensieri. - Marco Aurelio",
-      "fr": "Le bonheur de ta vie dépend de la qualité de tes pensées. - Marc Aurèle"
+      "en": "Such as are your habitual thoughts, such also will be the character of your mind; for the soul is dyed by the thoughts. - Marcus Aurelius",
+      "it": "Quali sono i tuoi pensieri abituali, tale sarà la tua mente: l'anima infatti si tinge dei pensieri. - Marco Aurelio",
+      "fr": "Telles sont tes pensées habituelles, tel sera ton esprit ; car l'âme se teint de ses pensées. - Marc Aurèle"
     }
   },
   {
-    "text": "It is not that we have a short time to live, but that we waste a lot of it. - Seneca",
-    "lang": "en",
+    "text": "Non exiguum temporis habemus, sed multum perdidimus. - Seneca",
+    "lang": "la",
     "translations": {
-      "it": "Non è che abbiamo poco tempo da vivere, ma che ne sprechiamo molto. - Seneca",
-      "fr": "Ce n'est pas que nous ayons peu de temps à vivre, c'est que nous en perdons beaucoup. - Sénèque"
+      "en": "It is not that we have a short time to live, but that we waste a lot of it. - Seneca",
+      "it": "Non è che abbiamo poco tempo, ma che ne perdiamo molto. - Seneca",
+      "fr": "Ce n'est pas que nous ayons peu de temps, c'est que nous en perdons beaucoup. - Sénèque"
     }
   },
   {
-    "text": "Luck is what happens when preparation meets opportunity. - Seneca",
-    "lang": "en",
+    "text": "Omnia, Lucili, aliena sunt, tempus tantum nostrum est. - Seneca",
+    "lang": "la",
     "translations": {
-      "it": "La fortuna è ciò che accade quando la preparazione incontra l'opportunità. - Seneca",
-      "fr": "La chance, c'est quand la préparation rencontre l'opportunité. - Sénèque"
+      "en": "Everything, Lucilius, belongs to others; time alone is ours. - Seneca",
+      "it": "Tutto, Lucilio, ci è estraneo; solo il tempo è nostro. - Seneca",
+      "fr": "Tout, Lucilius, nous est étranger ; le temps seul est à nous. - Sénèque"
     }
   },
   {
-    "text": "No man ever steps in the same river twice. - Heraclitus",
-    "lang": "en",
+    "text": "Ποταμῷ γὰρ οὐκ ἔστιν ἐμβῆναι δὶς τῷ αὐτῷ. - Ἡράκλειτος",
+    "lang": "grc",
     "translations": {
-      "it": "Nessun uomo si bagna mai due volte nello stesso fiume. - Eraclito",
-      "fr": "On ne se baigne jamais deux fois dans le même fleuve. - Héraclite"
+      "en": "It is not possible to step twice into the same river. - Heraclitus",
+      "it": "Non è possibile discendere due volte nello stesso fiume. - Eraclito",
+      "fr": "On ne peut pas entrer deux fois dans le même fleuve. - Héraclite"
     }
   },
   {
-    "text": "The journey of a thousand miles begins with one step. - Lao Tzu",
-    "lang": "en",
+    "text": "千里之行，始於足下。 - 老子",
+    "lang": "lzh",
     "translations": {
-      "it": "Un viaggio di mille miglia comincia con un solo passo. - Lao Tzu",
-      "fr": "Un voyage de mille lieues commence toujours par un premier pas. - Lao Tseu"
+      "en": "A journey of a thousand li begins beneath one's feet. - Laozi",
+      "it": "Un viaggio di mille li comincia sotto i propri piedi. - Laozi",
+      "fr": "Un voyage de mille li commence sous ses pieds. - Lao Tseu"
     }
   },
   {
-    "text": "Simplicity is the ultimate sophistication. - Leonardo da Vinci",
-    "lang": "en",
+    "text": "La sapienza è figliola della sperienza. - Leonardo da Vinci",
+    "lang": "it",
     "translations": {
-      "it": "La semplicità è la suprema sofisticazione. - Leonardo da Vinci",
-      "fr": "La simplicité est la sophistication suprême. - Léonard de Vinci"
+      "en": "Wisdom is the daughter of experience. - Leonardo da Vinci",
+      "fr": "La sagesse est fille de l'expérience. - Léonard de Vinci"
     }
   },
   {
@@ -104,11 +113,11 @@
     }
   },
   {
-    "text": "Be the change that you wish to see in the world. - Mahatma Gandhi",
+    "text": "Non-violence is the greatest force at the disposal of mankind. It is mightier than the mightiest weapon of destruction devised by the ingenuity of man. - Mahatma Gandhi",
     "lang": "en",
     "translations": {
-      "it": "Sii il cambiamento che vuoi vedere nel mondo. - Mahatma Gandhi",
-      "fr": "Soyez le changement que vous voulez voir dans le monde. - Mahatma Gandhi"
+      "it": "La non violenza è la più grande forza a disposizione dell'umanità. È più potente della più potente arma di distruzione escogitata dall'ingegno dell'uomo. - Mahatma Gandhi",
+      "fr": "La non-violence est la plus grande force à la disposition de l'humanité. Elle est plus puissante que l'arme de destruction la plus puissante conçue par l'ingéniosité de l'homme. - Mahatma Gandhi"
     }
   },
   {

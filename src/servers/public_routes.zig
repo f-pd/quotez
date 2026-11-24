@@ -137,12 +137,26 @@ const Filter = struct {
             if (!q.hasTag(tag)) return false;
         }
         if (self.author) |needle| {
-            const hay = q.author orelse inferAuthor(q.content) orelse return false;
-            if (std.ascii.findIgnoreCase(hay, needle) == null) return false;
+            if (!authorMatches(q, needle)) return false;
         }
         return true;
     }
 };
+
+/// Author filter: the author field, else the "Text - Author" suffix of the
+/// original or of any translation (so ?author=aristotle finds Ἀριστοτέλης)
+fn authorMatches(q: *const quote_store.Quote, needle: []const u8) bool {
+    if (q.author) |a| return std.ascii.findIgnoreCase(a, needle) != null;
+    if (inferAuthor(q.content)) |a| {
+        if (std.ascii.findIgnoreCase(a, needle) != null) return true;
+    }
+    for (q.translations) |t| {
+        if (inferAuthor(t.text)) |a| {
+            if (std.ascii.findIgnoreCase(a, needle) != null) return true;
+        }
+    }
+    return false;
+}
 
 /// Best effort author for plain-text quotes written as "Text - Author"
 fn inferAuthor(content: []const u8) ?[]const u8 {
