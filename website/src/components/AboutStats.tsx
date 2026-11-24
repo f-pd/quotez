@@ -111,10 +111,7 @@ export function AboutStats({ t, locale }: { t: AboutText; locale: string }) {
                 ))}
                 {stats.image.local && (
                   <li>
-                    {t.imageLocal(
-                      formatBytes(stats.image.local.uncompressed_bytes, locale),
-                      formatBytes(stats.image.local.binary_bytes, locale),
-                    )}
+                    {t.imageLocal(formatBytes(stats.image.local.binary_bytes, locale))}
                   </li>
                 )}
               </ul>

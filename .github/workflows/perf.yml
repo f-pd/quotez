@@ -112,7 +112,7 @@ jobs:
           docker pull --platform linux/amd64 "$IMAGE:${{ needs.target.outputs.tag }}"
           docker tag "$IMAGE:${{ needs.target.outputs.tag }}" quotez:perf
 
-      - name: Measure image size
+      - name: Measure image and binary size
         run: |
           mkdir -p perf-results
           ref="$IMAGE:${{ needs.target.outputs.tag }}"

@@ -25,7 +25,7 @@ export type AboutText = {
   noData: string;
   imageTitle: string;
   imageCompressed: (size: string, platform: string) => string;
-  imageLocal: (image: string, binary: string) => string;
+  imageLocal: (binary: string) => string;
   loadTitle: string;
   loadIntro: (cpu: string, cores: number, p95: number, step: string) => string;
   colLimits: string;
@@ -70,7 +70,7 @@ const ABOUT: Record<string, AboutText> = {
     noData: 'Measurements are not available yet: they appear after the next CI run.',
     imageTitle: 'Docker image',
     imageCompressed: (size, platform) => `${size} to download (${platform})`,
-    imageLocal: (image, binary) => `${image} on disk, of which ${binary} is the server binary`,
+    imageLocal: (binary) => `Server binary: ${binary} (static, linux/amd64)`,
     loadTitle: 'Load test',
     loadIntro: (cpu, cores, p95, step) =>
       `The real image runs with limited CPU and memory on a GitHub Actions runner (${cpu}, ${cores} cores). k6 opens QOTD connections over TCP at increasing rates, ${step} per step, until the server suffers: fewer than 99% of connections answered, p95 latency over ${p95} ms, or less than 95% of the requested rate served. The load generator runs on the same machine, so the highest figures may be its limit rather than the server\u2019s.`,
@@ -123,7 +123,7 @@ const ABOUT: Record<string, AboutText> = {
     noData: 'Le misure non sono ancora disponibili: compaiono dopo la prossima esecuzione della CI.',
     imageTitle: 'Immagine Docker',
     imageCompressed: (size, platform) => `${size} da scaricare (${platform})`,
-    imageLocal: (image, binary) => `${image} su disco, di cui ${binary} di binario del server`,
+    imageLocal: (binary) => `Binario del server: ${binary} (statico, linux/amd64)`,
     loadTitle: 'Test di carico',
     loadIntro: (cpu, cores, p95, step) =>
       `L\u2019immagine vera gira con CPU e memoria limitate su un runner GitHub Actions (${cpu}, ${cores} core). k6 apre connessioni QOTD via TCP a ritmo crescente, ${step} per gradino, finché il server non soffre: meno del 99% di connessioni servite, latenza p95 sopra ${p95} ms, o meno del 95% del ritmo richiesto. Il generatore di carico gira sulla stessa macchina, quindi i valori più alti possono essere il suo limite e non quello del server.`,
@@ -176,7 +176,7 @@ const ABOUT: Record<string, AboutText> = {
     noData: 'Les mesures ne sont pas encore disponibles : elles apparaîtront après la prochaine exécution de la CI.',
     imageTitle: 'Image Docker',
     imageCompressed: (size, platform) => `${size} à télécharger (${platform})`,
-    imageLocal: (image, binary) => `${image} sur disque, dont ${binary} pour le binaire du serveur`,
+    imageLocal: (binary) => `Binaire du serveur : ${binary} (statique, linux/amd64)`,
     loadTitle: 'Test de charge',
     loadIntro: (cpu, cores, p95, step) =>
       `La vraie image tourne avec CPU et mémoire limités sur un runner GitHub Actions (${cpu}, ${cores} cœurs). k6 ouvre des connexions QOTD en TCP à un rythme croissant, ${step} par palier, jusqu\u2019à ce que le serveur souffre : moins de 99 % de connexions servies, latence p95 au-delà de ${p95} ms, ou moins de 95 % du rythme demandé. Le générateur de charge tourne sur la même machine, donc les valeurs les plus hautes peuvent être sa limite plutôt que celle du serveur.`,
