@@ -19,6 +19,8 @@ export type LocalizedQuote = {
   translated: boolean;
   /** Text in its original language, present when `translated` */
   original?: string;
+  /** Book, speech or work the quote comes from, with a reference */
+  work?: string | null;
 };
 
 /** RFC 865 limit: quotes longer than this many UTF-8 bytes are web only */
@@ -56,15 +58,26 @@ export function matchSupported(tag: string, supported: string[]): string | null 
   return supported.find((s) => baseLanguage(s) === b) ?? null;
 }
 
-/** Human name of a language in that same language, e.g. "italiano" */
+/** Names for languages some browsers' Intl data lacks (keyed by display language) */
+const EXTRA_NAMES: Record<string, Record<string, string>> = {
+  grc: { en: 'Ancient Greek', it: 'greco antico', fr: 'grec ancien', grc: 'Ἑλληνική' },
+  la: { en: 'Latin', it: 'latino', fr: 'latin', la: 'Latina' },
+  lzh: { en: 'Classical Chinese', it: 'cinese classico', fr: 'chinois classique', lzh: '文言' },
+};
+
+/** Human name of a language, in `displayIn` (default: the language itself) */
 export function languageName(tag: string, displayIn?: string): string {
+  const shownIn = displayIn ?? tag;
+  const capitalize = (name: string) => name.charAt(0).toLocaleUpperCase(shownIn) + name.slice(1);
   try {
-    const names = new Intl.DisplayNames([displayIn ?? tag], { type: 'language' });
+    const names = new Intl.DisplayNames([shownIn], { type: 'language', fallback: 'none' });
     const name = names.of(tag);
-    if (name) return name.charAt(0).toLocaleUpperCase(displayIn ?? tag) + name.slice(1);
+    if (name && name.toLowerCase() !== tag.toLowerCase()) return capitalize(name);
   } catch {
     /* unknown tag */
   }
+  const extra = EXTRA_NAMES[baseLanguage(tag)];
+  if (extra) return capitalize(extra[baseLanguage(shownIn)] ?? extra.en ?? tag);
   return tag;
 }
 

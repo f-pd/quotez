@@ -34,6 +34,9 @@ pub const Quote = struct {
     lang: ?[]const u8 = null,
     /// Translations, at most one per language, never in the original language
     translations: []const Translation = &.{},
+    /// Where the quote comes from: work, book or speech with a precise
+    /// reference when known, e.g. "Seneca, Epistulae ad Lucilium 1.3"
+    work: ?[]const u8 = null,
 
     /// Create a new quote from content
     pub fn init(allocator: std.mem.Allocator, content: []const u8, source_path: ?[]const u8) !Quote {
@@ -110,6 +113,16 @@ pub const Quote = struct {
         return q;
     }
 
+    /// Set or clear the source work (trimmed; empty clears it)
+    pub fn setWork(self: *Quote, allocator: std.mem.Allocator, raw: ?[]const u8) !void {
+        const new: ?[]const u8 = if (raw) |w| blk: {
+            const trimmed = std.mem.trim(u8, w, " \t\n\r");
+            break :blk if (trimmed.len == 0) null else try allocator.dupe(u8, trimmed);
+        } else null;
+        if (self.work) |old| allocator.free(old);
+        self.work = new;
+    }
+
     /// Replace all translations (raw input, canonicalized and deduplicated)
     pub fn setTranslations(self: *Quote, allocator: std.mem.Allocator, raw: []const Translation) !void {
         var list: std.ArrayList(Translation) = .empty;
@@ -180,6 +193,7 @@ pub const Quote = struct {
         freeTags(allocator, self.tags);
         if (self.lang) |l| allocator.free(l);
         freeTranslations(allocator, self.translations);
+        if (self.work) |w| allocator.free(w);
     }
 
     /// Merge author/tags/language/translations of a duplicate into this quote
@@ -187,6 +201,9 @@ pub const Quote = struct {
     pub fn mergeMeta(self: *Quote, allocator: std.mem.Allocator, other: Quote) !void {
         if (self.author == null) {
             if (other.author) |a| self.author = try allocator.dupe(u8, a);
+        }
+        if (self.work == null) {
+            if (other.work) |w| self.work = try allocator.dupe(u8, w);
         }
         if (self.lang == null) {
             if (other.lang) |l| {
@@ -501,11 +518,15 @@ pub const QuoteStore = struct {
             const lang = meta.lang orelse file_lang;
 
             // Create quote with hash
-            const quote = Quote.initFull(self.allocator, quote_content, path, meta.author, tag_buf.items, lang, meta.translations) catch |err| {
+            var quote = Quote.initFull(self.allocator, quote_content, path, meta.author, tag_buf.items, lang, meta.translations) catch |err| {
                 if (err != error.EmptyQuote) {
                     self.log.warn("quote_init_failed", .{ .path = path, .err = @errorName(err) });
                 }
                 continue;
+            };
+            quote.setWork(self.allocator, meta.work) catch |err| {
+                quote.deinit(self.allocator);
+                return err;
             };
 
             self.metadata.total_quotes_loaded += 1;
@@ -857,7 +878,7 @@ test "quote store skips retired seed lines and keeps the real originals" {
     try tmp.dir.writeFile(io, .{
         .sub_path = "seed.json",
         .data =
-        \\[{"text":"ἡ δ᾽ ἀρχὴ λέγεται ἥμισυ εἶναι παντός. - Ἀριστοτέλης","lang":"grc","translations":{"en":"The beginning is said to be half of the whole. - Aristotle"}}]
+        \\[{"text":"ἡ δ᾽ ἀρχὴ λέγεται ἥμισυ εἶναι παντός. - Ἀριστοτέλης","lang":"grc","work":"Aristotle, Politics V, 1303b","translations":{"en":"The beginning is said to be half of the whole. - Aristotle"}}]
         ,
     });
 
@@ -872,7 +893,10 @@ test "quote store skips retired seed lines and keeps the real originals" {
     try std.testing.expectEqual(@as(usize, 2), store.count());
     for (store.quotes.items) |q| {
         try std.testing.expect(!std.mem.startsWith(u8, q.content, "Well begun"));
-        if (q.lang) |l| try std.testing.expectEqualStrings("grc", l);
+        if (q.lang) |l| {
+            try std.testing.expectEqualStrings("grc", l);
+            try std.testing.expectEqualStrings("Aristotle, Politics V, 1303b", q.work.?);
+        }
     }
 }
 

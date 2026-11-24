@@ -35,7 +35,7 @@ pub const help_text =
     \\  TCP/UDP port 17 (standard). Connect (TCP) or send any datagram (UDP)
     \\  and receive one quote in its original language. RFC 865 has no
     \\  commands: a client that sends nothing gets the standard reply.
-    \\  Optional extension: send one line "[locale] [n count]", e.g.
+    \\  Optional extension: send one line "[locale] [n count]" or "help", e.g.
     \\    echo it | nc host 17          one quote in Italian
     \\    echo "it-IT n 3" | nc host 17 three quotes in Italian
     \\  (UDP: put the same text in the datagram). Quotes longer than 511
@@ -58,8 +58,9 @@ pub const help_text =
     \\  written in it-IT or, failing that, in it; /it also accepts regional
     \\  Italian. Quotes with no text in the requested language are skipped,
     \\  never shown in another language (404 when none is left). JSON replies
-    \\  carry "lang", "original_lang", "translated" and, for translations,
-    \\  "original" with the text in its original language.
+    \\  carry "lang", "original_lang", "translated", "work" (the book or
+    \\  speech the quote comes from) and, for translations, "original" with
+    \\  the text in its original language.
     \\
     \\Query parameters for /quote and /n/:num
     \\  tag=a,b           only quotes carrying every listed tag (repeatable)
@@ -381,6 +382,8 @@ fn appendQuoteJson(buf: *std.ArrayList(u8), allocator: std.mem.Allocator, q: *co
     try appendJsonString(buf, allocator, q.lang orelse runtime.state.default_locale);
     try buf.appendSlice(allocator, if (chosen.translated) ",\"translated\":true,\"original\":" else ",\"translated\":false");
     if (chosen.translated) try appendJsonString(buf, allocator, q.content);
+    try buf.appendSlice(allocator, ",\"work\":");
+    if (q.work) |w| try appendJsonString(buf, allocator, w) else try buf.appendSlice(allocator, "null");
     try buf.appendSlice(allocator, ",\"author\":");
     if (q.author) |a| try appendJsonString(buf, allocator, a) else try buf.appendSlice(allocator, "null");
     try buf.appendSlice(allocator, ",\"tags\":[");
@@ -653,7 +656,7 @@ test "public routes - json format" {
     defer one.deinit(std.testing.allocator);
     try std.testing.expectEqualStrings("application/json", one.content_type);
     try std.testing.expectEqualStrings(
-        "{\"text\":\"Luck is preparation.\",\"lang\":\"en\",\"original_lang\":\"en\",\"translated\":false,\"author\":\"Seneca\",\"tags\":[\"philosophy\",\"stoic\"]}",
+        "{\"text\":\"Luck is preparation.\",\"lang\":\"en\",\"original_lang\":\"en\",\"translated\":false,\"work\":null,\"author\":\"Seneca\",\"tags\":[\"philosophy\",\"stoic\"]}",
         one.body,
     );
 
@@ -734,7 +737,7 @@ test "public routes - locale prefix never serves another language" {
     const fr = (try testHandle(&store, "GET", "/quote?lang=fr&format=json", "")).?;
     defer fr.deinit(std.testing.allocator);
     try std.testing.expectEqualStrings(
-        "{\"text\":\"Vous n'avez pas été faits pour vivre comme des brutes\",\"lang\":\"fr\",\"original_lang\":\"it\",\"translated\":true,\"original\":\"Fatti non foste a viver come bruti\",\"author\":\"Dante\",\"tags\":[]}",
+        "{\"text\":\"Vous n'avez pas été faits pour vivre comme des brutes\",\"lang\":\"fr\",\"original_lang\":\"it\",\"translated\":true,\"original\":\"Fatti non foste a viver come bruti\",\"work\":null,\"author\":\"Dante\",\"tags\":[]}",
         fr.body,
     );
 }

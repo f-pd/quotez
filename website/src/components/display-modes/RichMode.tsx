@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ModeLabels } from '../../lib/i18n';
+import { SmoothSwap } from '../SmoothSwap';
 import '../../styles/rich.css';
 
 interface RichModeProps {
@@ -8,11 +9,17 @@ interface RichModeProps {
   error: boolean;
   onNewQuote: () => void;
   labels?: ModeLabels;
+  /** Source work shown under the author */
+  work?: string | null;
+  /** Changes on every new quote */
+  quoteId?: number;
+  /** True while the original language is shown instead of the translation */
+  showingOriginal?: boolean;
 }
 
 const DEFAULT_LABELS: ModeLabels = { newQuote: 'New Quote', loading: 'Loading...', couldNotLoad: 'Could not load quote', retry: 'Retry' };
 
-export function RichMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS }: RichModeProps) {
+export function RichMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS, work, quoteId = 0, showingOriginal = false }: RichModeProps) {
   const [visible, setVisible] = useState(false);
   const [quoteCount, setQuoteCount] = useState(0);
   const [typed, setTyped] = useState(0);
@@ -29,18 +36,28 @@ export function RichMode({ quote, loading, error, onNewQuote, labels = DEFAULT_L
 
   // Typewriter effect that reveals characters one by one, so long quotes
   // wrap onto several lines instead of being clipped on a single line.
+  const lastQuoteId = useRef(quoteId);
   useEffect(() => {
     setTyped(0);
     if (!quote || loading || error) return;
+    // Switching translation/original: wait for the old text to fade out
+    const delay = lastQuoteId.current === quoteId ? 280 : 0;
+    lastQuoteId.current = quoteId;
     const total = quote.length;
     const step = Math.max(10, Math.min(40, 2000 / Math.max(total, 1)));
     let n = 0;
-    const timer = setInterval(() => {
-      n += 1;
-      setTyped(n);
-      if (n >= total) clearInterval(timer);
-    }, step);
-    return () => clearInterval(timer);
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const start = setTimeout(() => {
+      timer = setInterval(() => {
+        n += 1;
+        setTyped(n);
+        if (n >= total) clearInterval(timer);
+      }, step);
+    }, delay);
+    return () => {
+      clearTimeout(start);
+      if (timer) clearInterval(timer);
+    };
   }, [quote, loading, error]);
 
   const renderContent = () => {
@@ -75,8 +92,9 @@ export function RichMode({ quote, loading, error, onNewQuote, labels = DEFAULT_L
     return (
       <div className={`rich-card ${visible ? 'visible' : ''}`}>
         <div className="rich-counter" data-testid="quote-counter">
-          Quote #{quoteCount}
+          Quote #{quoteId || quoteCount}
         </div>
+        <SmoothSwap swapKey={`${quoteId}:${showingOriginal}`}>
         <div className="rich-quote-wrapper">
           <div className="rich-quote" data-testid="quote-text" aria-label={text}>
             <span aria-hidden="true">{text.slice(0, typed)}</span>
@@ -88,7 +106,13 @@ export function RichMode({ quote, loading, error, onNewQuote, labels = DEFAULT_L
               — {author}
             </div>
           )}
+          {work && (
+            <cite className="quote-work rich-work" data-testid="quote-work">
+              {work}
+            </cite>
+          )}
         </div>
+        </SmoothSwap>
         <button 
           className="rich-button" 
           data-testid="new-quote-btn" 

@@ -267,10 +267,10 @@ test "backoffice: languages, translations and the QOTD locale extension" {
 
     // Create an Italian quote with an English translation
     var resp = try http2(&server, jsonRequest("POST", "/api/quotes",
-        \\{"text":"Fatti non foste a viver come bruti","author":"Dante","lang":"it","translations":{"en":"You were not made to live as brutes"}}
+        \\{"text":"Fatti non foste a viver come bruti","author":"Dante","work":"Inferno XXVI, 119","lang":"it","translations":{"en":"You were not made to live as brutes"}}
     ), &hbuf);
     try testing.expect(contains(resp, "201 Created"));
-    try testing.expect(contains(body(resp), "\"lang\":\"it\",\"original_lang\":\"it\",\"translations\":{\"en\":\"You were not made to live as brutes\"}"));
+    try testing.expect(contains(body(resp), "\"lang\":\"it\",\"original_lang\":\"it\",\"work\":\"Inferno XXVI, 119\",\"translations\":{\"en\":\"You were not made to live as brutes\"}"));
 
     // Invalid language tags are rejected
     resp = try http2(&server, jsonRequest("POST", "/api/quotes",
@@ -285,16 +285,17 @@ test "backoffice: languages, translations and the QOTD locale extension" {
     resp = try http2(&server, jsonRequest("PUT", "/api/quotes/1", "{\"translations\":{\"en\":\"You were not made to live as brutes\",\"fr\":\"" ++ long_fr ++ "\"}}"), &hbuf);
     try testing.expect(contains(resp, "200 OK"));
     try testing.expect(contains(body(resp), "\"author\":\"Dante\""));
+    try testing.expect(contains(body(resp), "\"work\":\"Inferno XXVI, 119\""));
     try testing.expect(contains(body(resp), "\"fr\":\"Vous n'avez"));
 
     // Persisted file keeps language and translations for the next reload
     const saved = try std.Io.Dir.cwd().readFileAlloc(std.testing.io, api_path, allocator, .limited(1 << 20));
     defer allocator.free(saved);
-    try testing.expect(contains(saved, "\"lang\":\"it\",\"translations\":{\"en\":"));
+    try testing.expect(contains(saved, "\"work\":\"Inferno XXVI, 119\",\"lang\":\"it\",\"translations\":{\"en\":"));
 
     // HTTP: locale prefix, translation with the original attached
     resp = try http2(&server, "GET /en-US/n/10?format=json HTTP/1.1\r\n\r\n", &hbuf);
-    try testing.expect(contains(body(resp), "\"text\":\"You were not made to live as brutes\",\"lang\":\"en\",\"original_lang\":\"it\",\"translated\":true,\"original\":\"Fatti non foste a viver come bruti\""));
+    try testing.expect(contains(body(resp), "\"text\":\"You were not made to live as brutes\",\"lang\":\"en\",\"original_lang\":\"it\",\"translated\":true,\"original\":\"Fatti non foste a viver come bruti\",\"work\":\"Inferno XXVI, 119\""));
     try testing.expect(contains(body(resp), "\"text\":\"Well begun is half done.\""));
     resp = try http2(&server, "GET /it-IT/quote HTTP/1.1\r\n\r\n", &hbuf);
     try testing.expectEqualStrings("Fatti non foste a viver come bruti - Dante\n", body(resp));

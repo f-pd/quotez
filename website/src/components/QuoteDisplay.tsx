@@ -47,6 +47,7 @@ export function QuoteDisplay({ urlLocale, onLocaleChange }: QuoteDisplayProps) {
   const [locale, setLocale] = useState<string | null>(null);
   const [quote, setQuote] = useState<LocalizedQuote | null>(null);
   const [showOriginal, setShowOriginal] = useState(false);
+  const [quoteId, setQuoteId] = useState(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<'none' | 'failed' | 'no-quotes'>('none');
 
@@ -92,6 +93,7 @@ export function QuoteDisplay({ urlLocale, onLocaleChange }: QuoteDisplayProps) {
       }
       if (!response.ok) throw new Error('Failed to fetch quote');
       setQuote((await response.json()) as LocalizedQuote);
+      setQuoteId((n) => n + 1);
     } catch (err) {
       console.error('Error fetching quote:', err);
       setError('failed');
@@ -135,6 +137,9 @@ export function QuoteDisplay({ urlLocale, onLocaleChange }: QuoteDisplayProps) {
     error: error !== 'none',
     onNewQuote: fetchQuote,
     labels: modeLabels,
+    work: quote?.work ?? null,
+    quoteId,
+    showingOriginal: showOriginal,
   };
 
   const renderMode = () => {

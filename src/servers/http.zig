@@ -325,6 +325,8 @@ pub const HttpServer = struct {
         try appendNullableString(buf, a, q.lang);
         try buf.appendSlice(a, ",\"original_lang\":");
         try appendNullableString(buf, a, q.lang orelse runtime.state.default_locale);
+        try buf.appendSlice(a, ",\"work\":");
+        try appendNullableString(buf, a, q.work);
         try buf.appendSlice(a, ",\"translations\":{");
         for (q.translations, 0..) |tr, t| {
             if (t > 0) try buf.append(a, ',');
@@ -362,8 +364,13 @@ pub const HttpServer = struct {
                 return;
             }
 
-            const quote = quote_store.Quote.initFull(self.allocator, text, null, input.author, input.tags orelse &.{}, input.lang, input.translations orelse &.{}) catch {
+            var quote = quote_store.Quote.initFull(self.allocator, text, null, input.author, input.tags orelse &.{}, input.lang, input.translations orelse &.{}) catch {
                 try self.sendErrorResponse(client_fd, 400, "Bad Request", "Invalid quote");
+                return;
+            };
+            quote.setWork(self.allocator, input.work) catch {
+                quote.deinit(self.allocator);
+                try self.sendErrorResponse(client_fd, 500, "Internal Server Error", "Failed to add quote");
                 return;
             };
             if (self.store.indexOfHash(quote.hash) != null) {
@@ -426,7 +433,7 @@ pub const HttpServer = struct {
             const lang: ?[]const u8 = if (input.lang_set) input.lang else old.lang;
             const author: ?[]const u8 = if (input.author_set) input.author else old.author;
 
-            const quote = quote_store.Quote.initFull(
+            var quote = quote_store.Quote.initFull(
                 self.allocator,
                 text,
                 old.source_path,
@@ -436,6 +443,11 @@ pub const HttpServer = struct {
                 input.translations orelse old.translations,
             ) catch {
                 try self.sendErrorResponse(client_fd, 400, "Bad Request", "Invalid quote");
+                return;
+            };
+            quote.setWork(self.allocator, if (input.work_set) input.work else old.work) catch {
+                quote.deinit(self.allocator);
+                try self.sendErrorResponse(client_fd, 500, "Internal Server Error", "Failed to update quote");
                 return;
             };
             if (self.store.indexOfHash(quote.hash)) |other| {
@@ -506,6 +518,10 @@ pub const HttpServer = struct {
                         try json_buf.append(self.allocator, '"');
                     }
                     try json_buf.append(self.allocator, ']');
+                }
+                if (q.work) |work| {
+                    try json_buf.appendSlice(self.allocator, ",\"work\":");
+                    try appendNullableString(&json_buf, self.allocator, work);
                 }
                 if (q.lang) |lang| {
                     try json_buf.appendSlice(self.allocator, ",\"lang\":");
@@ -1172,7 +1188,7 @@ fn appendNullableString(buf: *std.ArrayList(u8), allocator: std.mem.Allocator, s
     try buf.append(allocator, '"');
 }
 
-/// Body of POST/PUT /api/quotes: {"text", "author", "tags", "lang", "translations"}.
+/// Body of POST/PUT /api/quotes: {"text", "author", "work", "tags", "lang", "translations"}.
 /// "translations" is an object {"en": "text"}; an empty string drops a language.
 /// All slices point into the parsed JSON (valid until `deinit`).
 const QuoteInput = struct {
@@ -1183,6 +1199,8 @@ const QuoteInput = struct {
     author_set: bool = false,
     lang: ?[]const u8 = null,
     lang_set: bool = false,
+    work: ?[]const u8 = null,
+    work_set: bool = false,
     tags: ?[]const []const u8 = null,
     translations: ?[]const quote_store.Translation = null,
 
@@ -1203,6 +1221,14 @@ const QuoteInput = struct {
             switch (v) {
                 .null => {},
                 .string => |str| self.author = if (std.mem.trim(u8, str, " ").len == 0) null else str,
+                else => return error.InvalidJson,
+            }
+        }
+        if (obj.get("work")) |v| {
+            self.work_set = true;
+            switch (v) {
+                .null => {},
+                .string => |str| self.work = if (std.mem.trim(u8, str, " ").len == 0) null else str,
                 else => return error.InvalidJson,
             }
         }

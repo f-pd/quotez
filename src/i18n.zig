@@ -116,6 +116,8 @@ pub const QotdRequest = struct {
     locale_buf: [max_tag_len]u8 = undefined,
     locale_len: usize = 0,
     count: usize = 1,
+    /// "help" or "?": describe the extension instead of sending a quote
+    help: bool = false,
 
     /// Requested locale (canonical), null for a plain request
     pub fn locale(self: *const QotdRequest) ?[]const u8 {
@@ -132,6 +134,11 @@ pub fn parseQotdRequest(raw: []const u8) QotdRequest {
     var expect_count = false;
     var index: usize = 0;
     while (tokens.next()) |tok| : (index += 1) {
+        if (index == 0 and (std.ascii.eqlIgnoreCase(tok, "help") or std.mem.eql(u8, tok, "?"))) {
+            if (tokens.next() != null) return .{};
+            req.help = true;
+            return req;
+        }
         if (index > 3) return .{}; // not our grammar: standard reply
         if (expect_count) {
             const n = std.fmt.parseInt(usize, tok, 10) catch return .{};
@@ -210,4 +217,8 @@ test "parseQotdRequest" {
     try std.testing.expectEqual(@as(usize, 1), r.count);
     r = parseQotdRequest("it n");
     try std.testing.expect(r.locale() == null);
+
+    try std.testing.expect(parseQotdRequest("HELP\r\n").help);
+    try std.testing.expect(parseQotdRequest("?").help);
+    try std.testing.expect(!parseQotdRequest("help me").help);
 }

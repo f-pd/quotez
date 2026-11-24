@@ -5,7 +5,8 @@ const parser = @import("parser.zig");
 /// Objects may also carry metadata: "author" (string), "category" (string)
 /// and "tags" (array of strings or comma-separated string), "lang" (original
 /// language, BCP 47 such as "it" or "it-IT") and "translations": either an
-/// object {"en": "text", "fr": "texte"} or an array [{"lang": "en", "text": "..."}].
+/// object {"en": "text", "fr": "texte"} or an array [{"lang": "en", "text": "..."}],
+/// and "work" (also "reference"/"citation"): the book or speech it comes from.
 pub fn parse(allocator: std.mem.Allocator, content: []const u8) !parser.ParseResult {
     var quotes: std.ArrayList([]const u8) = .empty;
     var metas: std.ArrayList(parser.QuoteMeta) = .empty;
@@ -134,6 +135,15 @@ fn extractMeta(allocator: std.mem.Allocator, obj: std.json.ObjectMap) !parser.Qu
     }
     errdefer if (lang) |l| allocator.free(l);
 
+    var work: ?[]const u8 = null;
+    if (obj.get("work") orelse obj.get("reference") orelse obj.get("citation")) |w| {
+        if (w == .string) {
+            const trimmed = std.mem.trim(u8, w.string, " \t\r\n");
+            if (trimmed.len > 0) work = try allocator.dupe(u8, trimmed);
+        }
+    }
+    errdefer if (work) |w| allocator.free(w);
+
     var translations: std.ArrayList(parser.Translation) = .empty;
     errdefer {
         for (translations.items) |t| {
@@ -163,6 +173,7 @@ fn extractMeta(allocator: std.mem.Allocator, obj: std.json.ObjectMap) !parser.Qu
     }
 
     return .{
+        .work = work,
         .lang = lang,
         .translations = if (translations.items.len == 0) blk: {
             translations.deinit(allocator);
@@ -193,7 +204,7 @@ test "json - language and translations" {
     const allocator = std.testing.allocator;
     const content =
         \\[
-        \\  {"quote": "Nel mezzo del cammin di nostra vita", "author": "Dante", "lang": "it",
+        \\  {"quote": "Nel mezzo del cammin di nostra vita", "author": "Dante", "lang": "it", "work": "Inferno I, 1",
         \\   "translations": {"en": "Midway upon the journey of our life", "fr": "Au milieu du chemin de notre vie"}},
         \\  {"text": "Carpe diem", "language": "la", "translations": [{"lang": "it-IT", "text": "Cogli l'attimo"}]}
         \\]
@@ -203,6 +214,7 @@ test "json - language and translations" {
 
     const m0 = result.meta(0);
     try std.testing.expectEqualStrings("it", m0.lang.?);
+    try std.testing.expectEqualStrings("Inferno I, 1", m0.work.?);
     try std.testing.expectEqual(@as(usize, 2), m0.translations.len);
     const m1 = result.meta(1);
     try std.testing.expectEqualStrings("la", m1.lang.?);

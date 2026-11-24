@@ -160,6 +160,36 @@ pub const Reply = struct {
     }
 };
 
+/// Help for the QOTD extension (kept under the RFC 865 size limit)
+fn qotdHelp(buf: []u8) []const u8 {
+    var langs: [96]u8 = undefined;
+    var n: usize = 0;
+    for (state.locales) |l| {
+        if (n + l.len + 1 > langs.len) break;
+        if (n > 0) {
+            langs[n] = ' ';
+            n += 1;
+        }
+        @memcpy(langs[n..][0..l.len], l);
+        n += l.len;
+    }
+    return std.fmt.bufPrint(buf,
+        \\quotez - Quote of the Day (RFC 865)
+        \\Send nothing: one quote in its original language.
+        \\Or send one line right after connecting:
+        \\  help | ?        this text
+        \\  <lang>          one quote in a language
+        \\  n <count>       up to {d} quotes
+        \\  <lang> n <count>
+        \\Languages: {s} (also it-IT, fr-FR...)
+        \\Examples:
+        \\  echo it | nc HOST 17
+        \\  echo "fr n 3" | nc HOST 17
+        \\  echo en | nc -u -w1 HOST 17
+        \\More, with filters, over HTTP: /help
+    , .{ i18n.qotd_max_count, langs[0..n] }) catch "quotez: send \"it\", \"fr n 3\" or nothing";
+}
+
 var qotd_prng: ?std.Random.DefaultPrng = null;
 
 fn qotdRandom() std.Random {
@@ -182,6 +212,12 @@ pub fn nextReply(
     trailer_buf: []u8,
 ) ?Reply {
     var reply: Reply = .{};
+    if (request) |r| {
+        if (r.help) {
+            reply.push(qotdHelp(msg_buf));
+            return reply;
+        }
+    }
     if (state.maintenance) {
         state.recordMaintenance();
         reply.push(state.maintenanceMessage());
@@ -310,6 +346,12 @@ test "nextReply honours locale, count and the RFC 865 size limit" {
     req = i18n.parseQotdRequest("fr");
     r = nextReply(&store, &sel, .tcp, &req, &msg, &trailer).?;
     try std.testing.expectEqualStrings("No quotes available in fr", r.body());
+
+    req = i18n.parseQotdRequest("help");
+    var help_buf: [512]u8 = undefined;
+    r = nextReply(&store, &sel, .tcp, &req, &help_buf, &trailer).?;
+    try std.testing.expect(std.mem.indexOf(u8, r.body(), "Languages: en it fr") != null);
+    try std.testing.expect(r.body().len <= i18n.qotd_max_bytes);
 
     req = i18n.parseQotdRequest("de");
     r = nextReply(&store, &sel, .tcp, &req, &msg, &trailer).?;

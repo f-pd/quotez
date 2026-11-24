@@ -121,7 +121,7 @@ pub const TcpServer = struct {
         const request = readRequest(client_fd);
 
         // Decide what to send (maintenance message, quote, debug trailer)
-        var msg_buf: [128]u8 = undefined;
+        var msg_buf: [512]u8 = undefined;
         var trailer_buf: [256]u8 = undefined;
         const reply = runtime.nextReply(self.store, self.selector, .tcp, &request, &msg_buf, &trailer_buf) orelse {
             // Empty store: close immediately without sending (per contract)

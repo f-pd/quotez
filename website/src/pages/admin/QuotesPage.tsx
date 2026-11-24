@@ -55,6 +55,7 @@ export function AdminQuotesPage() {
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
   const [formText, setFormText] = useState('');
   const [formAuthor, setFormAuthor] = useState('');
+  const [formWork, setFormWork] = useState('');
   const [formLang, setFormLang] = useState('');
   const [formTranslations, setFormTranslations] = useState<Record<string, string>>({});
   const [newTransLang, setNewTransLang] = useState('');
@@ -103,6 +104,7 @@ export function AdminQuotesPage() {
         (sourceFilter === 'all' || sourceLabel(q.source) === sourceFilter) &&
         (langFilter === 'all' ||
           (langFilter === 'web-only' && webOnlyLangs(q).length > 0) ||
+          (langFilter === 'no-work' && !q.work) ||
           (langFilter.startsWith('has:') && hasLanguage(q, langFilter.slice(4))) ||
           (langFilter.startsWith('missing:') && !hasLanguage(q, langFilter.slice(8)))) &&
         (!needle || q.text.toLowerCase().includes(needle)),
@@ -132,6 +134,7 @@ export function AdminQuotesPage() {
     setEditingQuote(null);
     setFormText('');
     setFormAuthor('');
+    setFormWork('');
     setFormLang('');
     setFormTranslations({});
     setIsFormOpen(true);
@@ -141,6 +144,7 @@ export function AdminQuotesPage() {
     setEditingQuote(quote);
     setFormText(quote.text);
     setFormAuthor(quote.author ?? '');
+    setFormWork(quote.work ?? '');
     setFormLang(quote.lang ?? '');
     setFormTranslations({ ...(quote.translations ?? {}) });
     setIsFormOpen(true);
@@ -197,6 +201,7 @@ export function AdminQuotesPage() {
       const input = {
         text: formText,
         author: formAuthor.trim() || null,
+        work: formWork.trim() || null,
         lang: formLang || null,
         translations,
       };
@@ -269,6 +274,14 @@ export function AdminQuotesPage() {
               style={{ minWidth: 200 }}
             />
           </div>
+          <input
+            data-testid="quote-work"
+            className="input"
+            placeholder="Source: book, speech or work with a reference (e.g. Epistulae morales ad Lucilium 1.3)"
+            value={formWork}
+            onChange={(e) => setFormWork(e.target.value)}
+            style={{ width: '100%', marginTop: 'var(--spacing-sm)' }}
+          />
 
           <h3 style={{ marginTop: 'var(--spacing-lg)' }}>Translations</h3>
           <div className="muted small" style={{ marginBottom: 6 }}>
@@ -351,6 +364,7 @@ export function AdminQuotesPage() {
             </option>
           ))}
           <option value="web-only">Web only (over {QOTD_MAX_BYTES} bytes)</option>
+          <option value="no-work">Without source</option>
         </select>
       </div>
 
@@ -388,6 +402,15 @@ export function AdminQuotesPage() {
                   <td style={{ whiteSpace: 'pre-wrap' }}>
                     {quote.text}
                     {quote.author && !quote.text.includes(quote.author) && <span className="muted"> — {quote.author}</span>}
+                    {quote.work ? (
+                      <div className="muted small" style={{ fontStyle: 'italic' }}>
+                        {quote.work}
+                      </div>
+                    ) : (
+                      <div className="small" style={{ color: 'var(--color-danger, #e5484d)' }}>
+                        No source
+                      </div>
+                    )}
                   </td>
                   <td>
                     <span className="pill info" title={quote.lang ? 'Original language' : 'Original language not declared: default assumed'}>

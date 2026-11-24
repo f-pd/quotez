@@ -31,6 +31,8 @@ export type Quote = {
   /** File the quote was loaded from; null when added through the API */
   source?: string | null;
   author?: string | null;
+  /** Book, speech or work the quote comes from */
+  work?: string | null;
   tags?: string[];
   /** Original language as declared by the source; null = default locale assumed */
   lang?: string | null;
@@ -44,6 +46,7 @@ export type Quote = {
 export type QuoteInput = {
   text?: string;
   author?: string | null;
+  work?: string | null;
   lang?: string | null;
   tags?: string[];
   translations?: Record<string, string>;

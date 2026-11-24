@@ -125,7 +125,7 @@ pub const UdpServer = struct {
         const request = i18n.parseQotdRequest(recv_buf[0..recv_len]);
 
         // Decide what to send (maintenance message, quote, debug trailer)
-        var msg_buf: [128]u8 = undefined;
+        var msg_buf: [512]u8 = undefined;
         var trailer_buf: [256]u8 = undefined;
         const reply = runtime.nextReply(self.store, self.selector, .udp, &request, &msg_buf, &trailer_buf) orelse {
             // Silent drop (no response per UDP semantics and contract)

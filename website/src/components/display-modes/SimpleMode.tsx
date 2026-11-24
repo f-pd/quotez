@@ -7,11 +7,13 @@ interface SimpleModeProps {
   error: boolean;
   onNewQuote: () => void;
   labels?: ModeLabels;
+  /** Source work shown under the author */
+  work?: string | null;
 }
 
 const DEFAULT_LABELS: ModeLabels = { newQuote: 'New Quote', loading: 'Loading...', couldNotLoad: 'Could not load quote', retry: 'Retry' };
 
-export function SimpleMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS }: SimpleModeProps) {
+export function SimpleMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS, work }: SimpleModeProps) {
   const renderContent = () => {
     if (loading && !quote) {
       return <div className="simple-status">{labels.loading}</div>;
@@ -50,6 +52,11 @@ export function SimpleMode({ quote, loading, error, onNewQuote, labels = DEFAULT
           <div className="simple-author">
             — {author}
           </div>
+        )}
+        {work && (
+          <cite className="quote-work simple-work" data-testid="quote-work">
+            {work}
+          </cite>
         )}
       </div>
     );

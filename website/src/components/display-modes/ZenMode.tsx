@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ModeLabels } from '../../lib/i18n';
+import { SmoothSwap } from '../SmoothSwap';
 import '../../styles/zen.css';
 
 interface ZenModeProps {
@@ -8,11 +9,17 @@ interface ZenModeProps {
   error: boolean;
   onNewQuote: () => void;
   labels?: ModeLabels;
+  /** Source work shown under the author */
+  work?: string | null;
+  /** Changes on every new quote */
+  quoteId?: number;
+  /** True while the original language is shown instead of the translation */
+  showingOriginal?: boolean;
 }
 
 const DEFAULT_LABELS: ModeLabels = { newQuote: 'New Quote', loading: 'Loading...', couldNotLoad: 'Could not load quote', retry: 'Retry' };
 
-export function ZenMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS }: ZenModeProps) {
+export function ZenMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LABELS, work, quoteId = 0, showingOriginal = false }: ZenModeProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -55,19 +62,26 @@ export function ZenMode({ quote, loading, error, onNewQuote, labels = DEFAULT_LA
     }
 
     return (
-      <div className="zen-quote-wrapper">
-        <div 
-          className={`zen-quote ${visible ? 'visible' : ''}`} 
-          data-testid="quote-text"
-        >
-          {text}
-        </div>
-        {author && (
-          <div className="zen-author">
-            — {author}
+      <SmoothSwap swapKey={`${quoteId}:${showingOriginal}`}>
+        <div className="zen-quote-wrapper">
+          <div 
+            className={`zen-quote ${visible ? 'visible' : ''}`} 
+            data-testid="quote-text"
+          >
+            {text}
           </div>
-        )}
-      </div>
+          {author && (
+            <div className="zen-author">
+              — {author}
+            </div>
+          )}
+          {work && (
+            <cite className="quote-work zen-work" data-testid="quote-work">
+              {work}
+            </cite>
+          )}
+        </div>
+      </SmoothSwap>
     );
   };
 

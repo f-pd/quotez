@@ -66,3 +66,40 @@
     bottom: calc(var(--spacing-lg) + 2.5rem);
   }
 }
+
+.quote-work {
+  display: block;
+  margin-top: var(--spacing-sm);
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.smooth-swap {
+  width: 100%;
+  overflow: clip;
+  overflow-clip-margin: 2rem;
+}
+
+.smooth-swap-inner {
+  transition-property: opacity, filter, transform;
+  transition-timing-function: ease;
+}
+
+.smooth-swap-inner.out {
+  opacity: 0;
+  filter: blur(6px);
+  transform: translateY(6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smooth-swap,
+  .smooth-swap-inner {
+    transition: none !important;
+  }
+}
+
+.rich-work {
+  padding-bottom: var(--spacing-lg);
+}
