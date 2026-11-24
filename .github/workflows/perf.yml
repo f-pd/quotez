@@ -1,0 +1,239 @@
+name: Perf
+
+# Measurements for the About page, run after CI has published and deployed
+# a commit of main (or by hand). Kept out of the CI workflow so frequent
+# pushes, which cancel CI runs in progress, do not cancel the measurements
+# too: runs here queue instead (see perf/README.md).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: perf
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  # Image tag of the commit CI just published (latest on manual runs)
+  target:
+    name: Pick the image
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.pick.outputs.sha }}
+      tag: ${{ steps.pick.outputs.tag }}
+    steps:
+      - id: pick
+        env:
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [ -n "$RUN_SHA" ]; then
+            echo "sha=$RUN_SHA" >> "$GITHUB_OUTPUT"
+            echo "tag=sha-${RUN_SHA::7}" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+  # k6 with the xk6-tcp extension, to speak raw QOTD over TCP
+  k6:
+    name: Build k6 (xk6-tcp)
+    needs: target
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - id: cache
+        uses: actions/cache@v4
+        with:
+          path: k6
+          key: k6-v1.0.0-xk6-tcp-v1.1.0-go1.24
+
+      # k6 v1.0.0 and xk6-tcp build with Go 1.24 (newer toolchains fail
+      # resolving k6's dependencies)
+      - if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: false
+
+      - name: Build k6
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          go install go.k6.io/xk6/cmd/xk6@v1.5.1
+          "$(go env GOPATH)/bin/xk6" build v1.0.0 --with github.com/NAlexandrov/xk6-tcp@v1.1.0 --output k6
+
+      - run: ./k6 version
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: k6-tcp
+          path: k6
+          retention-days: 1
+
+  # Where does the server start to suffer? The published image runs under
+  # several CPU/RAM limits (docker --cpus/--memory) on the runner and k6
+  # raises the QOTD rate until it degrades. Never run against production.
+  loadtest:
+    name: Load test (k6, limited containers)
+    needs: [target, k6]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.target.outputs.sha }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: k6-tcp
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull the image
+        run: |
+          chmod +x k6
+          docker pull --platform linux/amd64 "$IMAGE:${{ needs.target.outputs.tag }}"
+          docker tag "$IMAGE:${{ needs.target.outputs.tag }}" quotez:perf
+
+      - name: Measure image size
+        run: |
+          mkdir -p perf-results
+          ref="$IMAGE:${{ needs.target.outputs.tag }}"
+          # Compressed size per platform, as downloaded from GHCR
+          index=$(docker buildx imagetools inspect --raw "$ref")
+          platforms='[]'
+          for digest in $(jq -r '.manifests[] | select(.platform.os == "linux") | .digest' <<<"$index"); do
+            platform=$(jq -r --arg d "$digest" '.manifests[] | select(.digest == $d) | "\(.platform.os)/\(.platform.architecture)"' <<<"$index")
+            bytes=$(docker buildx imagetools inspect --raw "$IMAGE@$digest" | jq '[.layers[].size] | add + 0')
+            platforms=$(jq --arg p "$platform" --argjson b "$bytes" '. + [{platform: $p, compressed_bytes: $b}]' <<<"$platforms")
+          done
+          jq -n --argjson platforms "$platforms" '{platforms: $platforms}' > perf-results/image-registry.json
+          # Size on disk and size of the server binary (amd64)
+          id=$(docker create quotez:perf)
+          docker cp "$id:/quotez" ./quotez-bin
+          docker rm "$id" >/dev/null
+          jq -n --argjson image "$(docker image inspect -f '{{.Size}}' quotez:perf)" \
+            --argjson binary "$(stat -c %s quotez-bin)" \
+            '{platform: "linux/amd64", uncompressed_bytes: $image, binary_bytes: $binary}' > perf-results/image-local.json
+          cat perf-results/image-*.json
+
+      - name: Raise the QOTD rate under each profile
+        env:
+          GITHUB_SHA: ${{ needs.target.outputs.sha }}
+        run: IMAGE=quotez:perf K6=./k6 OUT=perf-results/ci-load.json ./perf/stress.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: perf-load
+          path: perf-results/
+
+  # A light check against production, which CI has just redeployed: a few
+  # QOTD exchanges per second on port 17 for 30 s, stopped early if errors
+  # pass 5%. It only measures latency from the GitHub runner; the stress
+  # test above is the one that looks for limits.
+  prod-smoke:
+    name: Production check (k6, light)
+    needs: [target, k6]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PROD_HOST: q.v.fulgid.us
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.target.outputs.sha }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: k6-tcp
+
+      - name: Wait for the deploy
+        run: |
+          sleep 60
+          for _ in $(seq 1 30); do
+            if curl -fsS -o /dev/null --max-time 10 "https://$PROD_HOST/"; then exit 0; fi
+            sleep 10
+          done
+          echo "site not answering, testing anyway"
+
+      - name: QOTD on port 17
+        env:
+          SHA: ${{ needs.target.outputs.sha }}
+        run: |
+          chmod +x k6
+          mkdir -p perf-results
+          TARGET=$PROD_HOST:17 RATE=10 DURATION=30s MAX_VUS=50 ABORT=1 OUT=perf-results/prod-raw.json \
+            ./k6 run --quiet --no-usage-report perf/qotd-tcp.js || true
+          test -s perf-results/prod-raw.json
+          jq --arg at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --arg commit "$SHA" --arg host "$PROD_HOST" \
+            '{measured_at: $at, commit: $commit, target: "\($host):17", from: "GitHub Actions runner"} + .' \
+            perf-results/prod-raw.json > perf-results/prod-smoke.json
+          rm perf-results/prod-raw.json
+          cat perf-results/prod-smoke.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: perf-prod
+          path: perf-results/prod-smoke.json
+
+  # Merge the measurements into stats.json on the "perf-stats" branch, which
+  # the website reads at runtime (/stats.json), so the About page shows the
+  # latest numbers without another build. Parts that did not run keep their
+  # previous values.
+  publish:
+    name: Publish measurements
+    needs: [target, loadtest, prod-smoke]
+    if: always() && (needs.loadtest.result == 'success' || needs.prod-smoke.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: perf-*
+          merge-multiple: true
+          path: new
+
+      - name: Merge into stats.json
+        env:
+          SHA: ${{ needs.target.outputs.sha }}
+          REPO_URL: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+        run: |
+          git clone --depth 1 --branch perf-stats "$REPO_URL" out \
+            || { git init -q -b perf-stats out && git -C out remote add origin "$REPO_URL"; }
+          old=out/stats.json
+          [ -s "$old" ] || echo '{}' > "$old"
+          pick() { if [ -s "new/$1" ]; then cat "new/$1"; else jq "$2" "$old"; fi; }
+          jq -n \
+            --arg at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --arg commit "$SHA" \
+            --argjson load "$(pick ci-load.json '.load_test // null')" \
+            --argjson local "$(pick image-local.json '.image.local // null')" \
+            --argjson registry "$(pick image-registry.json '.image.registry // null')" \
+            --argjson prod "$(pick prod-smoke.json '.production // null')" \
+            '{updated_at: $at, commit: $commit, image: {local: $local, registry: $registry}, load_test: $load, production: $prod}' > stats.json
+          mv stats.json out/stats.json
+          cat out/stats.json
+          cd out
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add stats.json
+          git commit -q -m "stats: ${SHA::7}" || exit 0
+          git push origin HEAD:perf-stats

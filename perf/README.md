@@ -1,8 +1,9 @@
 # Load tests
 
 CI measures how much QOTD traffic the server takes and publishes the numbers
-on the About page (`/about`). Everything runs in `.github/workflows/ci.yml`
-on every push to `main` (or by hand with "Run workflow").
+on the About page (`/about`). Everything runs in `.github/workflows/perf.yml`,
+after each CI run on `main` that published and deployed an image (or by hand
+with "Run workflow"). The load test uses the image CI just published.
 
 - `qotd-tcp.js`: k6 script. One iteration is one RFC 865 exchange over TCP
   (connect, empty request line, read the quote, close) at a constant rate.
