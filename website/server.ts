@@ -29,6 +29,35 @@ initDb(db);
 
 const distDir = path.join(import.meta.dir, "dist");
 
+// Build and load-test measurements for the About page. CI publishes them to
+// the perf-stats branch after every run on main; the server fetches and
+// caches them, so visitors never contact GitHub themselves.
+const STATS_URL =
+  process.env.STATS_URL ?? "https://raw.githubusercontent.com/f-pd/quotez/perf-stats/stats.json";
+const STATS_TTL_MS = 10 * 60 * 1000;
+let statsCache: { body: string; at: number } | null = null;
+
+async function serveStats(): Promise<Response> {
+  const headers = { "Content-Type": "application/json", "Cache-Control": "public, max-age=300" };
+  if (statsCache && Date.now() - statsCache.at < STATS_TTL_MS) {
+    return new Response(statsCache.body, { headers });
+  }
+  try {
+    const res = await fetch(STATS_URL, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const body = JSON.stringify(await res.json());
+    statsCache = { body, at: Date.now() };
+    return new Response(body, { headers });
+  } catch (err) {
+    console.warn("[server] stats unavailable:", err);
+    if (statsCache) return new Response(statsCache.body, { headers });
+    return new Response(JSON.stringify({ error: "Stats unavailable" }), {
+      status: 503,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}
+
 const PUBLIC_ROUTE = /^(?:\/help|\/tags|\/locales|(?:\/[A-Za-z]{2,3}(?:[-_][A-Za-z0-9]{1,8})*)?\/(?:quote|n\/[^/]*))$/;
 
 function serviceUnavailable(): Response {
@@ -136,6 +165,10 @@ const server = Bun.serve({
   async fetch(req) {
     const url = new URL(req.url);
     const { pathname, search } = url;
+
+    if (pathname === "/stats.json" && req.method === "GET") {
+      return serveStats();
+    }
 
     if (pathname === "/qotd") {
       try {

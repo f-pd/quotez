@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import { canonicalLocale, pickLocale } from '../lib/i18n';
 import { aboutFor, REPO_URL, RFC_URL } from '../lib/about';
+import { AboutStats } from '../components/AboutStats';
 import '../styles/about.css';
 
 const UI_LOCALES = { supported: ['en', 'it', 'fr'], default: 'en' };
@@ -44,8 +45,13 @@ export function AboutPage() {
           <code>{`nc ${host} 17\necho | nc -u -w1 ${host} 8017`}</code>
         </pre>
 
+        <h2>{t.independentTitle}</h2>
+        <p>{t.independent}</p>
+
         <h2>{t.siteTitle}</h2>
         <p>{t.site}</p>
+
+        <AboutStats t={t} locale={locale} />
 
         <h2>{t.licenseTitle}</h2>
         <p>{t.license}</p>
